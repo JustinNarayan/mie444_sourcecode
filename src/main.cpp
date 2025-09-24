@@ -1,18 +1,28 @@
+/**
+ * Includes
+ */
 #include <Arduino.h>
 
-// put function declarations here:
-int myFunction(int, int);
+#include "Wiring.h"
+#include "Errors.h"
+#include "CommsConfig.h" // either USE_SERIAL or USE_BLE
 
+/**
+ * Global objects
+ */
+CommsActive comms;
+
+/**
+ * @brief Global setup functions for board
+ */
 void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+  Wiring_Init();
+  comms.init(9600);
 }
 
+/**
+ * @brief Runtime loop for board
+ */
 void loop() {
-  // put your main code here, to run repeatedly:
-}
-
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
+  delay(1000);
 }

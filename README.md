@@ -13,3 +13,7 @@ Update the `upload_port` in `platformio.ini` when flashing the board to reflect 
 `pio run` => Compile project
 `pio run --target upload` or `pio run -t upload` => Compile project and upload firmware to board
 `pio run --target clean` or `pio run -t clean` => Remove firmware from board
+
+## File Structure
+### Communications
+Based on the current communications setup (Serial or Bluetooth), modify the #define in include/CommsConfig.h
