@@ -2,26 +2,15 @@
 #include <Arduino.h>
 
 /**
- * Define all used pins on Arduino Mega 2560
+ * Include appropriate wiring file based on board
  */
-#define PIN_BLINKER         LED_BUILTIN
-
-/* Ultrasonic Sensors */
-#define PIN_US_TEST_TRIGGER  PB7
-#define PIN_US_TEST_ECHO     PB6
-
-/**
- * @brief Initialize all wiring and pin modes for the board.
- */
-void Wiring_Init()
-{
-    // Blinker
-    pinMode(PIN_BLINKER, OUTPUT);
-
-    // Ultrasonic Sensors
-    pinMode(PIN_US_TEST_TRIGGER, OUTPUT);
-    pinMode(PIN_US_TEST_ECHO, INPUT);
-}
+#if defined(BOARD_CONTROLLER)
+    #include "WiringController.h"
+#elif defined(BOARD_DRIVETRAIN)
+    #include "WiringDrivetrain.h"
+#else
+    #error "Unsupported board! Please defined BOARD_xxx in platformio.ini"
+#endif
 
 /**
  * @brief Confirm pin is set to expected mode.
