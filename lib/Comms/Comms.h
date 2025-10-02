@@ -1,4 +1,5 @@
 #pragma once
+#include "Comms.h"
 
 /**
  * Select one of the following two communications protocols based on current setup.

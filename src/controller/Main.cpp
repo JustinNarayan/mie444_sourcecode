@@ -1,11 +1,8 @@
-/**
- * Includes
- */
 #include <Arduino.h>
 
-#include "Wiring.h"
+#include <Wiring.h>
+#include <Comms.h>  // either USE_SERIAL or USE_BLE
 #include "Errors.h"
-#include "CommsConfig.h" // either USE_SERIAL or USE_BLE
 
 /**
  * Global objects

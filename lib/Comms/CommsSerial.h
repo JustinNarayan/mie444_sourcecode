@@ -1,6 +1,6 @@
 #pragma once
 #include <Arduino.h>
-#include "Comms.h"
+#include "CommsInterface.h"
 
 /**
  * Communication interface for Serial Rx/Tx
