@@ -11,11 +11,11 @@
  * Determine active communications protocol
  */
 #ifdef USE_SERIAL
-    #include "CommsSerial.h"
-    using CommsActive = CommsSerial;
+#include "CommsSerial.h"
+using CommsActive = CommsSerial;
 #elif defined(USE_BLE)
-    #include "CommsBLE.h"
-    using CommsActive = CommsBLE;
+#include "CommsBLE.h"
+using CommsActive = CommsBLE;
 #else
-# error "No communication protocol defined."
+#error "No communication protocol defined."
 #endif
