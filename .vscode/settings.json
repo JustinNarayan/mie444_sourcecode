@@ -1,3 +1,7 @@
 {
-    "editor.detectIndentation": false
+	"editor.detectIndentation": false,
+	"files.associations": {
+		"new": "cpp"
+	},
+	"terminal.integrated.allowChords": false
 }

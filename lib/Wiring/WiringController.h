@@ -7,6 +7,12 @@
  */
 #define PIN_BLINKER LED_BUILTIN
 
+/* Communication */
+#define PIN_BLUETOOTH_RX PD2
+#define PIN_BLUETOOTH_TX PD3
+#define PIN_DRIVETRAIN_RX PE0
+#define PIN_DRIVETRAIN_TX PE1
+
 /* Ultrasonic Sensors */
 #define PIN_US_TEST_TRIGGER PB7
 #define PIN_US_TEST_ECHO PB6
