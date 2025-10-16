@@ -1,13 +1,14 @@
 #include <Arduino.h>
 
 #include <Wiring.h>
-#include <Comms.h> // either USE_SERIAL or USE_BLE
+#include <ExternalComms.h> // either USE_SERIAL or USE_BLE
+#include "Settings.h"
 #include "Errors.h"
 
 /**
  * Global objects
  */
-CommsActive comms;
+ExternalCommsActive g_externalComms;
 
 /**
  * @brief Global setup functions for board
@@ -15,7 +16,7 @@ CommsActive comms;
 void setup()
 {
 	Wiring_Init();
-	comms.init(9600);
+	g_externalComms.init();
 }
 
 /**
