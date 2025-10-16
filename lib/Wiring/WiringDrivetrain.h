@@ -6,10 +6,13 @@
 /**
  * Define all used pins on Arduino UNO
  */
-// Miscellaneous
 #define PIN_BLINKER LED_BUILTIN
 
-// Drivetrain
+/* Communication */
+#define PIN_CONTROLLER_RX PD0
+#define PIN_CONTROLLER_TX PD1
+
+/* Drivetrain */
 #define PIN_MOTOR_A_IN1 PB5
 #define PIN_MOTOR_A_IN2 PB4
 #define PIN_MOTOR_A_ENABLE PB3
