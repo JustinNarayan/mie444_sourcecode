@@ -36,7 +36,7 @@ int CommsInterface::popMessage(char* buffer)
 	// Pop buffer
 	int ret = ringBuffer->popBuffer(buffer);
 
-	return ret;
+	return (ret == RET_READ_BUFFER_SUCCESS);
 }
 
 /**

@@ -27,7 +27,7 @@ void loop()
 {
 	g_externalComms.receive();
 	char buffer[MESSAGE_LENGTH_MAX];
-	if(g_externalComms.popMessage(buffer))
+	if (g_externalComms.popMessage(buffer))
 	{
 		g_externalComms.sendMessage(buffer);
 	}

@@ -8,8 +8,8 @@
  * External Communication Protocol
  * Ensure only one of USE_SERIAL or USE_BLE is commented
  */
-#define USE_SERIAL
-// #define USE_BLE
+// #define USE_SERIAL
+#define USE_BLE
 
 /**
  * Define all used pins on Arduino Mega 2560
