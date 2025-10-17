@@ -1,9 +1,5 @@
 #include "MotorController.h"
 
-// Constructor
-MotorController::MotorController(uint8_t enablePin, uint8_t in1Pin, uint8_t in2Pin)
-	: _enablePin(enablePin), _in1Pin(in1Pin), _in2Pin(in2Pin), _speed(0) {}
-
 /**
  * @brief Set pin modes for Digital in1/in2 pins and PWM enable pin.
  * 
