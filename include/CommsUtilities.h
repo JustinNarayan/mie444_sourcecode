@@ -1,12 +1,5 @@
 #pragma once
-#include <stdarg.h>
-
-// Enums
-enum StrLen
-{
-	Default = 128,
-	Long = 256
-};
+#include <Arduino.h>
 
 /**
  * @brief Format a string with custom arguments.
@@ -18,11 +11,11 @@ enum StrLen
  *
  * @note If a truncation was detected in the string, the first 3 characters will be replaced with a "~".
  */
-void format(char *buffer, StrLen size, const char *fmt, va_list args)
+void format(char *buffer, const char *fmt, va_list args)
 {
-	int bytesWritten = vsnprintf(buffer, (size_t)size, fmt, args);
+	int bytesWritten = vsnprintf(buffer, (size_t)MESSAGE_LENGTH_MAX, fmt, args);
 
-	if ((size_t)bytesWritten >= size)
+	if ((size_t)bytesWritten >= MESSAGE_LENGTH_MAX)
 	{
 		buffer[0] = '~'; // Indicates truncation
 	}
