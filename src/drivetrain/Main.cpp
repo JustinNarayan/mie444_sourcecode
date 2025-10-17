@@ -21,4 +21,14 @@ void setup()
  */
 void loop()
 {
+	// Receive comms
+	g_controllerComms.receive();
+
+	// Echo back comms with an ACK
+	char buffer[MESSAGE_LENGTH_MAX];
+	if (g_controllerComms.popMessage(buffer))
+	{
+		g_controllerComms.sendMessage(buffer);
+		g_controllerComms.sendMessage("Acked$");
+	}
 }
