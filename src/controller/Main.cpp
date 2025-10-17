@@ -1,22 +1,23 @@
 #include <Arduino.h>
 
 #include <Wiring.h>
-#include <ExternalComms.h> // either USE_SERIAL or USE_BLE
+#include <CommsInterface.h>
 #include "Settings.h"
 #include "Errors.h"
 
 /**
  * Global objects
  */
-ExternalCommsActive g_externalComms;
+CommsInterface g_externalComms;
+CommsInterface g_drivetrainComms;
 
 /**
  * @brief Global setup functions for board
  */
 void setup()
 {
-	Wiring_Init();
-	g_externalComms.init();
+	Wiring_InitPins();
+	Wiring_InitComms(&g_externalComms, &g_drivetrainComms);
 }
 
 /**
@@ -24,5 +25,10 @@ void setup()
  */
 void loop()
 {
-	delay(1000);
+	g_externalComms.receive();
+	char buffer[MESSAGE_LENGTH_MAX];
+	if(g_externalComms.popMessage(buffer))
+	{
+		g_externalComms.sendMessage(buffer);
+	}
 }

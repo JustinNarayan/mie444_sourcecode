@@ -10,12 +10,13 @@
 class MotorController
 {
 public:
-	MotorController(uint8_t enablePin, uint8_t in1Pin, uint8_t in2Pin);
+	MotorController(uint8_t enablePin, uint8_t in1Pin, uint8_t in2Pin)
+		: _enablePin(enablePin), _in1Pin(in1Pin), _in2Pin(in2Pin), _speed(0) {}
 
-	void init();
+	void init(void);
 	void setSpeed(uint8_t speed);
 	void setDirection(bool isForward);
-	void stop();
+	void stop(void);
 
 private:
 	uint8_t _enablePin;

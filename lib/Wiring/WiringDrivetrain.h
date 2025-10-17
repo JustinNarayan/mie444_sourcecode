@@ -1,14 +1,16 @@
 #pragma once
 #include <Arduino.h>
-#include "Wiring.h"
+#include <CommsInterface.h>
 #include <MotorController.h>
+#include "Wiring.h"
 
 /**
  * Define all used pins on Arduino UNO
  */
 #define PIN_BLINKER LED_BUILTIN
 
-/* Communication */
+/* UART */
+#define UART_INTERNAL_TO_CONTROLLER (&Serial)
 #define PIN_CONTROLLER_RX PD0
 #define PIN_CONTROLLER_TX PD1
 
@@ -37,7 +39,7 @@ MotorController gripperMotor(PIN_MOTOR_GRIPPER_ENABLE, PIN_MOTOR_GRIPPER_IN1, PI
 /**
  * @brief Initialize all wiring and pin modes for the drivetrain board.
  */
-void Wiring_Init()
+void Wiring_InitPins()
 {
 	// Blinker
 	pinMode(PIN_BLINKER, OUTPUT);
@@ -49,4 +51,14 @@ void Wiring_Init()
 
 	// Gripper
 	gripperMotor.init();
+}
+
+/**
+ * @brief Initialize communications protocols
+ * 
+ */
+void Wiring_InitComms(CommsInterface *controllerComms)
+{
+	// Internal communications setup
+	controllerComms->init(UART_INTERNAL_TO_CONTROLLER, INTERNAL_COMMS_BAUD_RATE);
 }
