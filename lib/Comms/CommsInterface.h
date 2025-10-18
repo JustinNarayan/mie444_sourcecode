@@ -23,7 +23,8 @@ public:
 	 * 
 	 * @param port Must be a Hardware Serial not a Software Serial
 	 */
-	CommsInterface(void)  {
+	CommsInterface(void)
+	{
 		comms = new Comms();
 		ringBuffer = new RingBuffer();
 	}
@@ -34,7 +35,8 @@ public:
 	void sendMessage(const char* fmt, ...);
 	void sendError(Error error);
 
-	~CommsInterface() {
+	~CommsInterface()
+	{
         delete ringBuffer;
         delete comms;
     }

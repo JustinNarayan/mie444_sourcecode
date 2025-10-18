@@ -14,3 +14,10 @@
 #define MESSAGE_LENGTH_MAX 64
 #define MESSAGE_END_CHAR '$'
 #define MESSAGE_NUM_BUFFERS 8
+
+/**
+ * Centralized drivetrain control logic settings
+ */
+#define DRIVETRAIN_TIME_TO_HALT_AFTER_LAST_RECEIVED_COMMAND (50UL) // millis
+#define DRIVETRAIN_TRANSLATE_SPEED (50) // 0 to 255
+#define DRIVETRAIN_ROTATE_SPEED (50) // 0 to 255
