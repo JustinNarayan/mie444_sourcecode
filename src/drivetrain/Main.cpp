@@ -5,6 +5,7 @@
 /**
  * Global objects
  */
+Drivetrain g_drivetrain;
 CommsInterface g_controllerComms;
 
 /**
@@ -13,6 +14,7 @@ CommsInterface g_controllerComms;
 void setup()
 {
 	Wiring_InitPins();
+	Wiring_InitDrivetrain(&g_drivetrain);
 	Wiring_InitComms(&g_controllerComms);
 }
 

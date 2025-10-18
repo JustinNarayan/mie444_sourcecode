@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include <CommsInterface.h>
 #include <MotorController.h>
+#include <Drivetrain.h>
 #include "Wiring.h"
 
 /**
@@ -29,28 +30,26 @@
 #define PIN_MOTOR_GRIPPER_ENABLE PD3
 
 /**
- * Global objects
- */
-MotorController drivetrainMotorA(PIN_MOTOR_A_ENABLE, PIN_MOTOR_A_IN1, PIN_MOTOR_A_IN2);
-MotorController drivetrainMotorB(PIN_MOTOR_B_ENABLE, PIN_MOTOR_B_IN1, PIN_MOTOR_B_IN2);
-MotorController drivetrainMotorC(PIN_MOTOR_C_ENABLE, PIN_MOTOR_C_IN1, PIN_MOTOR_C_IN2);
-MotorController gripperMotor(PIN_MOTOR_GRIPPER_ENABLE, PIN_MOTOR_GRIPPER_IN1, PIN_MOTOR_GRIPPER_IN2);
-
-/**
  * @brief Initialize all wiring and pin modes for the drivetrain board.
  */
 void Wiring_InitPins()
 {
 	// Blinker
 	pinMode(PIN_BLINKER, OUTPUT);
+}
 
-	// Drivetrain
-	drivetrainMotorA.init();
-	drivetrainMotorB.init();
-	drivetrainMotorC.init();
-
-	// Gripper
-	gripperMotor.init();
+/**
+ * @brief Initialize drivetrain
+ * 
+ */
+void Wiring_InitDrivetrain(Drivetrain *drivetrain)
+{
+	// Internal communications setup
+	drivetrain->init(
+		PIN_MOTOR_A_ENABLE, PIN_MOTOR_A_IN1, PIN_MOTOR_A_IN2,
+		PIN_MOTOR_B_ENABLE, PIN_MOTOR_B_IN1, PIN_MOTOR_B_IN2,
+		PIN_MOTOR_C_ENABLE, PIN_MOTOR_C_IN1, PIN_MOTOR_C_IN2
+	);
 }
 
 /**
