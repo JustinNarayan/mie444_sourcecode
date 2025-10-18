@@ -1,12 +1,14 @@
 #include <Arduino.h>
 #include <Wiring.h>
+#include <DriveController.h>
 #include "Errors.h"
 
 /**
  * Global objects
  */
-Drivetrain g_drivetrain;
 CommsInterface g_controllerComms;
+Drivetrain g_drivetrain;
+DriveController g_driveController;
 
 /**
  * @brief Global setup functions for board
@@ -23,14 +25,5 @@ void setup()
  */
 void loop()
 {
-	// Receive comms
-	g_controllerComms.receive();
-
-	// Echo back comms with an ACK
-	char buffer[MESSAGE_LENGTH_MAX];
-	if (g_controllerComms.popMessage(buffer))
-	{
-		g_controllerComms.sendMessage(buffer);
-		g_controllerComms.sendMessage("Acked$");
-	}
+	g_driveController.processCommsForDrivetrain(&g_controllerComms, &g_drivetrain);
 }
