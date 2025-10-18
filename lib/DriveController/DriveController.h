@@ -23,7 +23,8 @@ private:
 	void arbitrateCommand(DrivetrainCommands command, Drivetrain* drivetrain);
 	void applyCommand(DrivetrainCommands command, Drivetrain* drivetrain);
 	bool shouldHalt(void);
-	void sendResponse(CommsInterface* comms, DrivetrainResponses response); 
+	void sendResponse(CommsInterface* comms, DrivetrainResponses response);
+	void sendCommandEcho(CommsInterface* comms, DrivetrainCommands command);
 
 public:
 	void processCommsForDrivetrain(CommsInterface* comms, Drivetrain* drivetrain);

@@ -91,6 +91,17 @@ bool DriveController::shouldHalt(void)
 }
 
 /**
+ * @brief Send command echo on comms interface
+ * 
+ */
+void DriveController::sendCommandEcho(CommsInterface* comms, DrivetrainCommands command)
+{
+	char buffer[MESSAGE_LENGTH_MAX];
+	drivetrainCommandAsString(command, buffer);
+	comms->sendMessage(buffer);
+}
+
+/**
  * @brief Send response on comms interface
  * 
  */
@@ -120,10 +131,11 @@ void DriveController::processCommsForDrivetrain(CommsInterface* comms, Drivetrai
 		return;
 	}
 	
-	// Send acknowledgement if valid command
+	// Send echo and acknowledgement if valid command
 	if (currentCommand != DrivetrainCommands::NoReceivedCommand)
 	{
 		arbitrateCommand(currentCommand, drivetrain);
+		this->sendCommandEcho(comms, currentCommand);
 		this->sendResponse(comms, DrivetrainResponses::AcknowledgeValidCommand);
 		return;
 	}
@@ -132,6 +144,7 @@ void DriveController::processCommsForDrivetrain(CommsInterface* comms, Drivetrai
 	if (this->shouldHalt())
 	{
 		arbitrateCommand(DrivetrainCommands::Halt, drivetrain);
+		this->sendCommandEcho(comms, DrivetrainCommands::Halt);
 		this->sendResponse(comms, DrivetrainResponses::NotifyHalting);
 		return;
 	}
