@@ -53,7 +53,25 @@ void DriveController::arbitrateCommand(DrivetrainCommands command, Drivetrain* d
  */
 void DriveController::applyCommand(DrivetrainCommands command, Drivetrain* drivetrain)
 {
-	return; // To implement
+	switch (command)
+	{
+		case DrivetrainCommands::TranslateForward:
+			drivetrain->setTranslate(DRIVETRAIN_TRANSLATE_SPEED, true);
+			break;
+		case DrivetrainCommands::TranslateBackward:
+			drivetrain->setTranslate(DRIVETRAIN_TRANSLATE_SPEED, false);
+			break;
+		case DrivetrainCommands::RotateLeft:
+			drivetrain->setRotate(DRIVETRAIN_ROTATE_SPEED, true);
+			break;
+		case DrivetrainCommands::RotateRight:
+			drivetrain->setRotate(DRIVETRAIN_ROTATE_SPEED, false);
+			break;
+		case DrivetrainCommands::Halt:
+		default:
+			drivetrain->halt();
+			break;
+	}
 }
 
 /**
