@@ -8,8 +8,8 @@
  * External Communication Protocol
  * Ensure only one of USE_SERIAL or USE_BLE is commented
  */
-#define USE_SERIAL
-// #define USE_BLE
+// #define USE_SERIAL
+#define USE_BLE
 
 /**
  * Define all used pins on Arduino Mega 2560
@@ -17,13 +17,9 @@
 #define PIN_BLINKER LED_BUILTIN
 
 /* UART */
-#define UART_EXTERNAL_SERIAL (&Serial)
-#define UART_EXTERNAL_BLE (&Serial2)
-#define UART_INTERNAL_TO_DRIVETRAIN (&Serial3)
-#define PIN_BLUETOOTH_RX PD2
-#define PIN_BLUETOOTH_TX PD3
-#define PIN_DRIVETRAIN_RX PE0
-#define PIN_DRIVETRAIN_TX PE1
+#define UART_EXTERNAL_SERIAL (&Serial) // PE0 (RX) / PE1 (TX)
+#define UART_EXTERNAL_BLE (&Serial2) // PH0 (RX) / PH1 (TX)
+#define UART_INTERNAL_TO_DRIVETRAIN (&Serial1) // PD2 (RX) / PD3 (TX)
 
 /* Ultrasonic Sensors */
 #define PIN_US_TEST_TRIGGER PB7

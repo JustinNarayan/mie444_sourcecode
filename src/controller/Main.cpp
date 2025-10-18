@@ -25,10 +25,23 @@ void setup()
  */
 void loop()
 {
+	// Receive external comms
 	g_externalComms.receive();
-	char buffer[MESSAGE_LENGTH_MAX];
-	if(g_externalComms.popMessage(buffer))
+	
+	// Receive internal comms
+	g_drivetrainComms.receive();
+
+	// Echo external comms down internal comms
+	char bufferExt[MESSAGE_LENGTH_MAX];
+	if (g_externalComms.popMessage(bufferExt))
 	{
-		g_externalComms.sendMessage(buffer);
+		g_drivetrainComms.sendMessage(bufferExt);
+	}
+
+	// Echo internal comms up external_comms
+	char bufferInt[MESSAGE_LENGTH_MAX];
+	if (g_drivetrainComms.popMessage(bufferInt))
+	{
+		g_externalComms.sendMessage(bufferInt);
 	}
 }
