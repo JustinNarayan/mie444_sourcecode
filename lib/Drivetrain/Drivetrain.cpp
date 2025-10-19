@@ -31,7 +31,7 @@ int Drivetrain::setTranslate(uint8_t speed, bool isForward)
 {
 	motor1->stop();
 
-	motor2->setDirection(isForward);
+	motor2->setDirection(!isForward);
 	motor2->setSpeed(speed);
 
 	motor3->setDirection(isForward);
