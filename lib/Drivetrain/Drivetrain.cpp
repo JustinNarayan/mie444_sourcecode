@@ -34,7 +34,7 @@ int Drivetrain::setTranslate(uint8_t speed, bool isForward)
 	motor2->setDirection(isForward);
 	motor2->setSpeed(speed);
 
-	motor3->setDirection(isForward);
+	motor3->setDirection(!isForward);
 	motor3->setSpeed(speed);
 
 	// Failure states not yet implemented
