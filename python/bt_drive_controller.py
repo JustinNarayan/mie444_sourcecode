@@ -10,7 +10,7 @@ BAUD = 57600        # Match Arduino baud rate
 SEND_INTERVAL = 0.01  # seconds (10 ms)
 # =============================
 
-VALID_KEYS = ['h', 'w', 'a', 's', 'd']
+VALID_KEYS = ['q', 'a', 'd', 'w', 's']
 
 def print_rcvd_line(message):
     """Print Rcvd > message on its own line."""

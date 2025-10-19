@@ -18,6 +18,6 @@
 /**
  * Centralized drivetrain control logic settings
  */
-#define DRIVETRAIN_TIME_TO_HALT_AFTER_LAST_RECEIVED_COMMAND (50UL) // millis
-#define DRIVETRAIN_TRANSLATE_SPEED (50) // 0 to 255
-#define DRIVETRAIN_ROTATE_SPEED (50) // 0 to 255
+#define DRIVETRAIN_TIME_TO_HALT_AFTER_LAST_RECEIVED_COMMAND (100UL) // millis
+#define DRIVETRAIN_TRANSLATE_SPEED (120) // 0 to 255
+#define DRIVETRAIN_ROTATE_SPEED (80) // 0 to 255
