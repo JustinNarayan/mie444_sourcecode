@@ -1,14 +1,11 @@
 #include <Arduino.h>
 #include <Wiring.h>
-#include <DriveController.h>
 #include "Errors.h"
 
 /**
  * Global objects
  */
 CommsInterface g_controllerComms;
-Drivetrain g_drivetrain;
-DriveController g_driveController;
 
 /**
  * @brief Global setup functions for board
@@ -16,7 +13,6 @@ DriveController g_driveController;
 void setup()
 {
 	Wiring_InitPins();
-	Wiring_InitDrivetrain(&g_drivetrain);
 	Wiring_InitComms(&g_controllerComms);
 }
 
@@ -25,5 +21,9 @@ void setup()
  */
 void loop()
 {
-	g_driveController.processCommsForDrivetrain(&g_controllerComms, &g_drivetrain);
+	// Send periodic heartbeat signal
+	Message message;
+	message.init(MessageType::Generic, "Heartbeat");
+	g_controllerComms.sendMessage(&message);
+	delay(1000);
 }
