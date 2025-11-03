@@ -1,5 +1,5 @@
 #include "CommsInterface.h"
-#include "CommsUtilities.h"
+#include "MemoryUtilities.h"
 
 /**
  * @brief Initialize Comms.
