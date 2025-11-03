@@ -32,10 +32,10 @@ int RingBuffer::popBuffer(char* read_into)
     uint8_t oldestBuffer = (MESSAGE_NUM_BUFFERS + currentBuffer - numOccupiedBuffers) % MESSAGE_NUM_BUFFERS;
 
     // Copy message to the provided output buffer
-    memoryCopy(read_into, buffers[oldestBuffer], MESSAGE_LENGTH_MAX);
+    memoryCopy(read_into, buffers[oldestBuffer], STRING_LENGTH_MAX);
 
 	// Clear buffer
-	memorySet(buffers[oldestBuffer], 0, MESSAGE_LENGTH_MAX);
+	memorySet(buffers[oldestBuffer], 0, STRING_LENGTH_MAX);
 
     // Decrement the number of occupied buffers
     numOccupiedBuffers--;
@@ -74,7 +74,7 @@ int RingBuffer::writeIntoBuffer(
 		// Determine if should seal
 		if(
 			(encounteredEndChar && sealOnEndChar) || 
-			(numOccupiedBytesInCurrentBuffer == MESSAGE_LENGTH_MAX - 1)
+			(numOccupiedBytesInCurrentBuffer == STRING_LENGTH_MAX - 1)
 		)
 		{
 			sealBuffer();
@@ -101,9 +101,9 @@ int RingBuffer::sealBuffer(void)
 	}
 
 	// Add null terminator
-	size_t lastIndex = (numOccupiedBytesInCurrentBuffer < MESSAGE_LENGTH_MAX - 1)
+	size_t lastIndex = (numOccupiedBytesInCurrentBuffer < STRING_LENGTH_MAX - 1)
         ? numOccupiedBytesInCurrentBuffer
-        : MESSAGE_LENGTH_MAX - 1;
+        : STRING_LENGTH_MAX - 1;
 	buffers[currentBuffer][lastIndex] = '\0';
 
     // Advance to next buffer index (wrap around)

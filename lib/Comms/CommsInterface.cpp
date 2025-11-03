@@ -1,5 +1,5 @@
 #include "CommsInterface.h"
-#include "CommsUtilities.h"
+#include "MemoryUtilities.h"
 
 /**
  * @brief Initialize Comms.
@@ -17,10 +17,10 @@ void CommsInterface::init(HardwareSerial* port, unsigned long baud)
 void CommsInterface::receive(void)
 {
 	// Construct a buffer to read into
-	char buffer[MESSAGE_LENGTH_MAX];
+	char buffer[STRING_LENGTH_MAX];
 
 	// Receive info into buffer
-	size_t numBytesRead = comms->receiveInfo(buffer, MESSAGE_LENGTH_MAX);
+	size_t numBytesRead = comms->receiveInfo(buffer, STRING_LENGTH_MAX);
 
 	// Write into buffer, sealing if the end char is encountered
 	ringBuffer->writeIntoBuffer(buffer, numBytesRead, true);
@@ -29,32 +29,34 @@ void CommsInterface::receive(void)
 /**
  * @brief Pop first unread message from ring buffer
  * 
- * @param buffer To write into
+ * @param outMessage Pointer to an uninitialized message object to initialize
  */
-int CommsInterface::popMessage(char* buffer)
+int CommsInterface::popMessage(Message* outMessage)
 {
-	// Pop buffer
+	// Pop raw buffer contents
+	char buffer[STRING_LENGTH_MAX];
 	int ret = ringBuffer->popBuffer(buffer);
 
-	return (ret == RET_READ_BUFFER_SUCCESS);
+	// Instantiate raw buffer content as a message
+	if (ret == RET_READ_BUFFER_SUCCESS)
+	{
+		outMessage->init(buffer);
+		return true;
+	}
+	return false;
 }
 
 /**
- * @brief Send a format string over the port
+ * @brief Send a message over the port
  * 
- * @param fmt A format string
- * @param ... args
+ * @param Message Pointer to an initialized message object
  */
-void CommsInterface::sendMessage(const char* fmt, ...)
+void CommsInterface::sendMessage(Message* message)
 {
-	// Construct formatted string
-	char buffer[MESSAGE_LENGTH_MAX];
-	va_list args;
-	va_start(args, fmt);
-	format(buffer, fmt, args);
-	va_end(args);
+	// Extract raw buffer contents
+	char buffer[STRING_LENGTH_MAX];
+	message->getRaw(buffer);
 
-	// Send over port
 	comms->sendInfo(buffer);
 }
 
@@ -65,5 +67,10 @@ void CommsInterface::sendMessage(const char* fmt, ...)
  */
 void CommsInterface::sendError(Error error)
 {
-	this->sendMessage("Error [%d]: %s %c", error.code, error.message, MESSAGE_END_CHAR);
+	Message message;
+	char buffer[STRING_LENGTH_MAX];
+	format(buffer, "Error [%d]: %s", error.code, error.message);
+	message.init(buffer);
+
+	this->sendMessage(&message);
 }

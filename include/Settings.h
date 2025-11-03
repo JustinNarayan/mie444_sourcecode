@@ -9,11 +9,19 @@
 #define BLUETOOTH_AT_BAUD_RATE 38400
 
 /**
+ * Global size limit on strings, including null-terminator
+ */ 
+#define STRING_LENGTH_MAX 64
+
+/**
  * Settings for all communications and ring buffer architectures
  */
-#define MESSAGE_LENGTH_MAX 64
 #define MESSAGE_END_CHAR '$'
 #define MESSAGE_NUM_BUFFERS 8
+// Each message includes encoding data of a (1) type char and (2) end char
+#define MESSAGE_ENCODING_LENGTH (2)
+// Each message allows space for encoding data and a null-terminator
+#define MESSAGE_CONTENT_LENGTH_MAX (STRING_LENGTH_MAX - MESSAGE_ENCODING_LENGTH - 1)
 
 /**
  * Centralized drivetrain control logic settings

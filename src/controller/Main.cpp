@@ -32,16 +32,16 @@ void loop()
 	g_drivetrainComms.receive();
 
 	// Echo external comms down internal comms
-	char bufferExt[MESSAGE_LENGTH_MAX];
-	if (g_externalComms.popMessage(bufferExt))
+	Message messageExt;
+	if (g_externalComms.popMessage(&messageExt))
 	{
-		g_drivetrainComms.sendMessage(bufferExt);
+		g_drivetrainComms.sendMessage(&messageExt);
 	}
 
 	// Echo internal comms up external_comms
-	char bufferInt[MESSAGE_LENGTH_MAX];
-	if (g_drivetrainComms.popMessage(bufferInt))
+	Message messageInt;
+	if (g_drivetrainComms.popMessage(&messageInt))
 	{
-		g_externalComms.sendMessage(bufferInt);
+		g_externalComms.sendMessage(&messageInt);
 	}
 }

@@ -3,6 +3,21 @@ import threading
 import time
 import sys
 import keyboard  # pip install keyboard
+from enum import Enum, auto
+
+class MessageType(Enum):
+	Empty = auto()
+	Generic = auto()
+	Error = auto()
+	DrivetrainCommand = auto()
+	DrivetrainResponse = auto()
+	DrivetrainEncoder = auto()
+	ReadingLidar = auto()
+	Count = auto()
+ 
+def encode_message(type: MessageType, content: str):
+    return f"{type.value}{content}$"
+
 
 # ======= USER SETTINGS =======
 PORT = "COM6"       # Replace with your COM port
@@ -15,7 +30,7 @@ VALID_KEYS = ['q', 'a', 'd', 'w', 's']
 def print_rcvd_line(message):
     """Print Rcvd > message on its own line."""
     sys.stdout.write('\r\033[K')  # Clear line
-    sys.stdout.write(f"Rcvd > {message}\n")
+    sys.stdout.write(f"Rcvd > {message.encode('utf-8')}\n")
     sys.stdout.flush()
 
 def reader(ser, stop_event):
@@ -57,7 +72,7 @@ def main():
                     break  # Only take the first pressed key
 
             if key_pressed:
-                msg = f"{key_pressed}$"
+                msg = encode_message(MessageType.DrivetrainCommand, key_pressed)
                 ser.write(msg.encode('latin1'))
                 ser.flush()
 
