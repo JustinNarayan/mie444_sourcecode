@@ -6,8 +6,8 @@
  */
 #if defined(BOARD_CONTROLLER)
 #include "WiringController.h"
-#elif defined(BOARD_DRIVETRAIN)
-#include "WiringDrivetrain.h"
+#elif defined(BOARD_PERIPHERAL)
+#include "WiringPeripheral.h"
 #else
 #error "Unsupported board! Please defined BOARD_xxx in platformio.ini"
 #endif

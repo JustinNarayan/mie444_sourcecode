@@ -3,7 +3,7 @@
 Justin Narayan, Alice Liu, Trent Rossos, Claire Zhang
 
 ## Setup
-This is written using Platform.io for an Arduino Mega 2560.
+This is written using Platform.io for an Arduino Mega 2560 and Arduino UNO.
 
 ## Getting Started
 Everything should be run from the root of the folder `mie444_sourcecode`.
@@ -19,4 +19,4 @@ Update the `upload_port` in `platformio.ini` when flashing the board to reflect 
 
 ## File Structure
 ### Communications
-Based on the current communications setup (Serial or Bluetooth), modify the #define in include/CommsConfig.h
+Based on the current communications setup (Serial or Bluetooth), modify the #define in lib/Wiring/WiringController.h
