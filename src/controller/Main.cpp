@@ -35,13 +35,6 @@ void loop()
 	// Receive internal comms
 	g_peripheralComms.receive();
 
-	// Echo external comms down internal comms
-	Message messageExt;
-	if (g_externalComms.popMessage(&messageExt))
-	{
-		g_peripheralComms.sendMessage(&messageExt);
-	}
-
 	// Echo internal comms up external_comms
 	Message messageInt;
 	if (g_peripheralComms.popMessage(&messageInt))
