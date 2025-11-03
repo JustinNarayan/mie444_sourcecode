@@ -144,3 +144,37 @@ static inline DrivetrainResponse getDrivetrainResponseFromString(char* buffer)
 	
 	return DrivetrainResponse::Invalid;
 }
+
+// /**
+//  * Store all message lookup tables in the same place.
+//  *
+//  * Each table corresponds to a type of message.
+//  * Each mapping relates an Enum of specific type to a short command string.
+//  */
+
+// /***************************************************
+//  *                DrivetrainCommand                *
+//  **************************************************/
+// #define DRIVETRAIN_COMMAND_TABLE \
+//     CMD(TranslateForward,  "w") \
+//     CMD(TranslateBackward, "s") \
+//     CMD(RotateLeft,        "a") \
+//     CMD(RotateRight,       "d") \
+//     CMD(Halt,              "h")
+
+// #define MESSAGE_ENUM_NAME DrivetrainCommand
+// #define MESSAGE_ENUM_TABLE DRIVETRAIN_COMMAND_TABLE
+// #include "MessageEnumTemplate.h"
+
+
+// /***************************************************
+//  *               DrivetrainResponse                *
+//  **************************************************/
+// #define DRIVETRAIN_RESPONSE_TABLE \
+//     CMD(AcknowledgeValid,	"ackval") \
+//     CMD(AcknowledgeInvalid,	"ackinv") \
+// 	CMD(NotifyHalting,		"notifhalt")
+
+// #define MESSAGE_ENUM_NAME DrivetrainResponse
+// #define MESSAGE_ENUM_TABLE DRIVETRAIN_RESPONSE_TABLE
+// #include "MessageEnumTemplate.h"
