@@ -1,6 +1,7 @@
 #pragma once
 #include <Arduino.h>
 #include <RingBuffer.h>
+#include <Message.h>
 #include "Errors.h"
 #include "Settings.h"
 #include "Comms.h"
@@ -31,8 +32,8 @@ public:
 
 	void init(HardwareSerial* port, unsigned long baud = EXTERNAL_COMMS_BAUD_RATE);
 	void receive(void);
-	int popMessage(char* buffer);
-	void sendMessage(const char* fmt, ...);
+	int popMessage(Message* outMessage);
+	void sendMessage(Message* message);
 	void sendError(Error error);
 
 	~CommsInterface()

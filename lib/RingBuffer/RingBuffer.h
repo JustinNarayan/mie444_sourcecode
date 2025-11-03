@@ -20,7 +20,7 @@ private:
 	/**
 	 * Number of total ring buffers and size of each specified in "Settings.h"
 	 */
-	char buffers[MESSAGE_NUM_BUFFERS][MESSAGE_LENGTH_MAX];
+	char buffers[MESSAGE_NUM_BUFFERS][STRING_LENGTH_MAX];
 
 	/**
 	 * currentBuffer stores the current buffer available to write to read, not

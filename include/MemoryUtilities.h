@@ -55,7 +55,7 @@ static inline size_t stringLength(const void* item)
 	if (item == NULL)
 		return (size_t)0;
 
-	for (size_t i = 0; i < MESSAGE_LENGTH_MAX; i++)
+	for (size_t i = 0; i < STRING_LENGTH_MAX; i++)
 	{
 		char here = *((uint8_t *)(item) + i);
 		if (here == '\0')
