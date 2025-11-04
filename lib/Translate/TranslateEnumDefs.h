@@ -54,7 +54,7 @@ private:
 	const T strToEnum(const char* buffer) const {
     	if (!buffer || buffer[0] == '\0') return T::NoReceived;
         for (size_t i = 0; i < numElements; ++i)
-            if (stringCompare(enumStringMap[i].strRep, buffer))
+            if (stringsEqual(enumStringMap[i].strRep, buffer))
                 return static_cast<T>(enumStringMap[i].enumValue);
         return T::Invalid;
     }

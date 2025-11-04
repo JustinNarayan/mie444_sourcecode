@@ -73,7 +73,7 @@ static inline size_t stringLength(const void* item, const size_t maxLength = STR
  * @param item2 
  * @return bool
  */
-static inline bool stringCompare(const void* item1, const void* item2)
+static inline bool stringsEqual(const void* item1, const void* item2)
 {
 	if (item1 == NULL || item2 == NULL)
         return false;
