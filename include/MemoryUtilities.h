@@ -36,7 +36,7 @@ static inline void* memoryCopy(void* dest, const void* src, const size_t size)
 		return dest;
 
 	uint8_t* destAsByte = (uint8_t*)dest;
-	uint8_t* srcAsByte = (uint8_t*)src;
+	const uint8_t* srcAsByte = (const uint8_t*)src;
 	for(size_t i = 0; i < size; i++)
 	{
 		*(destAsByte + i) = *(srcAsByte + i);
@@ -50,19 +50,19 @@ static inline void* memoryCopy(void* dest, const void* src, const size_t size)
  * @param item 
  * @return size_t 
  */
-static inline size_t stringLength(const void* item)
+static inline size_t stringLength(const void* item, const size_t maxLength = STRING_LENGTH_MAX)
 {
 	if (item == NULL)
 		return (size_t)0;
 
-	for (size_t i = 0; i < STRING_LENGTH_MAX; i++)
+	for (size_t i = 0; i < maxLength; i++)
 	{
 		char here = *((uint8_t *)(item) + i);
 		if (here == '\0')
 			return i;
 	}
 	
-	return STRING_LENGTH_MAX-1;
+	return maxLength-1;
 }
 
 /**
