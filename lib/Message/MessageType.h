@@ -7,17 +7,17 @@
  * 
  */
 enum class MessageType {
-	/* Default*/
-	Empty,
+	/* Generic Types */
 	Generic,
 	Error,
 	/* Drivetrain */
-	DrivetrainCommand,
-	DrivetrainResponse,
+	DrivetrainManualCommand,
+	DrivetrainManualResponse,
 	DrivetrainEncoder,
-	/* Sensor Readings */
+	/* Sensor Readings*/
 	ReadingLidar,
 
 	Count
 };
-static_assert((uint8_t)MessageType::Count <= UINT_LEAST8_MAX, "Message type must be uniquely captured in one byte");
+
+static_assert((uint8_t)MessageType::Count <= UINT_LEAST8_MAX, "MessageType must be uniquely captured in one byte");

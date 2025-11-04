@@ -6,17 +6,19 @@ import keyboard  # pip install keyboard
 from enum import Enum, auto
 
 class MessageType(Enum):
-	Empty = auto()
+	def _generate_next_value_(name, start, count, last_values):
+		return count  # start counting at 0
+    
 	Generic = auto()
 	Error = auto()
-	DrivetrainCommand = auto()
-	DrivetrainResponse = auto()
+	DrivetrainManualCommand = auto()
+	DrivetrainManualResponse = auto()
 	DrivetrainEncoder = auto()
 	ReadingLidar = auto()
 	Count = auto()
  
 def encode_message(type: MessageType, content: str):
-    return f"{type.value}{content}$"
+    return type.value.to_bytes(1, "little") + content.encode() + b"$"
 
 
 # ======= USER SETTINGS =======
@@ -72,8 +74,8 @@ def main():
                     break  # Only take the first pressed key
 
             if key_pressed:
-                msg = encode_message(MessageType.DrivetrainCommand, key_pressed)
-                ser.write(msg.encode('latin1'))
+                msg = encode_message(MessageType.DrivetrainManualCommand, key_pressed)
+                ser.write(msg)
                 ser.flush()
 
             time.sleep(SEND_INTERVAL)
