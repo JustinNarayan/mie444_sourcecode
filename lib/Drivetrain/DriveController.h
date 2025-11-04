@@ -2,7 +2,7 @@
 #include <Arduino.h>
 #include <CommsInterface.h>
 #include <Drivetrain.h>
-#include "MessageDefs.h"
+#include "DrivetrainDefs.h"
 
 class DriveController
 {
@@ -10,21 +10,21 @@ private:
 	/**
 	 * Store last received command from comms
 	 */
-	DrivetrainCommand lastReceivedCommand;
+	DrivetrainManualCommand lastReceivedCommand;
 	unsigned long lastReceivedCommandTimestampMillis;
 
 	/**
 	 * Store last issued command to drivetrain
 	 */
-	DrivetrainCommand lastIssuedCommand;
+	DrivetrainManualCommand lastIssuedCommand;
 
 	
-	DrivetrainCommand readCommsForCommand(CommsInterface* comms);
-	void arbitrateCommand(DrivetrainCommand command, Drivetrain* drivetrain);
-	void applyCommand(DrivetrainCommand command, Drivetrain* drivetrain);
+	DrivetrainManualCommand readCommsForCommand(CommsInterface* comms);
+	void arbitrateCommand(DrivetrainManualCommand command, Drivetrain* drivetrain);
+	void applyCommand(DrivetrainManualCommand command, Drivetrain* drivetrain);
 	bool shouldHalt(void);
-	void sendResponse(CommsInterface* comms, DrivetrainResponse response);
-	void sendCommandEcho(CommsInterface* comms, DrivetrainCommand command);
+	void sendResponse(CommsInterface* comms, DrivetrainManualResponse response);
+	void sendCommandEcho(CommsInterface* comms, DrivetrainManualCommand command);
 
 public:
 	void processCommsForDrivetrain(CommsInterface* comms, Drivetrain* drivetrain);
