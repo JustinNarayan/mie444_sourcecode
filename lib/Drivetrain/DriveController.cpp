@@ -1,13 +1,14 @@
 #include "DriveController.h"
 #include "Settings.h"
+#include <Translate.h>
 
 /**
  * @brief Interpret commands from comms interface
  * 
  * @param comms 
- * @return DrivetrainCommands received command, including NoReceivedCommand and InvalidCommand
+ * @return DrivetrainManualCommands received command, including NoReceivedCommand and InvalidCommand
  */
-DrivetrainCommand DriveController::readCommsForCommand(CommsInterface* comms)
+DrivetrainManualCommand DriveController::readCommsForCommand(CommsInterface* comms)
 {
 	// Poll comms interface
 	comms->receive();
@@ -17,13 +18,11 @@ DrivetrainCommand DriveController::readCommsForCommand(CommsInterface* comms)
 	bool hasCommandToRead = comms->popMessage(&message);
 	if (false == hasCommandToRead)
 	{
-		return DrivetrainCommand::NoReceived;
+		return DrivetrainManualCommand::NoReceived;
 	}
 
 	// Interpret message
-	char buffer[MESSAGE_CONTENT_LENGTH_MAX];
-	message.getContent(buffer);
-	return getDrivetrainCommandFromString(buffer);
+	return DrivetrainManualCommandTranslation.asEnum(&message);
 }
 
 
@@ -33,7 +32,7 @@ DrivetrainCommand DriveController::readCommsForCommand(CommsInterface* comms)
  * @param command 
  * @param drivetrain
  */
-void DriveController::arbitrateCommand(DrivetrainCommand command, Drivetrain* drivetrain)
+void DriveController::arbitrateCommand(DrivetrainManualCommand command, Drivetrain* drivetrain)
 {
 	// Record command as received
 	this->lastReceivedCommand = command;
@@ -53,23 +52,23 @@ void DriveController::arbitrateCommand(DrivetrainCommand command, Drivetrain* dr
  * @param command 
  * @param drivetrain
  */
-void DriveController::applyCommand(DrivetrainCommand command, Drivetrain* drivetrain)
+void DriveController::applyCommand(DrivetrainManualCommand command, Drivetrain* drivetrain)
 {
 	switch (command)
 	{
-		case DrivetrainCommand::TranslateForward:
+		case DrivetrainManualCommand::TranslateForward:
 			drivetrain->setTranslate(DRIVETRAIN_TRANSLATE_SPEED, true);
 			break;
-		case DrivetrainCommand::TranslateBackward:
+		case DrivetrainManualCommand::TranslateBackward:
 			drivetrain->setTranslate(DRIVETRAIN_TRANSLATE_SPEED, false);
 			break;
-		case DrivetrainCommand::RotateLeft:
+		case DrivetrainManualCommand::RotateLeft:
 			drivetrain->setRotate(DRIVETRAIN_ROTATE_SPEED, true);
 			break;
-		case DrivetrainCommand::RotateRight:
+		case DrivetrainManualCommand::RotateRight:
 			drivetrain->setRotate(DRIVETRAIN_ROTATE_SPEED, false);
 			break;
-		case DrivetrainCommand::Halt:
+		case DrivetrainManualCommand::Halt:
 		default:
 			drivetrain->halt();
 			break;
@@ -85,7 +84,7 @@ bool DriveController::shouldHalt(void)
 {
 	return (
 		// Do not halt repeatedly
-		(this->lastIssuedCommand != DrivetrainCommand::Halt) &&
+		(this->lastIssuedCommand != DrivetrainManualCommand::Halt) &&
 
 		// Halt if too much time elapsed since received command
 		((millis() - this->lastReceivedCommandTimestampMillis) > DRIVETRAIN_TIME_TO_HALT_AFTER_LAST_RECEIVED_COMMAND)
@@ -96,12 +95,10 @@ bool DriveController::shouldHalt(void)
  * @brief Send command echo on comms interface
  * 
  */
-void DriveController::sendCommandEcho(CommsInterface* comms, DrivetrainCommand command)
+void DriveController::sendCommandEcho(CommsInterface* comms, DrivetrainManualCommand command)
 {
-	char buffer[STRING_LENGTH_MAX];
-	getStringFromDrivetrainCommand(command, buffer);
 	Message message;
-	message.init(MessageType::DrivetrainCommand, buffer);
+	DrivetrainManualCommandTranslation.asMessage(command, &message);
 	comms->sendMessage(&message);
 }
 
@@ -109,12 +106,10 @@ void DriveController::sendCommandEcho(CommsInterface* comms, DrivetrainCommand c
  * @brief Send response on comms interface
  * 
  */
-void DriveController::sendResponse(CommsInterface* comms, DrivetrainResponse response)
+void DriveController::sendResponse(CommsInterface* comms, DrivetrainManualResponse response)
 {
-	char buffer[STRING_LENGTH_MAX];
-	getStringFromDrivetrainResponse(response, buffer);
 	Message message;
-	message.init(MessageType::DrivetrainResponse, buffer);
+	DrivetrainManualResponseTranslation.asMessage(response, &message);
 	comms->sendMessage(&message);
 }
 
@@ -128,30 +123,31 @@ void DriveController::sendResponse(CommsInterface* comms, DrivetrainResponse res
  */
 void DriveController::processCommsForDrivetrain(CommsInterface* comms, Drivetrain* drivetrain)
 {
-	DrivetrainCommand currentCommand = readCommsForCommand(comms);
+	DrivetrainManualCommand currentCommand = readCommsForCommand(comms);
 
 	// Send acknowledgement if invalid command
-	if (currentCommand == DrivetrainCommand::Invalid)
+	if (currentCommand == DrivetrainManualCommand::Invalid)
 	{
-		this->sendResponse(comms, DrivetrainResponse::AcknowledgeInvalidCommand);
+		this->sendCommandEcho(comms, currentCommand);
+		this->sendResponse(comms, DrivetrainManualResponse::AcknowledgeInvalidCommand);
 		return;
 	}
 	
 	// Send echo and acknowledgement if valid command
-	if (currentCommand != DrivetrainCommand::NoReceived)
+	if (currentCommand != DrivetrainManualCommand::NoReceived)
 	{
 		arbitrateCommand(currentCommand, drivetrain);
 		this->sendCommandEcho(comms, currentCommand);
-		this->sendResponse(comms, DrivetrainResponse::AcknowledgeValidCommand);
+		this->sendResponse(comms, DrivetrainManualResponse::AcknowledgeValidCommand);
 		return;
 	}
 
 	// Check if should halt based on no recent commands
 	if (this->shouldHalt())
 	{
-		arbitrateCommand(DrivetrainCommand::Halt, drivetrain);
-		this->sendCommandEcho(comms, DrivetrainCommand::Halt);
-		this->sendResponse(comms, DrivetrainResponse::NotifyHalting);
+		arbitrateCommand(DrivetrainManualCommand::Halt, drivetrain);
+		this->sendCommandEcho(comms, DrivetrainManualCommand::Halt);
+		this->sendResponse(comms, DrivetrainManualResponse::NotifyHalting);
 		return;
 	}
 }

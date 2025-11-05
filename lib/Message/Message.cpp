@@ -15,13 +15,16 @@ void Message::init(const char* rawBuffer)
 		(rawLength >= MESSAGE_ENCODING_LENGTH)
 	)
 	{
+		// Encode raw information
 		memoryCopy(this->msgRawBuffer, rawBuffer, rawLength);
 		this->msgRawBuffer[rawLength] = '\0';
 
+		// Encode raw infromation without MessageType char or end char
 		size_t contentLength = rawLength - MESSAGE_ENCODING_LENGTH;
-		memoryCopy(this->msgContentBuffer, &(rawBuffer[1]), contentLength); // exclude initial type char
+		memoryCopy(this->msgContentBuffer, &(rawBuffer[1]), contentLength);
 		this->msgContentBuffer[contentLength] = '\0';
 		
+		// Cast the first char to a MessageType
 		this->type = static_cast<MessageType>(this->msgRawBuffer[0]);
 
 		// Properly initialized
@@ -41,12 +44,15 @@ void Message::init(MessageType type, const char* contentBuffer)
 	// Encode information
 	if (contentBuffer != NULL)
 	{
+		// Store MessageType
 		this->type = type;
 
-		size_t contentLength = min(stringLength(contentBuffer), MESSAGE_CONTENT_LENGTH_MAX);
+		// Store unencoded content
+		size_t contentLength = stringLength(contentBuffer, MESSAGE_CONTENT_LENGTH_MAX);
 		memoryCopy(this->msgContentBuffer, contentBuffer, contentLength);
 		this->msgContentBuffer[contentLength] = '\0';
 
+		// Encode raw information with MessageType char and end char
 		format(this->msgRawBuffer, 
 			"%c%s%c\0", 
 			static_cast<char>(this->type), 
@@ -80,7 +86,7 @@ void Message::getContent(char* outBuffer)
 {
 	if (outBuffer != NULL)
 	{
-		size_t contentLength = stringLength(this->msgContentBuffer);
+		size_t contentLength = stringLength(this->msgContentBuffer, MESSAGE_CONTENT_LENGTH_MAX);
 		memoryCopy(outBuffer, this->msgContentBuffer, contentLength);
 		outBuffer[contentLength] = '\0';
 	}
