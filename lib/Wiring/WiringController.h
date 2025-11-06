@@ -27,14 +27,14 @@
 #define PIN_US_TEST_ECHO PB6
 
 /* Drivetrain */
-#define PIN_MOTOR_1_IN1 7
-#define PIN_MOTOR_1_IN2 6
+#define PIN_MOTOR_1_IN1 6
+#define PIN_MOTOR_1_IN2 7
 #define PIN_MOTOR_1_ENABLE 5
-#define PIN_MOTOR_2_IN1 9
-#define PIN_MOTOR_2_IN2 8
+#define PIN_MOTOR_2_IN1 8
+#define PIN_MOTOR_2_IN2 9
 #define PIN_MOTOR_2_ENABLE 10
-#define PIN_MOTOR_3_IN1 13
-#define PIN_MOTOR_3_IN2 12
+#define PIN_MOTOR_3_IN1 12
+#define PIN_MOTOR_3_IN2 13
 #define PIN_MOTOR_3_ENABLE 11
 
 /**
