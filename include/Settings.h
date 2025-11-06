@@ -17,7 +17,8 @@
  * Settings for all communications and ring buffer architectures
  */
 #define MESSAGE_END_CHAR '$'
-#define MESSAGE_NUM_BUFFERS 8
+#define MESSAGE_NUM_BUFFERS 8 // ring buffer for raw comms interface
+#define MESSAGE_QUEUE_SIZE 4 // max number of stored messages for subsystems
 // Each message includes encoding data of a (1) type char and (2) end char
 #define MESSAGE_ENCODING_LENGTH (2)
 // Each message allows space for encoding data and a null-terminator

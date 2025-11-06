@@ -2,17 +2,30 @@
 
 #include <Wiring.h>
 #include <CommsInterface.h>
-#include <DriveController.h>
+#include <Taskmaster.h>
+#include <Controller.h>
+#include "DriveController.h"
 #include "Settings.h"
 #include "Errors.h"
 
-/**
- * Global objects
- */
+/*****************************************************
+ *                   COMMUNICATIONS                  *
+ *****************************************************/
 CommsInterface g_externalComms;
 CommsInterface g_peripheralComms;
+
+/*****************************************************
+ *                    CONTROLLERS                    *
+ *****************************************************/
 Drivetrain g_drivetrain;
-DriveController g_driveController;
+DriveController g_driveController(&g_drivetrain);
+
+/*****************************************************
+ *                    TASKMASTERS                    *
+ *****************************************************/
+static ControllerGeneric* primaryControllers[] = { &g_driveController };
+TASKMASTER_DECLARE(primaryTaskmaster, &g_externalComms, primaryControllers)
+
 
 /**
  * @brief Global setup functions for board
@@ -29,11 +42,10 @@ void setup()
  */
 void loop()
 {
-	// Receive external comms
-	g_externalComms.receive();
-	
-	// Receive internal comms
-	g_peripheralComms.receive();
+	// // Receive internal comms
+	// g_peripheralComms.receive();
+
+	primaryTaskmaster.execute();	
 
 	// Echo internal comms up external_comms
 	Message messageInt;
@@ -41,7 +53,4 @@ void loop()
 	{
 		g_externalComms.sendMessage(&messageInt);
 	}
-	
-	// Process drive controller communications
-	g_driveController.processCommsForDrivetrain(&g_externalComms, &g_drivetrain);
 }

@@ -3,26 +3,47 @@
 #include <Translate.h>
 
 /**
- * @brief Interpret commands from comms interface
+ * @brief Read input messages for DrivetrainManualCommand type
  * 
- * @param comms 
  * @return DrivetrainManualCommands received command, including NoReceivedCommand and InvalidCommand
  */
-DrivetrainManualCommand DriveController::readCommsForCommand(CommsInterface* comms)
+DrivetrainManualCommand DriveController::getDrivetrainManualCommand(void)
 {
-	// Poll comms interface
-	comms->receive();
-
-	// Determine if command was received
+	// Dequeue DrivetrainManualCommand
 	Message message;
-	bool hasCommandToRead = comms->popMessage(&message);
-	if (false == hasCommandToRead)
-	{
-		return DrivetrainManualCommand::NoReceived;
-	}
+	ControllerMessageQueueOutput ret = \
+		this->read(MessageType::DrivetrainManualCommand, &message);
 
-	// Interpret message
-	return DrivetrainManualCommandTranslation.asEnum(&message);
+	// Translate DrivetrainManualCommand
+	if (ret == ControllerMessageQueueOutput::DequeueQueueEmpty)
+		return DrivetrainManualCommand::NoReceived;
+	if (ret == ControllerMessageQueueOutput::DequeueSuccess)
+		return DrivetrainManualCommandTranslation.asEnum(&message);
+	return DrivetrainManualCommand::Invalid;
+}
+
+/**
+ * @brief Write DrivetrainManualResponse
+ * 
+ * @param response To write
+ */
+void DriveController::sendDrivetrainManualResponse(DrivetrainManualResponse response)
+{
+	Message message;
+	DrivetrainManualResponseTranslation.asMessage(response, &message);
+	this->post(&message);
+}
+
+/**
+ * @brief Echo received DrivetrainManualCommand
+ * 
+ * @param command To write
+ */
+void DriveController::echoDrivetrainManualCommand(DrivetrainManualCommand command)
+{
+	Message message;
+	DrivetrainManualCommandTranslation.asMessage(command, &message);
+	this->post(&message);
 }
 
 
@@ -32,7 +53,7 @@ DrivetrainManualCommand DriveController::readCommsForCommand(CommsInterface* com
  * @param command 
  * @param drivetrain
  */
-void DriveController::arbitrateCommand(DrivetrainManualCommand command, Drivetrain* drivetrain)
+void DriveController::arbitrateCommand(DrivetrainManualCommand command)
 {
 	// Record command as received
 	this->lastReceivedCommand = command;
@@ -41,7 +62,7 @@ void DriveController::arbitrateCommand(DrivetrainManualCommand command, Drivetra
 	// Apply command if not a continued command and record command as issued
 	if (command != this->lastIssuedCommand)
 	{
-		applyCommand(command, drivetrain);
+		applyCommand(command);
 		this->lastIssuedCommand = command;
 	}
 }
@@ -52,7 +73,7 @@ void DriveController::arbitrateCommand(DrivetrainManualCommand command, Drivetra
  * @param command 
  * @param drivetrain
  */
-void DriveController::applyCommand(DrivetrainManualCommand command, Drivetrain* drivetrain)
+void DriveController::applyCommand(DrivetrainManualCommand command)
 {
 	switch (command)
 	{
@@ -91,28 +112,6 @@ bool DriveController::shouldHalt(void)
 	);
 }
 
-/**
- * @brief Send command echo on comms interface
- * 
- */
-void DriveController::sendCommandEcho(CommsInterface* comms, DrivetrainManualCommand command)
-{
-	Message message;
-	DrivetrainManualCommandTranslation.asMessage(command, &message);
-	comms->sendMessage(&message);
-}
-
-/**
- * @brief Send response on comms interface
- * 
- */
-void DriveController::sendResponse(CommsInterface* comms, DrivetrainManualResponse response)
-{
-	Message message;
-	DrivetrainManualResponseTranslation.asMessage(response, &message);
-	comms->sendMessage(&message);
-}
-
 
 /**
  * @brief Receive commands from the comms interface and issue to Drivetrain. Send back an
@@ -121,33 +120,33 @@ void DriveController::sendResponse(CommsInterface* comms, DrivetrainManualRespon
  * @param commsInterface 
  * @param drivetrain 
  */
-void DriveController::processCommsForDrivetrain(CommsInterface* comms, Drivetrain* drivetrain)
+void DriveController::process(void)
 {
-	DrivetrainManualCommand currentCommand = readCommsForCommand(comms);
+	DrivetrainManualCommand currentCommand = getDrivetrainManualCommand();
 
 	// Send acknowledgement if invalid command
 	if (currentCommand == DrivetrainManualCommand::Invalid)
 	{
-		this->sendCommandEcho(comms, currentCommand);
-		this->sendResponse(comms, DrivetrainManualResponse::AcknowledgeInvalidCommand);
+		this->echoDrivetrainManualCommand(currentCommand);
+		this->sendDrivetrainManualResponse(DrivetrainManualResponse::AcknowledgeInvalidCommand);
 		return;
 	}
 	
 	// Send echo and acknowledgement if valid command
 	if (currentCommand != DrivetrainManualCommand::NoReceived)
 	{
-		arbitrateCommand(currentCommand, drivetrain);
-		this->sendCommandEcho(comms, currentCommand);
-		this->sendResponse(comms, DrivetrainManualResponse::AcknowledgeValidCommand);
+		arbitrateCommand(currentCommand);
+		this->echoDrivetrainManualCommand(currentCommand);
+		this->sendDrivetrainManualResponse(DrivetrainManualResponse::AcknowledgeValidCommand);
 		return;
 	}
 
 	// Check if should halt based on no recent commands
 	if (this->shouldHalt())
 	{
-		arbitrateCommand(DrivetrainManualCommand::Halt, drivetrain);
-		this->sendCommandEcho(comms, DrivetrainManualCommand::Halt);
-		this->sendResponse(comms, DrivetrainManualResponse::NotifyHalting);
+		arbitrateCommand(DrivetrainManualCommand::Halt);
+		this->echoDrivetrainManualCommand(DrivetrainManualCommand::Halt);
+		this->sendDrivetrainManualResponse(DrivetrainManualResponse::NotifyHalting);
 		return;
 	}
 }

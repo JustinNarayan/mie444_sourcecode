@@ -2,6 +2,9 @@
 #include <Arduino.h>
 #include <Message.h>
 
+/*****************************************************
+ *                 COMPILER UTILITIES                *
+ *****************************************************/
 #define ENUM_MAP_ENTRY(e, s) { static_cast<uint8_t>(e), s }
 #define MAP_NUM_ELEMENTS(m) (size_t)(sizeof(m)/sizeof(m[0]))
 #define COMPILE_TIME_ENFORCE_ENUM_MAP_COUNT(map, enum) \
@@ -27,7 +30,8 @@ struct EnumStringMap {
  *
  */
 template <typename T, size_t numElements>
-class EnumMessageMap {
+class EnumMessageMap
+{
 private:
 	MessageType type;
 	const EnumStringMap (&enumStringMap)[numElements];
