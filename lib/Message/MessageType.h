@@ -21,3 +21,9 @@ enum class MessageType {
 };
 
 static_assert((uint8_t)MessageType::Count <= UINT_LEAST8_MAX, "MessageType must be uniquely captured in one byte");
+
+/**
+ * Wrap list of MessageType values into a MessageTypes object.
+ */
+template <MessageType... Types>
+struct MessageTypes {};
