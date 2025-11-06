@@ -1,0 +1,58 @@
+#pragma once
+#include <Arduino.h>
+#include <CommsInterface.h>
+#include <Controller.h>
+#include <Drivetrain.h>
+#include "DrivetrainDefs.h"
+
+/*****************************************************
+ *                INPUT / OUTPUT TYPES               *
+ *****************************************************/
+using MessageTypesIn = MessageTypes<
+    MessageType::DrivetrainManualCommand // Manual commands
+>;
+using MessageTypesOut = MessageTypes<
+    MessageType::DrivetrainManualResponse, // Manual command responses
+	MessageType::DrivetrainManualCommand, // Manual command echo
+    MessageType::Error // Errors
+>;
+
+/*****************************************************
+ *                     CONTROLLER                    *
+ *****************************************************/
+class DriveController : public Controller<MessageTypesIn, MessageTypesOut>
+{
+private:
+	/**
+	 * Reference to Drivetrain
+	 */
+	Drivetrain* drivetrain;
+
+	/**
+	 * Store last received command from comms
+	 */
+	DrivetrainManualCommand lastReceivedCommand;
+	unsigned long lastReceivedCommandTimestampMillis;
+
+	/**
+	 * Store last issued command to drivetrain
+	 */
+	DrivetrainManualCommand lastIssuedCommand;
+
+	/**
+	 * @brief Communication utilities
+	 */
+	DrivetrainManualCommand getDrivetrainManualCommand(void);
+	void sendDrivetrainManualResponse(DrivetrainManualResponse response);
+	void echoDrivetrainManualCommand(DrivetrainManualCommand command);
+
+	/**
+	 * @brief Process utilities
+	 */
+	void arbitrateCommand(DrivetrainManualCommand command);
+	void applyCommand(DrivetrainManualCommand command);
+	bool shouldHalt(void);
+public:
+	DriveController(Drivetrain* drivetrain) : drivetrain(drivetrain) {};
+	void process(void);
+};
