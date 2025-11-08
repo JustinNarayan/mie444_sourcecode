@@ -2,6 +2,7 @@
 #include "Settings.h"
 #include "Types.h"
 #include <CommsInterface.h>
+#include <DrivetrainEncoders.h>
 #include "Wiring.h"
 
 /*****************************************************
@@ -154,4 +155,23 @@ void Wiring_InitComms(CommsInterface *controllerComms)
 {
 	// Internal communications setup
 	controllerComms->init(UART_INTERNAL_TO_CONTROLLER, INTERNAL_COMMS_BAUD_RATE);
+}
+
+
+/**
+ * @brief Initialize encoders
+ * 
+ */
+void Wiring_InitDrivetrainEncoders(DrivetrainEncoders *drivetrainEncoders)
+{
+	drivetrainEncoders->init(
+		PIN_ENCODER_1_A, PIN_ENCODER_1_B,
+		PIN_ENCODER_2_A, PIN_ENCODER_2_B,
+		PIN_ENCODER_3_A, PIN_ENCODER_3_B
+	);
+
+	// Setup global static ISR functions
+	Wiring_GenerateInterrutServiceRoutine(PIN_ENCODER_1_A, drivetrainEncoders->ISR_encoder1);
+	Wiring_GenerateInterrutServiceRoutine(PIN_ENCODER_2_A, drivetrainEncoders->ISR_encoder2);
+	Wiring_GenerateInterrutServiceRoutine(PIN_ENCODER_3_A, drivetrainEncoders->ISR_encoder3);
 }

@@ -38,8 +38,21 @@
 // Each message allows space for encoding data and a null-terminator
 #define MESSAGE_CONTENT_LENGTH_MAX (STRING_LENGTH_MAX - MESSAGE_ENCODING_LENGTH - 1)
 
+/*****************************************************
+ *                   DRIVETRAIN                      *
+ *****************************************************/
 /**
- * Centralized drivetrain control logic settings
+ * @brief Drivetrain encoder custom parameters
+ * 
+ */
+#define ENCODER_1_GAIN_TO_CM ((float64_t)1.0)
+#define ENCODER_2_GAIN_TO_CM ((float64_t)1.0)
+#define ENCODER_3_GAIN_TO_CM ((float64_t)1.0)
+#define ENCODER_TIME_TO_SEND_AFTER_LAST_SENT_DISTANCES (100UL) // millis
+
+/**
+ * @brief Drivetrain control custom parameters
+ * 
  */
 #define DRIVETRAIN_TIME_TO_HALT_AFTER_LAST_RECEIVED_COMMAND (100UL) // millis
 #define DRIVETRAIN_TRANSLATE_SPEED (120) // 0 to 255

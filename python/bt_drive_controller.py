@@ -8,7 +8,8 @@ from enum import Enum, auto
 class MessageType(Enum):
 	def _generate_next_value_(name, start, count, last_values):
 		return count  # start counting at 0
-    
+
+	Unused = auto() # don't start with null-terminator bit
 	Generic = auto()
 	Error = auto()
 	DrivetrainManualCommand = auto()

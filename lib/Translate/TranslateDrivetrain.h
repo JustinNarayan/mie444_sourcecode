@@ -2,10 +2,11 @@
 #include <MessageType.h>
 #include <DrivetrainDefs.h>
 #include "TranslateEnumDefs.h"
+#include "TranslateStructDefs.h"
 
-/**
- * 
- */
+/*****************************************************
+ *                    ENUM MAPPING                   *
+ *****************************************************/
 static constexpr EnumStringMap DrivetrainManualCommandMap[] = {
     ENUM_MAP_ENTRY(DrivetrainManualCommand::Invalid,           "invalid"), // placeholder
     ENUM_MAP_ENTRY(DrivetrainManualCommand::NoReceived,        ""),
@@ -25,3 +26,8 @@ static constexpr EnumStringMap DrivetrainManualResponseMap[] = {
     ENUM_MAP_ENTRY(DrivetrainManualResponse::NotifyHalting,             "notifhalt"),
 };
 COMPILE_TIME_ENFORCE_ENUM_MAP_COUNT(DrivetrainManualResponseMap, DrivetrainManualResponse);
+
+/*****************************************************
+ *                  STRUCT MAPPING                   *
+ *****************************************************/
+COMPILE_TIME_ENFORCE_STRUCT_SIZE(DrivetrainEncoderDistances);

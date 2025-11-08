@@ -30,3 +30,13 @@ enum class DrivetrainManualResponse
 	
 	Count
 };
+
+/**
+ * Structure for enum information
+ */
+struct DrivetrainEncoderDistances
+{
+	float32_t encoder1Dist_cm;
+	float32_t encoder2Dist_cm;
+	float32_t encoder3Dist_cm;
+};
