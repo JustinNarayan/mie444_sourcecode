@@ -55,10 +55,11 @@ void DriveEncoderController::sendDrivetrainEncoderDistances(void)
 	DrivetrainEncoderDistancesTranslation.asMessage(&distances, &message);
 	this->post(&message);
 
-	char buffer[MESSAGE_CONTENT_LENGTH_MAX];
-	format(buffer, "%ld|%ld|%ld", (long)distances.encoder1Dist_cm, (long)distances.encoder2Dist_cm, (long)distances.encoder3Dist_cm);
-	message.init(MessageType::Error, MESSAGE_CONTENT_SIZE_AUTOMATIC, buffer);
-	this->post(&message);
+	// Debug
+	// char buffer[MESSAGE_CONTENT_LENGTH_MAX];
+	// format(buffer, "%ld|%ld|%ld", (long)distances.encoder1Dist_cm, (long)distances.encoder2Dist_cm, (long)distances.encoder3Dist_cm);
+	// message.init(MessageType::Error, MESSAGE_CONTENT_SIZE_AUTOMATIC, buffer);
+	// this->post(&message);
 
 	// Indicate message was sent
 	this->hasUnaddressedRequest = false;
