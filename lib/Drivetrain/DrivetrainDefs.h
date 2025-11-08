@@ -32,7 +32,7 @@ enum class DrivetrainManualResponse
 };
 
 /**
- * Structure for enum information
+ * Structure for encoder information
  */
 struct DrivetrainEncoderDistances
 {
