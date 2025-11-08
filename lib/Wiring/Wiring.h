@@ -1,5 +1,10 @@
 #pragma once
 
+/**
+ * @brief Declare general utilities for use in included wiring files
+ * 
+ */
+bool Wiring_ConfirmPinMode(uint8_t pin, uint8_t mode);
 
 /**
  * Include appropriate wiring file based on board

@@ -12,9 +12,10 @@
 // #define USE_SERIAL
 #define USE_BLE
 
-/**
- * Define all used pins on Arduino Mega 2560
- */
+/*****************************************************
+ *                  PIN SELECTIONS                   *
+ *****************************************************/
+
 #define PIN_BLINKER LED_BUILTIN
 
 /* UART */
@@ -37,9 +38,10 @@
 #define PIN_MOTOR_3_IN2 13
 #define PIN_MOTOR_3_ENABLE 11
 
-/**
- * @brief Initialize all wiring and pin modes for the main board.
- */
+/*****************************************************
+ *                   INITIALIZERS                    *
+ *****************************************************/
+
 void Wiring_InitPins()
 {
 	// Blinker
@@ -73,7 +75,6 @@ void Wiring_InitComms(CommsInterface *externalComms, CommsInterface *peripheralC
  */
 void Wiring_InitDrivetrain(Drivetrain *drivetrain)
 {
-	// Internal communications setup
 	drivetrain->init(
 		PIN_MOTOR_1_ENABLE, PIN_MOTOR_1_IN1, PIN_MOTOR_1_IN2,
 		PIN_MOTOR_2_ENABLE, PIN_MOTOR_2_IN1, PIN_MOTOR_2_IN2,
