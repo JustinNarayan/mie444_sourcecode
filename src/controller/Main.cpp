@@ -2,6 +2,7 @@
 
 #include <Wiring.h>
 #include <CommsInterface.h>
+#include <CommsRepeater.h>
 #include <Taskmaster.h>
 #include "DriveController.h"
 #include "Settings.h"
@@ -12,6 +13,7 @@
  *****************************************************/
 CommsInterface g_externalComms;
 CommsInterface g_peripheralComms;
+CommsRepeater g_commsRepeater(&g_peripheralComms, &g_externalComms);
 
 /*****************************************************
  *                    CONTROLLERS                    *
@@ -41,15 +43,7 @@ void setup()
  */
 void loop()
 {
-	// Receive internal comms
-	g_peripheralComms.receive();
-
 	primaryTaskmaster.execute();
 
-	// Echo internal comms up external_comms
-	Message messageInt;
-	if (g_peripheralComms.popMessage(&messageInt))
-	{
-		g_externalComms.sendMessage(&messageInt);
-	}
+	g_commsRepeater.process();
 }
