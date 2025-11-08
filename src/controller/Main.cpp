@@ -4,6 +4,7 @@
 #include <CommsInterface.h>
 #include <Taskmaster.h>
 #include "DriveController.h"
+#include "EchoController.h"
 #include "Settings.h"
 #include "Errors.h"
 
@@ -16,14 +17,22 @@ CommsInterface g_peripheralComms;
 /*****************************************************
  *                    CONTROLLERS                    *
  *****************************************************/
+EchoController g_echoController; // echos messages on both Serial channels
 Drivetrain g_drivetrain;
 DriveController g_driveController(&g_drivetrain);
 
 /*****************************************************
  *                    TASKMASTERS                    *
  *****************************************************/
-static ControllerGeneric* primaryControllers[] = { &g_driveController };
+static ControllerGeneric* primaryControllers[] = { 
+	&g_echoController,
+	&g_driveController
+};
 TASKMASTER_DECLARE(primaryTaskmaster, &g_externalComms, primaryControllers)
+static ControllerGeneric* peripheralControllers[] = {
+	&g_echoController,
+};
+TASKMASTER_DECLARE(peripheralTaskmaster, &g_peripheralComms, peripheralControllers)
 
 
 /**
@@ -41,15 +50,6 @@ void setup()
  */
 void loop()
 {
-	// Receive internal comms
-	g_peripheralComms.receive();
-
 	primaryTaskmaster.execute();
-
-	// Echo internal comms up external_comms
-	Message messageInt;
-	if (g_peripheralComms.popMessage(&messageInt))
-	{
-		g_externalComms.sendMessage(&messageInt);
-	}
+	peripheralTaskmaster.execute();
 }
