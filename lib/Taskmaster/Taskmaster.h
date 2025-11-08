@@ -31,9 +31,9 @@ private:
 	size_t numControllers;
 
 	bool poll(Message* message);
-	void disseminate(Message* message);
+	void dispatch(Message* message);
 	void process(void);
-	void preach(void);
+	void collect(void);
 public:
 	Taskmaster(
 		CommsInterface* comms, ControllerGeneric* controllers[], size_t numControllers

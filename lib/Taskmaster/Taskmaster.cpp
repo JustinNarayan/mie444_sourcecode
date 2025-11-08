@@ -19,7 +19,7 @@ bool Taskmaster::poll(Message* message)
  * @tparam numControllers 
  * @param message To deliver
  */
-void Taskmaster::disseminate(Message* message)
+void Taskmaster::dispatch(Message* message)
 {
 	LOOP_CONTROLLER_IDX(controller_idx)
 	{
@@ -48,7 +48,7 @@ void Taskmaster::process(void)
  * 
  * @tparam numControllers 
  */
-void Taskmaster::preach(void)
+void Taskmaster::collect(void)
 {
 	LOOP_CONTROLLER_IDX(controller_idx)
 	{
@@ -70,9 +70,9 @@ void Taskmaster::execute(void)
 	Message message;
 	if(poll(&message))
 	{
-		disseminate(&message);
+		dispatch(&message);
 	}
 	
 	process();
-	preach();
+	collect();
 }

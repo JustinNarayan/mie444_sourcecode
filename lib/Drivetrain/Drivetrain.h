@@ -16,7 +16,13 @@ private:
 	MotorController* motor3;
 
 public:
-	Drivetrain() {};
+	Drivetrain(void) {};
+	~Drivetrain()
+	{
+		delete motor1;
+		delete motor2;
+		delete motor3;
+	}
 
 	void init(
 		uint8_t motor1_enable, uint8_t motor1_in1, uint8_t motor1_in2,
@@ -26,11 +32,4 @@ public:
 	int setTranslate(uint8_t speed, bool isForward);
 	int setRotate(uint8_t speed, bool isLeft);
 	int halt(void);
-
-	~Drivetrain()
-	{
-		delete motor1;
-		delete motor2;
-		delete motor3;
-	}
 };

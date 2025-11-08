@@ -31,8 +31,8 @@ private:
 	/**
 	 * Store last received command from comms
 	 */
-	DrivetrainManualCommand lastReceivedCommand;
-	unsigned long lastReceivedCommandTimestampMillis;
+	DrivetrainManualCommand lastReceivedValidCommand;
+	unsigned long lastReceivedValidCommandTimestampMillis;
 
 	/**
 	 * Store last issued command to drivetrain
@@ -53,6 +53,6 @@ private:
 	void applyCommand(DrivetrainManualCommand command);
 	bool shouldHalt(void);
 public:
-	DriveController(Drivetrain* drivetrain) : drivetrain(drivetrain) {};
+	DriveController(Drivetrain* drivetrain);
 	void process(void);
 };
