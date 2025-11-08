@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 
 /**
  * Valid commands to be issued to the drivetrain under manual control.
@@ -28,4 +29,14 @@ enum class DrivetrainManualResponse
 	NotifyHalting,
 	
 	Count
+};
+
+/**
+ * Structure for enum information
+ */
+struct DrivetrainEncoderDistances
+{
+	float32_t encoder1Dist_cm;
+	float32_t encoder2Dist_cm;
+	float32_t encoder3Dist_cm;
 };

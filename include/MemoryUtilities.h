@@ -1,5 +1,5 @@
 #pragma once
-#include <Arduino.h>
+#include "Types.h"
 
 /**
  * @brief Set everything in element to value

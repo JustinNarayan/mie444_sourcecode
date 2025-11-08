@@ -1,5 +1,4 @@
 #pragma once
-#include <Arduino.h>
 
 /**
  * Define custom integer codes for all errors. This greatly simplifies debugging by

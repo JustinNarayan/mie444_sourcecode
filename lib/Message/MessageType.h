@@ -1,5 +1,5 @@
 #pragma once
-#include <stdint.h>
+#include "Types.h"
 
 /**
  * @brief Define all possible Message types.
@@ -7,13 +7,19 @@
  * 
  */
 enum class MessageType {
+	/* Unused */
+	Unused, // encodes to 0
+
 	/* Generic Types */
 	Generic,
 	Error,
+
 	/* Drivetrain */
 	DrivetrainManualCommand,
 	DrivetrainManualResponse,
-	DrivetrainEncoder,
+	DrivetrainEncoderRequest,
+	DrivetrainEncoderDistances,
+
 	/* Sensor Readings*/
 	ReadingLidar,
 

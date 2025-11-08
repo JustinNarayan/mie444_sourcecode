@@ -3,6 +3,16 @@
 #include <Translate.h>
 
 /**
+ * @brief Construct a new DriveController
+ * 
+ * @param drivetrain
+ */
+DriveController::DriveController(Drivetrain* drivetrain) : 
+	drivetrain(drivetrain), 
+	lastReceivedValidCommand(DrivetrainManualCommand::NoReceived),
+	lastIssuedCommand(DrivetrainManualCommand::Halt) {}
+
+/**
  * @brief Read input messages for DrivetrainManualCommand type
  * 
  * @return DrivetrainManualCommands received command, including NoReceivedCommand and InvalidCommand
@@ -56,8 +66,8 @@ void DriveController::echoDrivetrainManualCommand(DrivetrainManualCommand comman
 void DriveController::arbitrateCommand(DrivetrainManualCommand command)
 {
 	// Record command as received
-	this->lastReceivedCommand = command;
-	this->lastReceivedCommandTimestampMillis = millis();
+	this->lastReceivedValidCommand = command;
+	this->lastReceivedValidCommandTimestampMillis = millis();
 
 	// Apply command if not a continued command and record command as issued
 	if (command != this->lastIssuedCommand)
@@ -108,17 +118,14 @@ bool DriveController::shouldHalt(void)
 		(this->lastIssuedCommand != DrivetrainManualCommand::Halt) &&
 
 		// Halt if too much time elapsed since received command
-		((millis() - this->lastReceivedCommandTimestampMillis) > DRIVETRAIN_TIME_TO_HALT_AFTER_LAST_RECEIVED_COMMAND)
+		((millis() - this->lastReceivedValidCommandTimestampMillis) > DRIVETRAIN_TIME_TO_HALT_AFTER_LAST_RECEIVED_COMMAND)
 	);
 }
 
 
 /**
- * @brief Receive commands from the comms interface and issue to Drivetrain. Send back an
- * appropriate acknowledge.
+ * @brief Receive commands and issue to Drivetrain. Send back an appropriate acknowledge.
  * 
- * @param commsInterface 
- * @param drivetrain 
  */
 void DriveController::process(void)
 {

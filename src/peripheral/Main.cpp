@@ -1,11 +1,29 @@
 #include <Arduino.h>
-#include <Wiring.h>
-#include "Errors.h"
 
-/**
- * Global objects
- */
-CommsInterface g_controllerComms;
+#include <Wiring.h>
+#include <CommsInterface.h>
+#include <Taskmaster.h>
+#include "DriveEncoderController.h"
+#include "Settings.h"
+#include "Errors.h"
+#include "Translate.h"
+
+/*****************************************************
+ *                   COMMUNICATIONS                  *
+ *****************************************************/
+static CommsInterface g_controllerComms;
+
+/*****************************************************
+ *                    CONTROLLERS                    *
+ *****************************************************/
+static DrivetrainEncoders g_drivetrainEncoders;
+static DriveEncoderController g_driveEncoderController(&g_drivetrainEncoders);
+
+/*****************************************************
+ *                    TASKMASTERS                    *
+ *****************************************************/
+static ControllerGeneric* controllers[] = { &g_driveEncoderController };
+TASKMASTER_DECLARE(taskmaster, &g_controllerComms, controllers)
 
 /**
  * @brief Global setup functions for board
@@ -14,6 +32,7 @@ void setup()
 {
 	Wiring_InitPins();
 	Wiring_InitComms(&g_controllerComms);
+	Wiring_InitDrivetrainEncoders(&g_drivetrainEncoders);
 }
 
 /**
@@ -21,9 +40,5 @@ void setup()
  */
 void loop()
 {
-	// Send periodic heartbeat signal
-	Message message;
-	message.init(MessageType::Generic, "Heartbeat");
-	g_controllerComms.sendMessage(&message);
-	delay(1000);
+	taskmaster.execute();
 }

@@ -3,7 +3,6 @@
 #include <Wiring.h>
 #include <CommsInterface.h>
 #include <Taskmaster.h>
-#include <Controller.h>
 #include "DriveController.h"
 #include "Settings.h"
 #include "Errors.h"
@@ -42,10 +41,10 @@ void setup()
  */
 void loop()
 {
-	// // Receive internal comms
-	// g_peripheralComms.receive();
+	// Receive internal comms
+	g_peripheralComms.receive();
 
-	primaryTaskmaster.execute();	
+	primaryTaskmaster.execute();
 
 	// Echo internal comms up external_comms
 	Message messageInt;
