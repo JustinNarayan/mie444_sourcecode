@@ -1,5 +1,5 @@
 #pragma once
-#include <Arduino.h>
+#include "Types.h"
 #include <MotorController.h>
 
 #define RET_SET_COMMAND_SUCCESS (0)

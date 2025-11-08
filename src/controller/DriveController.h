@@ -1,5 +1,5 @@
 #pragma once
-#include <Arduino.h>
+#include "Types.h"
 #include <CommsInterface.h>
 #include <Controller.h>
 #include <Drivetrain.h>

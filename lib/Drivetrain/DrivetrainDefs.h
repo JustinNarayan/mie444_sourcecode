@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 
 /**
  * Valid commands to be issued to the drivetrain under manual control.

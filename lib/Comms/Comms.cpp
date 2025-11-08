@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include "Settings.h"
 #include "Comms.h"
 

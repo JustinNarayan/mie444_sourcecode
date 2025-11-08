@@ -1,5 +1,5 @@
 #pragma once
-#include <Arduino.h>
+#include "Types.h"
 #include <RingBuffer.h>
 #include <Message.h>
 #include "Errors.h"

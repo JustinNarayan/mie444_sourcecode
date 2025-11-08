@@ -1,5 +1,5 @@
 #pragma once
-#include <Arduino.h>
+#include "Types.h"
 
 #define SPEED_MIN 0
 #define SPEED_MAX 255

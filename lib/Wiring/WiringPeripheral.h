@@ -1,5 +1,6 @@
 #pragma once
-#include <Arduino.h>
+#include "Settings.h"
+#include "Types.h"
 #include <CommsInterface.h>
 #include "Wiring.h"
 

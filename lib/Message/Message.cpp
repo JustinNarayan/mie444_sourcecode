@@ -1,4 +1,5 @@
 #include "Message.h"
+#include "Types.h"
 
 /**
  * @brief Initialize Message by decoding its raw string representation into its type and 

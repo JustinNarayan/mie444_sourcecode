@@ -1,5 +1,5 @@
 #pragma once
-#include <Arduino.h>
+
 
 /**
  * Include appropriate wiring file based on board

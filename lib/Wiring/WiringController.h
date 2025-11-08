@@ -1,8 +1,8 @@
 #pragma once
-#include <Arduino.h>
+#include "Settings.h"
+#include "Types.h"
 #include <CommsInterface.h>
 #include <Drivetrain.h>
-#include "Settings.h"
 #include "Wiring.h"
 
 /**

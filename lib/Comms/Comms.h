@@ -1,5 +1,5 @@
 #pragma once
-#include <Arduino.h>
+#include "Types.h"
 
 /**
  * Abstracted communications interface. Specified to be BLE or Serial via CommsConfig.
