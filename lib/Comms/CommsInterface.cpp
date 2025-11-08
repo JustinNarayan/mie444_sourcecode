@@ -57,7 +57,11 @@ void CommsInterface::sendMessage(Message* message)
 	char buffer[STRING_LENGTH_MAX];
 	message->getRaw(buffer);
 
-	comms->sendInfo(buffer);
+	// Compute message size
+	size_t size = message->getRawSize();
+
+	// Send
+	comms->sendInfo(buffer, size);
 }
 
 /**

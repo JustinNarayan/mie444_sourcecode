@@ -21,10 +21,10 @@ void Comms::init(HardwareSerial* port, unsigned long baud)
  * 
  * @param buffer A buffer
  */
-void Comms::sendInfo(const char* buffer)
+void Comms::sendInfo(const char* buffer, size_t size)
 {
 	// Transmit
-	this->send(buffer);
+	this->send(buffer, size);
 }
 
 /**

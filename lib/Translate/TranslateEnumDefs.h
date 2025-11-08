@@ -7,6 +7,8 @@
  *****************************************************/
 #define ENUM_MAP_ENTRY(e, s) { static_cast<uint8_t>(e), s }
 #define MAP_NUM_ELEMENTS(m) (size_t)(sizeof(m)/sizeof(m[0]))
+/* Though not strictly enforced, all string literal representations in map should not be longer 
+than MESSAGE_CONTENT_LENGTH_MAX */
 #define COMPILE_TIME_ENFORCE_ENUM_MAP_COUNT(map, enum) \
 	static_assert( \
 		(sizeof(map)/sizeof(map[0])) == (uint8_t)(enum::Count), \
@@ -29,7 +31,7 @@ struct EnumStringMap {
  * Define an EnumMessageMap to connect an EnumStringMap to a given MessageType.
  *
  */
-template <typename T, size_t numElements>
+template <typename E, size_t numElements>
 class EnumMessageMap
 {
 private:
@@ -42,7 +44,7 @@ private:
 	 * @param e An enum
 	 * @return constexpr const char* String literal representation
 	 */
-	const char* enumToStr(T e) const {
+	const char* enumToStr(E e) const {
 		for (size_t i = 0; i < numElements; ++i)
 			if (enumStringMap[i].enumValue == static_cast<uint8_t>(e))
 				return enumStringMap[i].strRep;
@@ -53,14 +55,14 @@ private:
 	 * @brief Given a string, get the generic enum representation.
 	 * 
 	 * @param buffer A string
-	 * @return constexpr T Generic enum representation
+	 * @return constexpr E Generic enum representation
 	 */
-	const T strToEnum(const char* buffer) const {
-    	if (!buffer || buffer[0] == '\0') return T::NoReceived;
+	const E strToEnum(const char* buffer) const {
+    	if (!buffer || buffer[0] == '\0') return E::NoReceived;
         for (size_t i = 0; i < numElements; ++i)
             if (stringsEqual(enumStringMap[i].strRep, buffer))
-                return static_cast<T>(enumStringMap[i].enumValue);
-        return T::Invalid;
+                return static_cast<E>(enumStringMap[i].enumValue);
+        return E::Invalid;
     }
 
 public:
@@ -72,18 +74,18 @@ public:
 	 * @param e An enum to translate
 	 * @param outMessage Message with appropriate type and content, now initialized
 	 */
-	void asMessage(const T e, Message* outMessage)
+	void asMessage(const E e, Message* outMessage)
 	{
-		outMessage->init(type, enumToStr(e));
+		outMessage->init(type, MESSAGE_CONTENT_SIZE_AUTOMATIC, enumToStr(e));
 	}
 
 	/**
 	 * @brief Provided a message, return a corresponding enum.
 	 * 
 	 * @param message A message to translate
-	 * @return T An appropriate enum
+	 * @return E An appropriate enum
 	 */
-	T asEnum(Message* message)
+	E asEnum(Message* message)
 	{
 		char buffer[MESSAGE_CONTENT_LENGTH_MAX];
 		message->getContent(buffer);

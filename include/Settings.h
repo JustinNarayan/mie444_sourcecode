@@ -19,8 +19,12 @@
 #define MESSAGE_END_CHAR '$'
 #define MESSAGE_NUM_BUFFERS 8 // ring buffer for raw comms interface
 #define MESSAGE_QUEUE_SIZE 4 // max number of stored messages for subsystems
-// Each message includes encoding data of a (1) type char and (2) end char
-#define MESSAGE_ENCODING_LENGTH (2)
+// Each encoded message ends with this token
+#define MESSAGE_END_CHAR '$'
+// Each message includes encoding data of a (1) type char, (2) size char, and (3) end char
+#define MESSAGE_ENCODING_LENGTH (3)
+// Type char and size char are at beginning of message
+#define MESSAGE_PRE_ENCODE_LENGTH (2)
 // Each message allows space for encoding data and a null-terminator
 #define MESSAGE_CONTENT_LENGTH_MAX (STRING_LENGTH_MAX - MESSAGE_ENCODING_LENGTH - 1)
 

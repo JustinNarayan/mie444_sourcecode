@@ -17,9 +17,9 @@ private:
 	 * 
 	 * @param buffer 
 	 */
-	void send(const char *buffer)
+	void send(const char *buffer, size_t size)
 	{
-		port->write(buffer);
+		port->write(buffer, size);
 	}
 	
 	/**
@@ -44,6 +44,6 @@ private:
 
 public:
 	void init(HardwareSerial* port, unsigned long baud);
-	void sendInfo(const char *buffer);
+	void sendInfo(const char *buffer, size_t size);
 	size_t receiveInfo(char* buffer, size_t length);
 };

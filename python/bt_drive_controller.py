@@ -18,7 +18,14 @@ class MessageType(Enum):
 	Count = auto()
  
 def encode_message(type: MessageType, content: str):
-    return type.value.to_bytes(1, "little") + content.encode() + b"$"
+    content_bytes = content.encode()
+    content_size = len(content_bytes)
+    return (
+        type.value.to_bytes(1, "little") +
+        content_size.to_bytes(1, "little") +
+        content_bytes +
+        b"$"
+    )
 
 
 # ======= USER SETTINGS =======
