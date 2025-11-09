@@ -6,7 +6,7 @@
  *****************************************************/
 
 #define EXTERNAL_COMMS_BAUD_RATE 57600
-#define INTERNAL_COMMS_BAUD_RATE 57600
+#define INTERNAL_COMMS_BAUD_RATE 115299
 #define BLUETOOTH_AT_BAUD_RATE 38400
 #define LIDAR_BAUD_RATE 115200
 
@@ -55,18 +55,27 @@
  * @brief Drivetrain encoder custom parameters
  * 
  */
-#define ENCODER_1_GAIN_TO_CM ((float64_t)1.0)
-#define ENCODER_2_GAIN_TO_CM ((float64_t)1.0)
-#define ENCODER_3_GAIN_TO_CM ((float64_t)1.0)
-#define ENCODER_TIME_TO_SEND_AFTER_LAST_SENT_DISTANCES (100UL) // millis
+#define WHEEL_DIAMETER_IN (2.20472)
+#define WHEEL_CIRCUMFERENCE_IN (2 * PI * WHEEL_DIAMETER_IN)
+#define DEFAULT_ENCODER_TICKS_PER_ROTATION (300) // approx
+#define DEFAULT_ENCODER_GAIN_IN ((WHEEL_CIRCUMFERENCE_IN) / (DEFAULT_ENCODER_TICKS_PER_ROTATION))
+#define ENCODER_1_TUNING_GAIN ((float64_t)1.0)
+#define ENCODER_2_TUNING_GAIN ((float64_t)1.0)
+#define ENCODER_3_TUNING_GAIN ((float64_t)1.0)
+
+#define ENCODER_1_TO_IN (DEFAULT_ENCODER_GAIN_IN * ENCODER_1_TUNING_GAIN)
+#define ENCODER_2_TO_IN (DEFAULT_ENCODER_GAIN_IN * ENCODER_2_TUNING_GAIN)
+#define ENCODER_3_TO_IN (DEFAULT_ENCODER_GAIN_IN * ENCODER_3_TUNING_GAIN)
+
+#define ENCODER_TIME_TO_SEND_AFTER_LAST_SENT_DISTANCES (250UL) // millis
 
 /**
  * @brief Drivetrain control custom parameters
  * 
  */
-#define DRIVETRAIN_TIME_TO_HALT_AFTER_LAST_RECEIVED_COMMAND (100UL) // millis
-#define DRIVETRAIN_TRANSLATE_SPEED (120) // 0 to 255
-#define DRIVETRAIN_ROTATE_SPEED (80) // 0 to 255
+#define DRIVETRAIN_TIME_TO_HALT_AFTER_LAST_RECEIVED_COMMAND (200UL) // millis
+#define DRIVETRAIN_TRANSLATE_SPEED (90) // 0 to 255
+#define DRIVETRAIN_ROTATE_SPEED (60) // 0 to 255
 
 
 /*****************************************************
