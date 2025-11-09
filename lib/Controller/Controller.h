@@ -78,7 +78,7 @@ private:
 	virtual ControllerMessageQueueOutput read(const MessageType desiredType, Message* message) = 0;
 	virtual ControllerMessageQueueOutput post(Message* message) = 0;
 public:
-	virtual ControllerMessageQueueOutput deliver(Message* message) = 0;
+	virtual ControllerMessageQueueOutput deliver(Message* message, bool forceDelivery = false) = 0;
 	virtual ControllerMessageQueueOutput pickup(Message* message) = 0;
 
     /**
@@ -161,9 +161,25 @@ public:
 	 * @param message To enqueue
      * @return ControllerMessageQueueOutput Enqueue value
 	 */
-    ControllerMessageQueueOutput deliver(Message* message)
+    ControllerMessageQueueOutput deliver(Message* message, bool forceDelivery)
     {
-		return toControllerMessageQueueOutputEnqueue(messagesIn.enqueue(message));
+		ControllerMessageQueueOutput enqueueOutput = toControllerMessageQueueOutputEnqueue(messagesIn.enqueue(message));
+
+		// If queue is full and delivery is required, pop the oldest message
+		if (
+			(enqueueOutput == ControllerMessageQueueOutput::EnqueueQueueFull) &&
+			forceDelivery
+		)
+		{
+			// Dequeud message disappears forever
+			Message dequeued;
+			ControllerMessageQueueOutput dequeueOutput = toControllerMessageQueueOutputDequeue(messagesIn.dequeue(message->getType(), &dequeued));
+			
+			// Retry enqueue
+			if (dequeueOutput == ControllerMessageQueueOutput::DequeueSuccess)
+				return toControllerMessageQueueOutputEnqueue(messagesIn.enqueue(message));
+		}
+		return enqueueOutput;
 	}
 
 	/**

@@ -31,7 +31,8 @@ void Taskmaster::dispatch(Message* message)
 	{
 		ControllerGeneric* controller = controllers[controller_idx];
 		// Message is only delivered if Controller expects to receive this MessageType
-		controller->deliver(message);
+		// Force message to be delivered
+		controller->deliver(message, true);
 	}
 }
 
