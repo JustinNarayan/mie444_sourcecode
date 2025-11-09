@@ -31,7 +31,7 @@ public:
 	}
 
 	void init(HardwareSerial* port, unsigned long baud = EXTERNAL_COMMS_BAUD_RATE);
-	void receive(void);
+	bool receive(void);
 	int popMessage(Message* outMessage);
 	void sendMessage(Message* message);
 	void sendError(Error error);

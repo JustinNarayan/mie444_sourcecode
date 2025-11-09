@@ -7,10 +7,10 @@
 /*****************************************************
  *                INPUT / OUTPUT TYPES               *
  *****************************************************/
-using MessageTypesIn = MessageTypes<
+using MessageTypesInDriveEncoder = MessageTypes<
     MessageType::DrivetrainEncoderRequest // Request an encoder reading
 >;
-using MessageTypesOut = MessageTypes<
+using MessageTypesOutDriveEncoder = MessageTypes<
     MessageType::DrivetrainEncoderDistances, // Encoder reading
     MessageType::Error // Errors
 >;
@@ -18,7 +18,10 @@ using MessageTypesOut = MessageTypes<
 /*****************************************************
  *                     CONTROLLER                    *
  *****************************************************/
-class DriveEncoderController : public Controller<MessageTypesIn, MessageTypesOut>
+class DriveEncoderController : public Controller<
+	MessageTypesInDriveEncoder, 
+	MessageTypesOutDriveEncoder
+>
 {
 private:
 	/**

@@ -30,6 +30,7 @@ private:
 	ControllerGeneric** controllers;
 	size_t numControllers;
 
+	void receive(void);
 	bool poll(Message* message);
 	void dispatch(Message* message);
 	void process(void);

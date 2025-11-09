@@ -72,7 +72,7 @@ void DriveController::arbitrateCommand(DrivetrainManualCommand command)
 	// Apply command if not a continued command and record command as issued
 	if (command != this->lastIssuedCommand)
 	{
-		applyCommand(command);
+		this->applyCommand(command);
 		this->lastIssuedCommand = command;
 	}
 }
@@ -129,7 +129,7 @@ bool DriveController::shouldHalt(void)
  */
 void DriveController::process(void)
 {
-	DrivetrainManualCommand currentCommand = getDrivetrainManualCommand();
+	DrivetrainManualCommand currentCommand = this->getDrivetrainManualCommand();
 
 	// Send acknowledgement if invalid command
 	if (currentCommand == DrivetrainManualCommand::Invalid)
@@ -142,7 +142,7 @@ void DriveController::process(void)
 	// Send echo and acknowledgement if valid command
 	if (currentCommand != DrivetrainManualCommand::NoReceived)
 	{
-		arbitrateCommand(currentCommand);
+		this->arbitrateCommand(currentCommand);
 		this->echoDrivetrainManualCommand(currentCommand);
 		this->sendDrivetrainManualResponse(DrivetrainManualResponse::AcknowledgeValidCommand);
 		return;
@@ -151,9 +151,22 @@ void DriveController::process(void)
 	// Check if should halt based on no recent commands
 	if (this->shouldHalt())
 	{
-		arbitrateCommand(DrivetrainManualCommand::Halt);
-		this->echoDrivetrainManualCommand(DrivetrainManualCommand::Halt);
-		this->sendDrivetrainManualResponse(DrivetrainManualResponse::NotifyHalting);
+		this->demandHalt();
 		return;
 	}
+}
+
+/**
+ * @brief Bring drivetrain to a halt. Allow other controllers to poke the drivetrain to halt.
+ * 
+ */
+void DriveController::demandHalt(void)
+{
+	// Come to a stop and notify
+	this->arbitrateCommand(DrivetrainManualCommand::Halt);
+	this->echoDrivetrainManualCommand(DrivetrainManualCommand::Halt);
+	this->sendDrivetrainManualResponse(DrivetrainManualResponse::NotifyHalting);
+
+	// Prevent other stale from coming in immediately after
+	this->purge(MessageType::DrivetrainManualCommand);
 }

@@ -1,22 +1,28 @@
 #include "Taskmaster.h"
 
 /**
- * @brief Read CommsInterface for a Message
+ * @brief Read CommsInterface for all bytes
  * 
- * @tparam numControllers 
+ */
+void Taskmaster::receive(void)
+{
+	while(comms->receive());
+}
+
+/**
+ * @brief Try to pull a Message from the CommsInterface
+ * 
  * @param message Now populated
  * @return If a Message received
  */
 bool Taskmaster::poll(Message* message)
 {
-	comms->receive();
 	return comms->popMessage(message);
 }
 
 /**
  * @brief Deliver Message objects to Controller objects
  * 
- * @tparam numControllers 
  * @param message To deliver
  */
 void Taskmaster::dispatch(Message* message)
@@ -32,7 +38,6 @@ void Taskmaster::dispatch(Message* message)
 /**
  * @brief Allow Controller objects to process
  * 
- * @tparam numControllers 
  */
 void Taskmaster::process(void)
 {
@@ -46,7 +51,6 @@ void Taskmaster::process(void)
 /**
  * @brief Read and send all Message objects the Controller objects have created to be sent
  * 
- * @tparam numControllers 
  */
 void Taskmaster::collect(void)
 {
@@ -67,8 +71,10 @@ void Taskmaster::collect(void)
  */
 void Taskmaster::execute(void)
 {
+	receive();
+
 	Message message;
-	if(poll(&message))
+	while(poll(&message))
 	{
 		dispatch(&message);
 	}

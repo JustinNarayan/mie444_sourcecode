@@ -1,6 +1,17 @@
 #pragma once
 #include "MessageQueue.h"
 
+/**
+ * @brief Helper struct to hold a single MessageQueue
+ * 
+ * @tparam allowedType
+ */
+template <MessageType allowedType>
+struct QueueHolder
+{
+    MessageQueue<allowedType> queue;
+    MessageQueueGeneric* getGenericQueue() { return &queue; }
+};
 
 /**
  * @brief A MessageQueueHub stores a list of MessageQueues for a given list of MessageType values.
@@ -10,25 +21,10 @@
  * @tparam allowedTypes 
  */
 template <MessageType... allowedTypes>
-class MessageQueueHub
+class MessageQueueHub : private QueueHolder<allowedTypes>...
 {
 private:
-	MessageQueueGeneric* queues[sizeof...(allowedTypes)];
     static constexpr MessageType types[sizeof...(allowedTypes)] = { allowedTypes... };
-
-	/**
-	 * @brief Recursively initialize all required MessageQueue objects at compile time
-	 * 
-	 */
-	template <size_t index = 0, MessageType thisType, MessageType... nextTypes>
-	void initQueue(void)
-	{
-		queues[index] = new MessageQueue<thisType>;
-		initQueue<index + 1, nextTypes...>();
-	}
-
-	template <size_t index>
-	void initQueue(void) {}; // ends recursive call
 
 	/**
 	 * @brief Get the pointer to the included MessageQueue of desired MessageType
@@ -38,36 +34,21 @@ private:
 	 */
     MessageQueueGeneric* locateQueueByType(MessageType desiredType)
     {
-        for (size_t i = 0; i < sizeof...(allowedTypes); ++i)
-            if (types[i] == desiredType)
-                return queues[i];
-
-		// Return a null pointer if not found
-        return (MessageQueueGeneric*)nullptr;
+        // Expand over all allowed types and check each
+        MessageQueueGeneric* result = nullptr;
+        bool found = false;
+        using expander = int[];
+        (void)expander{0, (
+			(allowedTypes == desiredType ? (
+				result = QueueHolder<allowedTypes>::getGenericQueue(), found = true
+			) : false), 
+			0)...
+		};
+        return result;
     }
 public:
-	/**
-	 * @brief Use templated helpers to construct all MessageQueue objects of right type at compile 
-	 * time
-	 * 
-	 */
-	MessageQueueHub(void)
-	{
-		this->initQueue<0, allowedTypes...>();
-	}
-
-	/**
-	 * @brief Delete all generated MessageQueue objects at end of compile
-	 * 
-	 */
-	~MessageQueueHub()
-	{
-		for (size_t i = 0; i < sizeof...(allowedTypes); ++i)
-		{
-			delete queues[i];
-			queues[i] = nullptr; // optional, clears pointer
-		}
-	}
+    MessageQueueHub() = default;
+    ~MessageQueueHub() = default;
 
 	/**
 	 * @brief Check if any queue types are defined.
@@ -76,6 +57,12 @@ public:
 	 */
 	static constexpr bool hasNoQueues(void) { return (sizeof...(allowedTypes) == 0); }
 
+	/**
+	 * @brief Enqueue a message, if a valid queue for its MessageType exists
+	 * 
+	 * @param message 
+	 * @return See MessageQueue.h
+	 */
 	int enqueue(Message* message)
 	{
 		// Verify queues exist
@@ -90,6 +77,13 @@ public:
 		return queue->enqueue(message);
 	}
 
+	/**
+	 * @brief Dequeue a message, if a valid queue for its MessageType exists
+	 * 
+	 * @param desiredType 
+	 * @param message 
+	 * @return See MessageQueue.h
+	 */
 	int dequeue(const MessageType desiredType, Message* message)
 	{
 		if (hasNoQueues()) return RET_DEQUEUE_NO_QUEUE;
@@ -100,5 +94,23 @@ public:
 
 		// Dequeue
 		return queue->dequeue(message);
+	}
+
+	/**
+	 * @brief Clear the whole queue, if a valid queue for this MessageType exists
+	 * 
+	 * @return See MessageQueue.h
+	 */
+	int clear(const MessageType desiredType)
+	{
+		if (hasNoQueues()) return RET_CLEAR_NO_QUEUE;
+		
+		// Verify queue of this type exists
+		MessageQueueGeneric* queue = locateQueueByType(desiredType);
+		if (queue == nullptr) return RET_CLEAR_DISALLOWED_TYPE;
+
+		// Clear
+		queue->clear();
+		return RET_CLEAR_SUCCESS;
 	}
 };

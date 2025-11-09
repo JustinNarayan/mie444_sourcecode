@@ -14,7 +14,7 @@ void CommsInterface::init(HardwareSerial* port, unsigned long baud)
 /**
  * @brief Receive available information and store in ring buffer.
  */
-void CommsInterface::receive(void)
+bool CommsInterface::receive(void)
 {
 	// Construct a buffer to read into
 	char buffer[STRING_LENGTH_MAX];
@@ -24,6 +24,8 @@ void CommsInterface::receive(void)
 
 	// Write into buffer, sealing if the end char is encountered
 	ringBuffer->writeIntoBuffer(buffer, numBytesRead, true);
+
+	return numBytesRead > 0;
 }
 
 /**

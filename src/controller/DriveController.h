@@ -8,10 +8,10 @@
 /*****************************************************
  *                INPUT / OUTPUT TYPES               *
  *****************************************************/
-using MessageTypesIn = MessageTypes<
+using MessageTypesInDrive = MessageTypes<
     MessageType::DrivetrainManualCommand // Manual commands
 >;
-using MessageTypesOut = MessageTypes<
+using MessageTypesOutDrive = MessageTypes<
     MessageType::DrivetrainManualResponse, // Manual command responses
 	MessageType::DrivetrainManualCommand, // Manual command echo
     MessageType::Error // Errors
@@ -20,7 +20,10 @@ using MessageTypesOut = MessageTypes<
 /*****************************************************
  *                     CONTROLLER                    *
  *****************************************************/
-class DriveController : public Controller<MessageTypesIn, MessageTypesOut>
+class DriveController : public Controller<
+	MessageTypesInDrive, 
+	MessageTypesOutDrive
+>
 {
 private:
 	/**
@@ -55,4 +58,6 @@ private:
 public:
 	DriveController(Drivetrain* drivetrain);
 	void process(void);
+
+	void demandHalt(void);
 };

@@ -8,11 +8,21 @@
 #define EXTERNAL_COMMS_BAUD_RATE 57600
 #define INTERNAL_COMMS_BAUD_RATE 57600
 #define BLUETOOTH_AT_BAUD_RATE 38400
+#define LIDAR_BAUD_RATE 115200
 
 /*****************************************************
  *                      STRINGS                      *
  *****************************************************/
+/**
+ * Break out buffer sizes by board
+ */
+#if defined(BOARD_CONTROLLER)
 #define STRING_LENGTH_MAX 64
+#elif defined(BOARD_PERIPHERAL)
+#define STRING_LENGTH_MAX 64
+#else
+#error "Unsupported board! Please defined BOARD_xxx in platformio.ini"
+#endif
 
 /*****************************************************
  *                     MESSAGES                      *
@@ -57,3 +67,23 @@
 #define DRIVETRAIN_TIME_TO_HALT_AFTER_LAST_RECEIVED_COMMAND (100UL) // millis
 #define DRIVETRAIN_TRANSLATE_SPEED (120) // 0 to 255
 #define DRIVETRAIN_ROTATE_SPEED (80) // 0 to 255
+
+
+/*****************************************************
+ *                       LIDAR                       *
+ *****************************************************/
+/**
+ * @brief LiDAR control custom parameters
+ */
+#define LIDAR_MOTOR_SPIN_SPEED (200) // 0 - 255
+#define LIDAR_MIN_TIME_SINCE_HALT_RECEIVED_COMMAND (200UL) // millis
+#define LIDAR_MAX_TIME_TO_SEND_READING (3000UL) // millis, after this reading is assumed lost
+
+/**
+ * @brief LiDAR preprocessing custom parameters
+ * 
+ */
+#define LIDAR_MINIMUM_QUALITY_TO_SEND (0) // 0 - 63, < 15 is noisy
+#define LIDAR_GRANULARITY_NUM_POINTS (360) // X even samples across 360 degree sweep
+#define LIDAR_SWEEP_STARTUP_MS (500UL) // millis
+#define LIDAR_SWEEP_TIMEOUT_MS (1000UL) // millis

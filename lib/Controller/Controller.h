@@ -15,7 +15,12 @@ enum class ControllerMessageQueueOutput {
 	DequeueNoQueue,
 	DequeueQueueEmpty,
 	DequeueDisallowedType,
-	DequeueSuccess
+	DequeueSuccess,
+
+	/* Clear */
+	ClearNoQueue,
+	ClearDisallowedType,
+	ClearSuccess,
 };
 
 static inline ControllerMessageQueueOutput toControllerMessageQueueOutputEnqueue(
@@ -46,6 +51,19 @@ static inline ControllerMessageQueueOutput toControllerMessageQueueOutputDequeue
 	}
 }
 
+static inline ControllerMessageQueueOutput toControllerMessageQueueOutputClear(
+	int messageQueueOutput
+)
+{
+	switch (messageQueueOutput)
+	{
+		case RET_CLEAR_NO_QUEUE: return ControllerMessageQueueOutput::ClearNoQueue;
+		case RET_CLEAR_DISALLOWED_TYPE: return ControllerMessageQueueOutput::ClearDisallowedType;
+		case RET_CLEAR_SUCCESS:
+		default: return ControllerMessageQueueOutput::ClearSuccess;
+	}
+}
+
 
 
 /**
@@ -56,6 +74,7 @@ static inline ControllerMessageQueueOutput toControllerMessageQueueOutputDequeue
 class ControllerGeneric
 {
 private:
+	virtual ControllerMessageQueueOutput purge(const MessageType desiredType) = 0;
 	virtual ControllerMessageQueueOutput read(const MessageType desiredType, Message* message) = 0;
 	virtual ControllerMessageQueueOutput post(Message* message) = 0;
 public:
@@ -98,8 +117,17 @@ protected:
     MessageQueueHub<messageTypesIn...> messagesIn;
     MessageQueueHub<messageTypesOut...> messagesOut;
 
+	/**
+	 * @brief Purge a whole queue of messagesIn.
+	 * 
+	 */
+	ControllerMessageQueueOutput purge(const MessageType desiredType)
+	{
+		return toControllerMessageQueueOutputClear(messagesIn.clear(desiredType));
+	}
+
     /**
-     * @brief Read a messages from the messagesIn queue
+     * @brief Read a message from the messagesIn queue
      * 
      * 
      * @param desiredType MessageType
@@ -112,7 +140,7 @@ protected:
 	}
 
     /**
-     * @brief Writes a messages to the messagesOut queue
+     * @brief Writes a message to the messagesOut queue
      * 
      * 
      * @param desiredType MessageType

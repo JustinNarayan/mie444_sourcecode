@@ -1,6 +1,7 @@
 #pragma once
 #include "Message.h"
 #include "TranslateDrivetrain.h"
+#include "TranslateLidar.h"
 
 /**
  * @brief Instantiate all EnumMessageMap objects for translation
@@ -16,3 +17,4 @@ ENUM_MESSAGE_MAP_TRANSLATION(DrivetrainManualResponse)
  * Each call to STRUCT_MESSAGE_MAP_TRANSLATION(structType) creates structTypeTranslation
  */
 STRUCT_MESSAGE_MAP_TRANSLATION(DrivetrainEncoderDistances)
+STRUCT_MESSAGE_MAP_TRANSLATION(LidarPointReading)
