@@ -114,6 +114,44 @@ bool LidarController::shouldSendLidarReading(void)
 }
 
 /**
+ * @brief Try to send a single Lidar point reading.
+ * 
+ * @return Whether post was successful. If false, messages out queue was likely full
+ */
+bool LidarController::trySendNextLidarReadingPoint(void)
+{
+	// Find next point to send
+	stepLidarReadingToNextValidPoint(&(this->reading));
+	LidarPointReading* currentPoint = getCurrentLidarPointReading(&(this->reading));
+	
+	// Construct message
+	Message message;
+	LidarPointReadingTranslation.asMessage(currentPoint, &message);
+	
+	// Post message
+	ControllerMessageQueueOutput result = this->post(&message);
+
+	// Notify if post was unsuccessful
+	if (result != ControllerMessageQueueOutput::EnqueueSuccess)
+		return false;
+
+	// Mark point as processed
+	markLidarReadingIndexProcessed(&(this->reading));
+	return true;
+}
+
+/**
+ * @brief Notify that all Lidar information has been sent
+ * 
+ */
+void LidarController::sendLidarComplete(void)
+{
+	Message message;
+	message.init(MessageType::LidarComplete, MESSAGE_CONTENT_SIZE_AUTOMATIC, "");
+	this->post(&message);
+}
+
+/**
  * @brief Send Lidar data points
  * 
  */
@@ -126,30 +164,29 @@ void LidarController::sendLidarData(void)
 		(false == isLidarReadingFullyProcessed(&(this->reading)))
 	)
 	{
-		// Get next Lidar data to send
-		stepLidarReadingToNextValidPoint(&(this->reading));
-		LidarPointReading* currentPoint = getCurrentLidarPointReading(&(this->reading));
-
-		// Construct message
-		LidarPointReadingTranslation.asMessage(currentPoint, &message);
-
-		// Post message
-		ControllerMessageQueueOutput result = this->post(&message);
-
-		// Mark as complete if successfully enqueued
-		if (result == ControllerMessageQueueOutput::EnqueueSuccess)
-		{
-			markLidarReadingIndexProcessed(&(this->reading));
-		}
-		else
-		{
-			messageQueueMayHaveSpace = false;
-		}
+		messageQueueMayHaveSpace = this->trySendNextLidarReadingPoint();
 	}
 
 	// If all data sent, mark as complete
 	if (isLidarReadingFullyProcessed(&(this->reading)))
+	{
 		lastCompleteSentTimestampMillis = millis();
+		this->sendLidarComplete();
+	}
+}
+
+/**
+ * @brief Determine if Lidar should request prioiritzed sender. Do so if a request has been 
+ * received but the data is not stale.
+ * 
+ * @return true 
+ * @return false 
+ */
+bool LidarController::shouldRequestPrioritizedSender(void)
+{
+	return (
+		(false == shouldAcceptNewRequests())
+	);
 }
 
 /**
@@ -160,6 +197,16 @@ void LidarController::process(void)
 {
 	// Monitor incoming messages
 	this->checkLidarRequest();
+
+	// Check if should request prioritized sender
+	if (this->shouldRequestPrioritizedSender())
+	{
+		this->setRequestPrioritizedSender();
+	}
+	else
+	{
+		this->clearRequestPrioritizedSender();
+	}
 
 	// Ping lidar if required
 	if (this->shouldRefreshLidarReading())
