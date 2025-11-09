@@ -14,7 +14,6 @@
  *****************************************************/
 CommsInterface g_externalComms;
 CommsInterface g_peripheralComms;
-CommsRepeater g_commsRepeater(&g_peripheralComms, &g_externalComms);
 
 /*****************************************************
  *                    CONTROLLERS                    *
@@ -32,6 +31,12 @@ static ControllerGeneric* primaryControllers[] = {
 	&g_lidarController 
 };
 TASKMASTER_DECLARE(primaryTaskmaster, &g_externalComms, primaryControllers)
+
+/*****************************************************
+ *                  COMMS REPEATERS                  *
+ *****************************************************/
+
+CommsRepeater g_commsRepeater(&g_peripheralComms, &g_externalComms, &primaryTaskmaster);
 
 
 /**

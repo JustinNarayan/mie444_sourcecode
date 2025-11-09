@@ -74,12 +74,34 @@ static inline ControllerMessageQueueOutput toControllerMessageQueueOutputClear(
 class ControllerGeneric
 {
 private:
+	bool requestPrioritizedSender;
+
 	virtual ControllerMessageQueueOutput purge(const MessageType desiredType) = 0;
 	virtual ControllerMessageQueueOutput read(const MessageType desiredType, Message* message) = 0;
 	virtual ControllerMessageQueueOutput post(Message* message) = 0;
+
+protected:
+	/**
+	 * @brief Request for controller messages to be prioritized
+	 * 
+	 */
+	void setRequestPrioritizedSender(void) { this->requestPrioritizedSender = true; }
+
+	/**
+	 * @brief Clear request for controller messages to be prioritized
+	 * 
+	 */
+	void clearRequestPrioritizedSender(void) { this->requestPrioritizedSender = false; }
+	
 public:
 	virtual ControllerMessageQueueOutput deliver(Message* message, bool forceDelivery = false) = 0;
 	virtual ControllerMessageQueueOutput pickup(Message* message) = 0;
+
+	/**
+	 * @brief Return if is requesting its messages to be sent with priority
+	 * 
+	 */
+	bool isRequestingPrioritizedSender(void) { return this->requestPrioritizedSender; }
 
     /**
      * @brief Core processing function
