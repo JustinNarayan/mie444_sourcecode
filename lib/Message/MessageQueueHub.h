@@ -95,4 +95,22 @@ public:
 		// Dequeue
 		return queue->dequeue(message);
 	}
+
+	/**
+	 * @brief Clear the whole queue, if a valid queue for this MessageType exists
+	 * 
+	 * @return See MessageQueue.h
+	 */
+	int clear(const MessageType desiredType)
+	{
+		if (hasNoQueues()) return RET_CLEAR_NO_QUEUE;
+		
+		// Verify queue of this type exists
+		MessageQueueGeneric* queue = locateQueueByType(desiredType);
+		if (queue == nullptr) return RET_CLEAR_DISALLOWED_TYPE;
+
+		// Clear
+		queue->clear();
+		return RET_CLEAR_SUCCESS;
+	}
 };

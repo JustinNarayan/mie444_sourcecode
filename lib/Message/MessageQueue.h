@@ -14,6 +14,10 @@
 #define RET_DEQUEUE_DISALLOWED_TYPE (-1)
 #define RET_DEQUEUE_SUCCESS (0)
 
+#define RET_CLEAR_NO_QUEUE (-2)
+#define RET_CLEAR_DISALLOWED_TYPE (-1)
+#define RET_CLEAR_SUCCESS (0)
+
 
 /**
  * @brief A generic MessageQueue-type object that real MessageQueue objects inherit for 
@@ -52,6 +56,16 @@ public:
 	bool isFull(void) const
 	{
 		return ((head + 1) % (size_t)MESSAGE_QUEUE_SIZE) == tail;
+	}
+
+	/**
+	 * @brief Clear the queue
+	 * 
+	 */
+	void clear(void)
+	{
+		head = 0;
+		tail = 0;
 	}
 
     virtual int enqueue(Message* message) = 0;
