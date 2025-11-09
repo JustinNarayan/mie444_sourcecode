@@ -31,7 +31,8 @@ void Taskmaster::dispatch(Message* message)
 	{
 		ControllerGeneric* controller = controllers[controller_idx];
 		// Message is only delivered if Controller expects to receive this MessageType
-		controller->deliver(message);
+		// Force message to be delivered
+		controller->deliver(message, true);
 	}
 }
 
@@ -49,6 +50,36 @@ void Taskmaster::process(void)
 }
 
 /**
+ * @brief Check if any controllers have requested message sending priority
+ * 
+ */
+void Taskmaster::monitorPrioritzedSenderRequests(void)
+{
+	// Check if current prioritzed sender should be cleared
+	if (this->prioritizedSender != nullptr)
+	{
+		if (false == this->prioritizedSender->isRequestingPrioritizedSender())
+		{
+			this->prioritizedSender = nullptr;
+		}
+	}
+
+	// Look for new prioritized senders
+	if (this->prioritizedSender == nullptr)
+	{
+		LOOP_CONTROLLER_IDX(controller_idx)
+		{
+			ControllerGeneric* controller = controllers[controller_idx];
+			if (controller->isRequestingPrioritizedSender())
+			{
+				this->prioritizedSender = controller;
+				return;
+			}
+		}
+	}
+}
+
+/**
  * @brief Read and send all Message objects the Controller objects have created to be sent
  * 
  */
@@ -57,12 +88,33 @@ void Taskmaster::collect(void)
 	LOOP_CONTROLLER_IDX(controller_idx)
 	{
 		ControllerGeneric* controller = controllers[controller_idx];
+
+		// Skip if a different controller is prioiritzed
+		if (
+			(this->prioritizedSender != nullptr) &&
+			(this->prioritizedSender != controller)
+		)
+		{
+			continue;
+		}
+
 		Message message;
 		while(controller->pickup(&message) != ControllerMessageQueueOutput::DequeueQueueEmpty)
 		{
 			comms->sendMessage(&message);
 		}
 	}
+}
+
+/**
+ * @brief Check if a controller is requesting send priority
+ * 
+ * @return true 
+ * @return false 
+ */
+bool Taskmaster::hasPrioritizedSender(void)
+{
+	return (this->prioritizedSender != nullptr);
 }
 
 /**

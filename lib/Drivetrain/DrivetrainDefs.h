@@ -36,7 +36,7 @@ enum class DrivetrainManualResponse
  */
 struct DrivetrainEncoderDistances
 {
-	float32_t encoder1Dist_cm;
-	float32_t encoder2Dist_cm;
-	float32_t encoder3Dist_cm;
+	float32_t encoder1Dist_in;
+	float32_t encoder2Dist_in;
+	float32_t encoder3Dist_in;
 };

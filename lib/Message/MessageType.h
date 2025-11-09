@@ -23,6 +23,7 @@ enum class MessageType {
 	/* Sensor Readings*/
 	LidarRequest,
 	LidarPointReading,
+	LidarComplete,
 
 	Count
 };

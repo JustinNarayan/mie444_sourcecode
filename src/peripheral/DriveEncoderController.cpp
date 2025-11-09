@@ -42,9 +42,9 @@ void DriveEncoderController::getDrivetrainEncoderDistances(DrivetrainEncoderDist
 	long distance1, distance2, distance3;
 	this->drivetrainEncoders->getCurrentDistances(&distance1, &distance2, &distance3);
 
-	distances->encoder1Dist_cm = (float32_t)distance1 * ENCODER_1_GAIN_TO_CM;
-	distances->encoder2Dist_cm = (float32_t)distance2 * ENCODER_2_GAIN_TO_CM;
-	distances->encoder3Dist_cm = (float32_t)distance3 * ENCODER_3_GAIN_TO_CM;
+	distances->encoder1Dist_in = (float32_t)distance1 * ENCODER_1_TO_IN;
+	distances->encoder2Dist_in = (float32_t)distance2 * ENCODER_2_TO_IN;
+	distances->encoder3Dist_in = (float32_t)distance3 * ENCODER_3_TO_IN;
 }
 
 /**

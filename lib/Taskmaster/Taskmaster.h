@@ -30,15 +30,23 @@ private:
 	ControllerGeneric** controllers;
 	size_t numControllers;
 
+	/**
+	 * @brief A controller can request for its messages to be prioiritzed
+	 * 
+	 */
+	ControllerGeneric* prioritizedSender;
+
 	void receive(void);
 	bool poll(Message* message);
 	void dispatch(Message* message);
 	void process(void);
+	void monitorPrioritzedSenderRequests(void);
 	void collect(void);
 public:
 	Taskmaster(
 		CommsInterface* comms, ControllerGeneric* controllers[], size_t numControllers
 	) : comms(comms), controllers(controllers), numControllers(numControllers) {};
 
+	bool hasPrioritizedSender(void);
 	void execute(void);
 };

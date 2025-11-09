@@ -74,12 +74,34 @@ static inline ControllerMessageQueueOutput toControllerMessageQueueOutputClear(
 class ControllerGeneric
 {
 private:
+	bool requestPrioritizedSender;
+
 	virtual ControllerMessageQueueOutput purge(const MessageType desiredType) = 0;
 	virtual ControllerMessageQueueOutput read(const MessageType desiredType, Message* message) = 0;
 	virtual ControllerMessageQueueOutput post(Message* message) = 0;
+
+protected:
+	/**
+	 * @brief Request for controller messages to be prioritized
+	 * 
+	 */
+	void setRequestPrioritizedSender(void) { this->requestPrioritizedSender = true; }
+
+	/**
+	 * @brief Clear request for controller messages to be prioritized
+	 * 
+	 */
+	void clearRequestPrioritizedSender(void) { this->requestPrioritizedSender = false; }
+	
 public:
-	virtual ControllerMessageQueueOutput deliver(Message* message) = 0;
+	virtual ControllerMessageQueueOutput deliver(Message* message, bool forceDelivery = false) = 0;
 	virtual ControllerMessageQueueOutput pickup(Message* message) = 0;
+
+	/**
+	 * @brief Return if is requesting its messages to be sent with priority
+	 * 
+	 */
+	bool isRequestingPrioritizedSender(void) { return this->requestPrioritizedSender; }
 
     /**
      * @brief Core processing function
@@ -161,9 +183,25 @@ public:
 	 * @param message To enqueue
      * @return ControllerMessageQueueOutput Enqueue value
 	 */
-    ControllerMessageQueueOutput deliver(Message* message)
+    ControllerMessageQueueOutput deliver(Message* message, bool forceDelivery)
     {
-		return toControllerMessageQueueOutputEnqueue(messagesIn.enqueue(message));
+		ControllerMessageQueueOutput enqueueOutput = toControllerMessageQueueOutputEnqueue(messagesIn.enqueue(message));
+
+		// If queue is full and delivery is required, pop the oldest message
+		if (
+			(enqueueOutput == ControllerMessageQueueOutput::EnqueueQueueFull) &&
+			forceDelivery
+		)
+		{
+			// Dequeud message disappears forever
+			Message dequeued;
+			ControllerMessageQueueOutput dequeueOutput = toControllerMessageQueueOutputDequeue(messagesIn.dequeue(message->getType(), &dequeued));
+			
+			// Retry enqueue
+			if (dequeueOutput == ControllerMessageQueueOutput::DequeueSuccess)
+				return toControllerMessageQueueOutputEnqueue(messagesIn.enqueue(message));
+		}
+		return enqueueOutput;
 	}
 
 	/**

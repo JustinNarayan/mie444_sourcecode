@@ -13,6 +13,7 @@ using MessageTypesInLidar = MessageTypes<
 >;
 using MessageTypesOutLidar = MessageTypes<
     MessageType::LidarPointReading, // Single Lidar point reading
+	MessageType::LidarComplete, // Indicates Lidar data has been all sent
     MessageType::Error // Errors
 >;
 
@@ -57,7 +58,8 @@ private:
 	 * @brief Communication utilities
 	 */
 	void checkLidarRequest(void);
-	void sendLidarReadingPoint(void);
+	bool trySendNextLidarReadingPoint(void);
+	void sendLidarComplete(void);
 	void sendLidarData(void);
 
 	/**
@@ -67,6 +69,7 @@ private:
 	bool shouldAcceptNewRequests(void);
 	bool shouldRefreshLidarReading(void);
 	bool shouldSendLidarReading(void);
+	bool shouldRequestPrioritizedSender(void);
 public:
 	LidarController(Lidar* lidar, DriveController* driveController);
 	void process(void);
