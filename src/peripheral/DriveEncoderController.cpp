@@ -24,7 +24,12 @@ void DriveEncoderController::checkDrivetrainEncoderRequest(void)
 		this->read(MessageType::DrivetrainEncoderRequest, &message);
 	
 	if (ret == ControllerMessageQueueOutput::DequeueSuccess)
+	{
 		this->hasUnaddressedRequest = true;
+
+		// Eliminate stale duplicate messages
+		this->purge(MessageType::DrivetrainEncoderRequest);
+	}
 }
 
 /**
@@ -49,7 +54,7 @@ void DriveEncoderController::getDrivetrainEncoderDistances(DrivetrainEncoderDist
 void DriveEncoderController::sendDrivetrainEncoderDistances(void)
 {
 	DrivetrainEncoderDistances distances;
-	getDrivetrainEncoderDistances(&distances);
+	this->getDrivetrainEncoderDistances(&distances);
 
 	Message message;
 	DrivetrainEncoderDistancesTranslation.asMessage(&distances, &message);

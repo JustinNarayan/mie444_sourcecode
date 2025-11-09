@@ -58,4 +58,6 @@ private:
 public:
 	DriveController(Drivetrain* drivetrain);
 	void process(void);
+
+	void demandHalt(void);
 };
