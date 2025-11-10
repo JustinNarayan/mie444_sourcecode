@@ -28,10 +28,10 @@ int Drivetrain::setTranslate(uint8_t speed, bool isForward)
 	this->motor1->stop();
 
 	this->motor2->setDirection(!isForward);
-	this->motor2->setSpeed(speed);
+	this->motor2->setSpeed(MOTOR_2_SPEED(speed));
 
 	this->motor3->setDirection(isForward);
-	this->motor3->setSpeed(speed);
+	this->motor3->setSpeed(MOTOR_3_SPEED(speed));
 
 	// Failure states not yet implemented
 	return RET_SET_COMMAND_SUCCESS;
@@ -48,13 +48,13 @@ int Drivetrain::setTranslate(uint8_t speed, bool isForward)
 int Drivetrain::setRotate(uint8_t speed, bool isLeft)
 {
 	this->motor1->setDirection(false == isLeft);
-	this->motor1->setSpeed(speed);
+	this->motor1->setSpeed(MOTOR_1_SPEED(speed));
 
 	this->motor2->setDirection(false == isLeft);
-	this->motor2->setSpeed(speed);
+	this->motor2->setSpeed(MOTOR_2_SPEED(speed));
 
 	this->motor3->setDirection(false == isLeft);
-	this->motor3->setSpeed(speed);
+	this->motor3->setSpeed(MOTOR_3_SPEED(speed));
 
 	// Failure states not yet implemented
 	return RET_SET_COMMAND_SUCCESS;

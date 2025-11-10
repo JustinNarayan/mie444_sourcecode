@@ -31,8 +31,8 @@
  * Break out buffer sizes by board
  */
 #if defined(BOARD_CONTROLLER)
-#define MESSAGE_NUM_BUFFERS 6 // ring buffer for raw comms interface
-#define MESSAGE_QUEUE_SIZE 4 // max number of stored messages for subsystems
+#define MESSAGE_NUM_BUFFERS 2 // ring buffer for raw comms interface
+#define MESSAGE_QUEUE_SIZE 2 // max number of stored messages for subsystems
 #elif defined(BOARD_PERIPHERAL)
 #define MESSAGE_NUM_BUFFERS 2 // ring buffer for raw comms interface
 #define MESSAGE_QUEUE_SIZE 2 // max number of stored messages for subsystems
@@ -57,16 +57,17 @@
  */
 #define WHEEL_DIAMETER_IN (2.20472)
 #define WHEEL_CIRCUMFERENCE_IN (2 * PI * WHEEL_DIAMETER_IN)
-#define DEFAULT_ENCODER_TICKS_PER_ROTATION (300) // approx
+#define DEFAULT_ENCODER_TICKS_PER_ROTATION (1500) // approx
 #define DEFAULT_ENCODER_GAIN_IN ((WHEEL_CIRCUMFERENCE_IN) / (DEFAULT_ENCODER_TICKS_PER_ROTATION))
-#define ENCODER_1_TUNING_GAIN ((float64_t)1.0)
-#define ENCODER_2_TUNING_GAIN ((float64_t)1.0)
-#define ENCODER_3_TUNING_GAIN ((float64_t)1.0)
+#define ENCODER_1_TUNING_GAIN ((float64_t)0.93)
+#define ENCODER_2_TUNING_GAIN ((float64_t)0.99)
+#define ENCODER_3_TUNING_GAIN ((float64_t)0.97)
 
 #define ENCODER_1_TO_IN (DEFAULT_ENCODER_GAIN_IN * ENCODER_1_TUNING_GAIN)
 #define ENCODER_2_TO_IN (DEFAULT_ENCODER_GAIN_IN * ENCODER_2_TUNING_GAIN)
 #define ENCODER_3_TO_IN (DEFAULT_ENCODER_GAIN_IN * ENCODER_3_TUNING_GAIN)
 
+#define ENCODER_WILL_VOLUNTEER_READINGS (false)
 #define ENCODER_TIME_TO_SEND_AFTER_LAST_SENT_DISTANCES (250UL) // millis
 
 /**
@@ -74,9 +75,12 @@
  * 
  */
 #define DRIVETRAIN_TIME_TO_HALT_AFTER_LAST_RECEIVED_COMMAND (200UL) // millis
-#define DRIVETRAIN_TRANSLATE_SPEED (90) // 0 to 255
-#define DRIVETRAIN_ROTATE_SPEED (60) // 0 to 255
+#define DRIVETRAIN_TRANSLATE_SPEED (80) // 0 to 255
+#define DRIVETRAIN_ROTATE_SPEED (52) // 0 to 255
 
+#define MOTOR_1_SPEED(s) ((uint8_t)(1.5f * s))
+#define MOTOR_2_SPEED(s) ((uint8_t)(1.0f * s))
+#define MOTOR_3_SPEED(s) ((uint8_t)(1.0f * s))
 
 /*****************************************************
  *                       LIDAR                       *

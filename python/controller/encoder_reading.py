@@ -6,6 +6,9 @@ class EncoderReading:
         self.encoder1 = encoder1
         self.encoder2 = encoder2
         self.encoder3 = encoder3
+        
+    def get_readings(self):
+        return self.encoder1, self.encoder2, self.encoder3
 
     def update_from_msg(self, msg):
         """Update the encoder reading from a tuple of three floats."""

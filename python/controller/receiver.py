@@ -2,10 +2,11 @@ import threading
 import time
 import sys
 import serial
-from message import Message, MESSAGE_END_CHAR, parse_message_from_buffer, MessageType
+from message import Message, MESSAGE_END_CHAR, parse_message_from_buffer, MessageType, SHOULD_NOT_PRINT_TO_SCREEN
 from lidar_reading import LidarPointReading, LidarReading
 from encoder_reading import EncoderReading
 from localization import current_encoder_reading, last_sent_encoder_reading, post_lidar_encoder_reading, prepare_info_for_localization_step
+from encoder_control_manager import send_encoder_request
 
 def print_rcvd_message(msg: Message):
     sys.stdout.write('\r\033[K')
@@ -17,6 +18,7 @@ def start_receiver(ser, stop_event, lidar_reading: LidarReading):
     def reader():
         buffer = bytearray()
         synced = False
+        lidar_reading_ready_for_localization = False
 
         while not stop_event.is_set():
             try:
@@ -34,6 +36,9 @@ def start_receiver(ser, stop_event, lidar_reading: LidarReading):
                         buffer = buffer[idx + 1:]
                         synced = True
                         print("[Receiver synchronized to stream]")
+                        
+                        # Ping encoder for first reading
+                        send_encoder_request(ser)
                     else:
                         continue
 
@@ -49,8 +54,9 @@ def start_receiver(ser, stop_event, lidar_reading: LidarReading):
                                 lidar_reading.add_point(point)
 
                             elif msg.type == MessageType.LidarComplete:
-                                # Trigger localization step
-                                prepare_info_for_localization_step()
+                                # Ping encoder after receiving a complete lidar scan
+                                send_encoder_request(ser)
+                                lidar_reading_ready_for_localization = True
 
                             # --- ENCODER integration ---
                             elif msg.type == MessageType.DrivetrainEncoderDistances:
@@ -60,8 +66,14 @@ def start_receiver(ser, stop_event, lidar_reading: LidarReading):
                                 from localization import last_sent_encoder_reading
                                 if last_sent_encoder_reading is None:
                                     last_sent_encoder_reading = current_encoder_reading.copy()
-
-                            print_rcvd_message(msg)
+                                    
+                                # Step localization if Lidar reading ready
+                                if lidar_reading_ready_for_localization:
+                                    prepare_info_for_localization_step(lidar_reading)
+                                    lidar_reading_ready_for_localization = False
+                                    
+                            if (msg.get_type() not in SHOULD_NOT_PRINT_TO_SCREEN):
+                                print_rcvd_message(msg)
                             buffer = buffer[consumed:]
                             continue
                         break  # not enough data yet

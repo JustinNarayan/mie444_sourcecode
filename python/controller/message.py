@@ -21,6 +21,7 @@ class MessageType(Enum):
     DrivetrainManualCommand = auto()
     DrivetrainManualResponse = auto()
     DrivetrainEncoderRequest = auto()
+    DrivetrainEncoderPinged = auto()
     DrivetrainEncoderDistances = auto()
 
     LidarRequest = auto()
@@ -48,6 +49,10 @@ _TYPE_FORMATS = {
     MessageType.Error: dict(text=True),
 }
 
+SHOULD_NOT_PRINT_TO_SCREEN = [
+	# MessageType.DrivetrainEncoderDistances,
+	MessageType.LidarPointReading,
+]
 
 # Message class
 #
@@ -62,6 +67,9 @@ class Message:
         self.content = content
         self.size = len(content)
         self.raw = self.encode()
+        
+    def get_type(self):
+        return self.type
 
     @classmethod
     def from_raw(self, raw: bytes):

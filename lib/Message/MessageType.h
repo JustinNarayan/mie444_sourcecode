@@ -18,6 +18,7 @@ enum class MessageType {
 	DrivetrainManualCommand,
 	DrivetrainManualResponse,
 	DrivetrainEncoderRequest,
+	DrivetrainEncoderPinged,
 	DrivetrainEncoderDistances,
 
 	/* Sensor Readings*/

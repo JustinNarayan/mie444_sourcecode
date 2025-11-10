@@ -3,8 +3,10 @@
 #include <Wiring.h>
 #include <CommsInterface.h>
 #include <CommsRepeater.h>
+#include <CommsEnvoy.h>
 #include <Taskmaster.h>
 #include "DriveController.h"
+#include "EncoderRequestController.h"
 #include "LidarController.h"
 #include "Settings.h"
 #include "Errors.h"
@@ -14,12 +16,14 @@
  *****************************************************/
 CommsInterface g_externalComms;
 CommsInterface g_peripheralComms;
+CommsEnvoy g_envoyToPeripheral(&g_peripheralComms);
 
 /*****************************************************
  *                    CONTROLLERS                    *
  *****************************************************/
 Drivetrain g_drivetrain;
 DriveController g_driveController(&g_drivetrain);
+EncoderRequestController g_encoderRequestController(&g_envoyToPeripheral);
 Lidar g_lidar;
 LidarController g_lidarController(&g_lidar, &g_driveController);
 
@@ -27,7 +31,8 @@ LidarController g_lidarController(&g_lidar, &g_driveController);
  *                    TASKMASTERS                    *
  *****************************************************/
 static ControllerGeneric* primaryControllers[] = { 
-	&g_driveController, 
+	&g_driveController,
+	&g_encoderRequestController,
 	&g_lidarController 
 };
 TASKMASTER_DECLARE(primaryTaskmaster, &g_externalComms, primaryControllers)
