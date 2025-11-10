@@ -1,5 +1,6 @@
 #pragma once
 #include "Types.h"
+#include "Settings.h"
 #include <MotorController.h>
 
 #define RET_SET_COMMAND_SUCCESS (0)

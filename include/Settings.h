@@ -74,9 +74,12 @@
  * 
  */
 #define DRIVETRAIN_TIME_TO_HALT_AFTER_LAST_RECEIVED_COMMAND (200UL) // millis
-#define DRIVETRAIN_TRANSLATE_SPEED (90) // 0 to 255
-#define DRIVETRAIN_ROTATE_SPEED (60) // 0 to 255
+#define DRIVETRAIN_TRANSLATE_SPEED (80) // 0 to 255
+#define DRIVETRAIN_ROTATE_SPEED (52) // 0 to 255
 
+#define MOTOR_1_SPEED(s) ((uint8_t)(1.5f * s))
+#define MOTOR_2_SPEED(s) ((uint8_t)(1.0f * s))
+#define MOTOR_3_SPEED(s) ((uint8_t)(1.0f * s))
 
 /*****************************************************
  *                       LIDAR                       *

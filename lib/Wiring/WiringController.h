@@ -30,18 +30,18 @@
 #define PIN_US_TEST_ECHO PB6
 
 /* Drivetrain */
-#define PIN_MOTOR_1_IN1 6
-#define PIN_MOTOR_1_IN2 7
-#define PIN_MOTOR_1_ENABLE 5
-#define PIN_MOTOR_2_IN1 8
-#define PIN_MOTOR_2_IN2 9
-#define PIN_MOTOR_2_ENABLE 10
-#define PIN_MOTOR_3_IN1 12
-#define PIN_MOTOR_3_IN2 13
-#define PIN_MOTOR_3_ENABLE 11
+#define PIN_MOTOR_1_IN1 3
+#define PIN_MOTOR_1_IN2 2
+#define PIN_MOTOR_1_ENABLE 4
+#define PIN_MOTOR_2_IN1 12
+#define PIN_MOTOR_2_IN2 13
+#define PIN_MOTOR_2_ENABLE 11
+#define PIN_MOTOR_3_IN1 6
+#define PIN_MOTOR_3_IN2 7
+#define PIN_MOTOR_3_ENABLE 5
 
 /* Lidar */
-#define PIN_LIDAR_MOTOCTRL 2
+#define PIN_LIDAR_MOTOCTRL 9
 
 
 /*****************************************************
