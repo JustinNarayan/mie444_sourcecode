@@ -13,8 +13,7 @@ using MessageTypesInLidar = MessageTypes<
 >;
 using MessageTypesOutLidar = MessageTypes<
     MessageType::LidarPointReading, // Single Lidar point reading
-	MessageType::LidarComplete, // Indicates Lidar data has been all sent
-    MessageType::Error // Errors
+	MessageType::LidarComplete // Indicates Lidar data has been all sent
 >;
 
 /*****************************************************

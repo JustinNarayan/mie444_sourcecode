@@ -31,8 +31,8 @@
  * Break out buffer sizes by board
  */
 #if defined(BOARD_CONTROLLER)
-#define MESSAGE_NUM_BUFFERS 6 // ring buffer for raw comms interface
-#define MESSAGE_QUEUE_SIZE 4 // max number of stored messages for subsystems
+#define MESSAGE_NUM_BUFFERS 2 // ring buffer for raw comms interface
+#define MESSAGE_QUEUE_SIZE 2 // max number of stored messages for subsystems
 #elif defined(BOARD_PERIPHERAL)
 #define MESSAGE_NUM_BUFFERS 2 // ring buffer for raw comms interface
 #define MESSAGE_QUEUE_SIZE 2 // max number of stored messages for subsystems

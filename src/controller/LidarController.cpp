@@ -190,7 +190,7 @@ bool LidarController::shouldRequestPrioritizedSender(void)
 }
 
 /**
- * @brief Send encoder information upon request or periodically
+ * @brief Send lidar information upon request
  * 
  */
 void LidarController::process(void)

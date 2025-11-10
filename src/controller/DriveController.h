@@ -13,8 +13,7 @@ using MessageTypesInDrive = MessageTypes<
 >;
 using MessageTypesOutDrive = MessageTypes<
     MessageType::DrivetrainManualResponse, // Manual command responses
-	MessageType::DrivetrainManualCommand, // Manual command echo
-    MessageType::Error // Errors
+	MessageType::DrivetrainManualCommand // Manual command echo
 >;
 
 /*****************************************************
