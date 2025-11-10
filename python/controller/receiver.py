@@ -6,6 +6,7 @@ from message import Message, MESSAGE_END_CHAR, parse_message_from_buffer, Messag
 from lidar_reading import LidarPointReading, LidarReading
 from encoder_reading import EncoderReading
 from localization import current_encoder_reading, last_sent_encoder_reading, post_lidar_encoder_reading, prepare_info_for_localization_step
+from encoder_control_manager import send_encoder_request
 
 def print_rcvd_message(msg: Message):
     sys.stdout.write('\r\033[K')
@@ -17,6 +18,7 @@ def start_receiver(ser, stop_event, lidar_reading: LidarReading):
     def reader():
         buffer = bytearray()
         synced = False
+        lidar_reading_ready_for_localization = False
 
         while not stop_event.is_set():
             try:

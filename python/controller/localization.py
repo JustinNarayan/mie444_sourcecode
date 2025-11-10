@@ -1,12 +1,36 @@
 # Placeholder for localization logic
 from encoder_reading import EncoderReading
+from lidar_reading import LidarReading
+from mcl.mcl_OG import step_localization
+import math
+import numpy as np
 
 # Global variables
 current_encoder_reading: EncoderReading = EncoderReading()
 last_sent_encoder_reading: EncoderReading | None = None
 post_lidar_encoder_reading: EncoderReading | None = None
 
-def prepare_info_for_localization_step():
+# Robot parameters
+L = 3.73771654 # inches, 94.938 mm - DISTANCE_FROM_OBJECT_CENTER_TO_WHEEL_MIDPOINT
+# Thetas, defined as angle from robot x-axis to motor allignment
+# X-axis is defined as the forward direction of the robot (bisecting two of the drive wheels perpincular to third drive wheel)
+
+THETA_1 = 60 # degrees
+THETA_2 = 180 # degrees
+THETA_3 = 300 # degrees
+
+# A = [[-math.sin(THETA_1), math.cos(THETA_1), L],
+#      [-math.sin(THETA_2), math.cos(THETA_2), L],
+#      [-math.sin(THETA_3), math.cos(THETA_3), DISTANCE_FROM_OBJECT_CENTER_TO_WHEEL_MIDPOINT]]
+
+# Inverse of A
+A_INV = np.array([
+    [1/math.sqrt(3), 0, 1/math.sqrt(3)],
+	[1/3, -2/3, 1/3],
+	[1/(3*L), 1/(3*L), 1/(3*L)]
+])
+
+def prepare_info_for_localization_step(lidar_reading: LidarReading):
     """
     Called whenever a LidarComplete message is received.
     Updates post_lidar_encoder_reading and calls get_delta_position_orientation.
@@ -22,8 +46,9 @@ def prepare_info_for_localization_step():
             post_lidar_encoder_reading,
             last_sent_encoder_reading
         )
-        # Do something with delta if needed
-        print(delta_x, delta_y, delta_theta)
+        
+        # Step localization
+        step_localization(delta_x, delta_y, delta_theta, lidar_reading)
 
     # Update last sent reading
     last_sent_encoder_reading = post_lidar_encoder_reading.copy()
@@ -36,5 +61,28 @@ def get_delta_position_orientation(post_lidar: EncoderReading, last_sent: Encode
     Placeholder function: compute delta_x, delta_y, delta_theta
     between two encoder readings.
     """
+    
+    # Displacments are 3x1 vector for each motor
+    # Robot_displacment = Inverse_Kinematics_Matrix * Motor_displacment
+    # where Inverse_Kinematics_Matrix is: Calculated from robot geometry
+    # L = DISTANCE_FROM_OBJECT_CENTER_TO_WHEEL_MIDPOINT
+    # A = [ [-sin(THETA_1), cos(THETA_1), L],
+    #         [-sin(THETA_2), cos(THETA_2), L],
+    #         [-sin(THETA_3), cos(THETA_3), L] ]
+    #A_inv = [[1/root(3), 0, 1/root(3)],
+    #        [1/3, -2.3, 1/3],
+    #        [1/(3*L), 1/(3*L), 1/(3*L)]]
+            
+
     # TODO: Implement actual localization calculation
-    return 0.0, 0.0, 0.0
+    
+    inital_readings = post_lidar.get_readings()
+    final_readings = last_sent.get_readings()
+    motor_displacements = np.array([
+        inital_readings[0] - final_readings[0],
+        inital_readings[1] - final_readings[1],
+        inital_readings[2] - final_readings[2],
+    ])
+    Robot_displacement = A_INV @ motor_displacements
+    # Return delta_x, delta_y, delta_theta
+    return Robot_displacement[0], Robot_displacement[1], Robot_displacement[2]
