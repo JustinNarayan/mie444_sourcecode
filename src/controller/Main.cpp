@@ -3,6 +3,7 @@
 #include <Wiring.h>
 #include <CommsInterface.h>
 #include <CommsRepeater.h>
+#include <CommsEnvoy.h>
 #include <Taskmaster.h>
 #include "DriveController.h"
 #include "LidarController.h"
@@ -14,6 +15,7 @@
  *****************************************************/
 CommsInterface g_externalComms;
 CommsInterface g_peripheralComms;
+CommsEnvoy g_envoyToPeripheral(&g_peripheralComms);
 
 /*****************************************************
  *                    CONTROLLERS                    *
