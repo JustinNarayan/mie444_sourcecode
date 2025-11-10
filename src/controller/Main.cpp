@@ -6,6 +6,7 @@
 #include <CommsEnvoy.h>
 #include <Taskmaster.h>
 #include "DriveController.h"
+#include "EncoderRequestController.h"
 #include "LidarController.h"
 #include "Settings.h"
 #include "Errors.h"
@@ -22,6 +23,7 @@ CommsEnvoy g_envoyToPeripheral(&g_peripheralComms);
  *****************************************************/
 Drivetrain g_drivetrain;
 DriveController g_driveController(&g_drivetrain);
+EncoderRequestController g_encoderRequestController(&g_envoyToPeripheral);
 Lidar g_lidar;
 LidarController g_lidarController(&g_lidar, &g_driveController);
 
@@ -29,7 +31,8 @@ LidarController g_lidarController(&g_lidar, &g_driveController);
  *                    TASKMASTERS                    *
  *****************************************************/
 static ControllerGeneric* primaryControllers[] = { 
-	&g_driveController, 
+	&g_driveController,
+	&g_encoderRequestController,
 	&g_lidarController 
 };
 TASKMASTER_DECLARE(primaryTaskmaster, &g_externalComms, primaryControllers)
