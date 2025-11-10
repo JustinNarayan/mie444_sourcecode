@@ -15,12 +15,12 @@
 #define UART_INTERNAL_TO_CONTROLLER (&Serial)
 
 /* Encoders */
-#define PIN_ENCODER_1_A 19
-#define PIN_ENCODER_1_B 18
-#define PIN_ENCODER_2_A 16
-#define PIN_ENCODER_2_B 2
-#define PIN_ENCODER_3_A 17
-#define PIN_ENCODER_3_B 3
+#define PIN_ENCODER_1_A 14
+#define PIN_ENCODER_1_B 15
+#define PIN_ENCODER_2_A 19
+#define PIN_ENCODER_2_B 18
+#define PIN_ENCODER_3_A 16
+#define PIN_ENCODER_3_B 2
 #define IS_INTERRUPT(p) ((p == 2) || (p == 3))
 
 /*****************************************************

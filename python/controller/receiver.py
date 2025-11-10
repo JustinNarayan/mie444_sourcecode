@@ -36,6 +36,9 @@ def start_receiver(ser, stop_event, lidar_reading: LidarReading):
                         buffer = buffer[idx + 1:]
                         synced = True
                         print("[Receiver synchronized to stream]")
+                        
+                        # Ping encoder for first reading
+                        send_encoder_request(ser)
                     else:
                         continue
 
