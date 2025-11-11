@@ -15,20 +15,25 @@ L = 3.73771654 # inches, 94.938 mm - DISTANCE_FROM_OBJECT_CENTER_TO_WHEEL_MIDPOI
 # Thetas, defined as angle from robot x-axis to motor allignment
 # X-axis is defined as the forward direction of the robot (bisecting two of the drive wheels perpincular to third drive wheel)
 
-THETA_1 = 60 # degrees
-THETA_2 = 180 # degrees
-THETA_3 = 300 # degrees
+DEG_TO_RAD = math.pi/180
+THETA_1 = 180 * DEG_TO_RAD # radians
+THETA_2 = 300 * DEG_TO_RAD # radians
+THETA_3 = 60 * DEG_TO_RAD # radians
 
-# A = [[-math.sin(THETA_1), math.cos(THETA_1), L],
-#      [-math.sin(THETA_2), math.cos(THETA_2), L],
-#      [-math.sin(THETA_3), math.cos(THETA_3), DISTANCE_FROM_OBJECT_CENTER_TO_WHEEL_MIDPOINT]]
+A = np.array([
+    [-math.sin(THETA_1), math.cos(THETA_1), L],
+    [-math.sin(THETA_2), math.cos(THETA_2), L],
+    [-math.sin(THETA_3), math.cos(THETA_3), L]
+])
 
 # Inverse of A
-A_INV = np.array([
-    [1/math.sqrt(3), 0, 1/math.sqrt(3)],
-	[1/3, -2/3, 1/3],
-	[1/(3*L), 1/(3*L), 1/(3*L)]
-])
+A_INV = np.linalg.inv(A)
+
+# np.array([
+#     [1/math.sqrt(3), 0, 1/math.sqrt(3)],
+# 	[1/3, -2/3, 1/3],
+# 	[1/(3*L), 1/(3*L), 1/(3*L)]
+# ])
 
 def prepare_info_for_localization_step(lidar_reading: LidarReading):
     """
@@ -69,13 +74,7 @@ def get_delta_position_orientation(post_lidar: EncoderReading, last_sent: Encode
     # A = [ [-sin(THETA_1), cos(THETA_1), L],
     #         [-sin(THETA_2), cos(THETA_2), L],
     #         [-sin(THETA_3), cos(THETA_3), L] ]
-    #A_inv = [[1/root(3), 0, 1/root(3)],
-    #        [1/3, -2.3, 1/3],
-    #        [1/(3*L), 1/(3*L), 1/(3*L)]]
-            
 
-    # TODO: Implement actual localization calculation
-    
     inital_readings = post_lidar.get_readings()
     final_readings = last_sent.get_readings()
     motor_displacements = np.array([
@@ -85,4 +84,8 @@ def get_delta_position_orientation(post_lidar: EncoderReading, last_sent: Encode
     ])
     Robot_displacement = A_INV @ motor_displacements
     # Return delta_x, delta_y, delta_theta
-    return Robot_displacement[0], Robot_displacement[1], Robot_displacement[2]
+    ### HACKY - manually edit displacements
+    delta_x, delta_y, delta_theta = Robot_displacement[0], Robot_displacement[1], -Robot_displacement[2]
+    print(delta_x, delta_y, delta_theta)
+    
+    return delta_x, delta_y, delta_theta
