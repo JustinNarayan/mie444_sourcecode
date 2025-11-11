@@ -80,14 +80,9 @@ def step_localization(
 
     if lidar_reading != None:
         # Update Weights
-        # net_weight = 0
         for particle in particles:
             particle_lidar_reading = particle.lidar_scan_tuned()
             particle.update_weight(particle_lidar_reading, lidar_reading)
-            # net_weight += particle.weight
-        # if net_weight > 0:
-        #     for particle in particles:
-        #         particle.weight /= net_weight
             
 
     # Resample and Estimate

@@ -1,7 +1,7 @@
 # Placeholder for localization logic
 from encoder_reading import EncoderReading
 from lidar_reading import LidarReading
-from mcl.mcl_OG import step_localization
+from mcl2.mcl_main import step_localization
 import math
 import numpy as np
 
@@ -28,12 +28,6 @@ A = np.array([
 
 # Inverse of A
 A_INV = np.linalg.inv(A)
-
-# np.array([
-#     [1/math.sqrt(3), 0, 1/math.sqrt(3)],
-# 	[1/3, -2/3, 1/3],
-# 	[1/(3*L), 1/(3*L), 1/(3*L)]
-# ])
 
 def prepare_info_for_localization_step(lidar_reading: LidarReading):
     """
@@ -86,6 +80,5 @@ def get_delta_position_orientation(post_lidar: EncoderReading, last_sent: Encode
     # Return delta_x, delta_y, delta_theta
     ### HACKY - manually edit displacements
     delta_x, delta_y, delta_theta = Robot_displacement[0], Robot_displacement[1], -Robot_displacement[2]
-    print(delta_x, delta_y, delta_theta)
     
     return delta_x, delta_y, delta_theta

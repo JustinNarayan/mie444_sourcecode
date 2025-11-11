@@ -5,7 +5,7 @@ from bluetooth_manager import connect, disconnect
 from receiver import start_receiver
 from control_manager import start_keyboard_listener
 from lidar_reading import LidarReading
-from mcl.mcl_OG import begin_localization
+from mcl2.mcl_main import begin_localization
 
 # ======= USER SETTINGS =======
 PORT = "COM6"       

@@ -21,7 +21,7 @@ MAX_SENSOR_READING = 6000.0 / 127.0
 MIN_SENSOR_READING = 5.0 / 2.54
 
 # Simulation parameters
-NUM_PARTICLES = 2000
+NUM_PARTICLES = 1 #2000
 NUM_SCAN_ANGLES = 40
 
 # Noise parameters
@@ -299,7 +299,7 @@ class Particle:
             simulated_reading = (
                 loaded_sensor_readings[int(self.x)][int(self.y)][scan_angle] * M_TO_INCH
             )
-            current_point = LidarPointReading(int(angle), int(simulated_reading))
+            current_point = LidarPointReading(int(angle), int(simulated_reading), needs_mm_to_inch_conversion=False)
             lidar_reading.add_point(current_point)
 
         return lidar_reading
