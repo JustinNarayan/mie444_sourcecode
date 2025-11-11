@@ -6,7 +6,7 @@
  *****************************************************/
 
 #define EXTERNAL_COMMS_BAUD_RATE 57600
-#define INTERNAL_COMMS_BAUD_RATE 115299
+#define INTERNAL_COMMS_BAUD_RATE 115200
 #define BLUETOOTH_AT_BAUD_RATE 38400
 #define LIDAR_BAUD_RATE 115200
 
@@ -75,11 +75,11 @@
  * 
  */
 #define DRIVETRAIN_TIME_TO_HALT_AFTER_LAST_RECEIVED_COMMAND (200UL) // millis
-#define DRIVETRAIN_TRANSLATE_SPEED (80) // 0 to 255
+#define DRIVETRAIN_TRANSLATE_SPEED (70) // 0 to 255
 #define DRIVETRAIN_ROTATE_SPEED (52) // 0 to 255
 
 #define MOTOR_1_SPEED(s) ((uint8_t)(1.5f * s))
-#define MOTOR_2_SPEED(s) ((uint8_t)(1.0f * s))
+#define MOTOR_2_SPEED(s) ((uint8_t)(1.15f * s))
 #define MOTOR_3_SPEED(s) ((uint8_t)(1.0f * s))
 
 /*****************************************************

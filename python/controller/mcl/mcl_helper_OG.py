@@ -254,8 +254,8 @@ class Particle:
         n_this = len(this_points)
         n_true = len(true_points)
 
-        similarity_measure = 0
-        num_assessed = 0
+        # similarity_measure = 0
+        # num_assessed = 0
 
         while i < n_this and j < n_true:
             angle_this = this_points[i].angle
@@ -265,13 +265,14 @@ class Particle:
                 # Matching angle → apply weighting function
                 reading_this = this_points[i].distance
                 reading_true = true_points[j].distance
+                self.weight *= normal_pdf(reading_this, reading_true, sensor_std * ppi)
                 # print(angle_this, reading_this, reading_true)
-                if (reading_this > 0 and reading_true > 0):
-                    smaller_reading = min(reading_this, reading_true)
-                    larger_reading = max(reading_this, reading_true)
-                    measure = (smaller_reading / larger_reading)**3
-                    similarity_measure += measure
-                    num_assessed += 1
+                # if (reading_this > 0 and reading_true > 0):
+                #     smaller_reading = min(reading_this, reading_true)
+                #     larger_reading = max(reading_this, reading_true)
+                #     measure = (smaller_reading / larger_reading)**3
+                #     similarity_measure += measure
+                #     num_assessed += 1
 
                 i += 1
                 j += 1
@@ -279,12 +280,10 @@ class Particle:
                 i += 1  # this point angle is behind, move forward
             else:
                 j += 1  # true point angle is behind, move forward
-        if num_assessed > 0:
-        	self.weight = (similarity_measure / num_assessed) + 1e-300
+        # if num_assessed > 0:
+        # 	self.weight = (similarity_measure / num_assessed) + 1e-300
                 
-        # self.weight *= normal_pdf(reading_this, reading_true, sensor_std * ppi)
-
-        # self.weight += 1.0e-200
+        self.weight += 1.0e-200
 
     def lidar_scan_tuned(self, num_points=NUM_SCAN_ANGLES):
         """Simulate a lidar scan with a tuned accuraracy"""

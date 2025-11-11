@@ -40,7 +40,14 @@ class LidarReading:
     def get_points(self):
         return self.points
     
-    def downsample(self, num_points: int = DOWNSAMPLE_POINTS):
+    def get_normalized(self):
+        max_distance = max(p.distance for p in self.points) 
+        return [
+			LidarPointReading(p.angle, (p.distance / max_distance) / MM_TO_INCH) 
+			for p in self.points
+		]
+    
+    def downsample(self, align_to=None, num_points: int = DOWNSAMPLE_POINTS):
         """
         Downsample the full 0–360° LIDAR sweep into `num_points` evenly spaced bins.
         Each bin covers 360 / num_points degrees and stores the average distance
@@ -65,6 +72,9 @@ class LidarReading:
 
             if distances:
                 avg_distance = sum(distances) / len(distances)
+                angle = mid_angle
+                if align_to != None:
+                    mid_angle = (mid_angle + (-54) + align_to) % 360
                 point = LidarPointReading(mid_angle, avg_distance / MM_TO_INCH)  # convert back to mm → inches
                 downsampled.add_point(point)
 
