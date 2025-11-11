@@ -50,8 +50,12 @@ def start_receiver(ser, stop_event, lidar_reading: LidarReading):
                             # --- LIDAR integration ---
                             if msg.type == MessageType.LidarPointReading:
                                 angle_deg, distance_mm = msg.decode()
-                                point = LidarPointReading(angle_deg, distance_mm)
-                                lidar_reading.add_point(point)
+                                point = LidarPointReading(
+                                    angle_deg, 
+                                    distance_mm, 
+                                    needs_mm_to_inch_conversion=True
+                                )
+                                lidar_reading.add_point(point, is_real_lidar_data=True)
 
                             elif msg.type == MessageType.LidarComplete:
                                 # Ping encoder after receiving a complete lidar scan

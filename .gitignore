@@ -6,3 +6,4 @@
 .vscode/settings.json
 **/__pycache__/**
 **/*.pkl
+sensor_readings.txt
