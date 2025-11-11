@@ -18,20 +18,28 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 MAX_SENSOR_READING = 6000.0 / 127.0
-MIN_SENSOR_READING = 3.0 / 2.54
+MIN_SENSOR_READING = 5.0 / 2.54
 
 # Simulation parameters
-NUM_PARTICLES = 3000
-NUM_SCAN_ANGLES = 36
+NUM_PARTICLES = 2000
+NUM_SCAN_ANGLES = 40
 
 # Noise parameters
-MOVEMENT_NOISE = 0.25
-MIN_SENSOR_STD = 0.8
-MAX_SENSOR_STD = 1.75
+MOVEMENT_NOISE = 0.5
+ANGULAR_NOISE = 0.125
+MIN_SENSOR_STD = 0.5
+MAX_SENSOR_STD = 8
 certainty = 0
 
+# Units
+M_TO_INCH = 39.3701
+LIDAR_ZERO_OFFSET = -210  # degrees
 
-with open("C:/Users/justi/GitHub/mie444_sourcecode/python/controller/mcl/sensor_data_12_ppi_15_beam_angle.pkl", "rb") as f:
+
+with open(
+    "C:/Users/justi/GitHub/mie444_sourcecode/python/controller/mcl/sensor_data_12_ppi_15_beam_angle.pkl",
+    "rb",
+) as f:
     loaded_sensor_readings = pickle.load(f)
 
 
@@ -150,8 +158,8 @@ def estimate(particles):
     return mean_x, mean_y, mean_theta
 
 
-def normalize_angle(angle):
-    return int(angle % 360)
+def normalize_angle(angle_rad):
+    return int(((angle_rad * 180 / math.pi) + LIDAR_ZERO_OFFSET) % 360)
 
 
 def resample_particles(particles, grid, valid_positions, pred_x, pred_y):
@@ -212,6 +220,7 @@ def draw_orientation(window, x, y, theta, length=10, color=BLACK):
     end_y = y + length * math.sin(theta)
     pygame.draw.line(window, color, (x, y), (end_x, end_y), 2)
 
+
 # Particle class
 class Particle:
     def __init__(self, grid, valid_positions):
@@ -224,17 +233,19 @@ class Particle:
         self.theta = random.uniform(0, 2 * math.pi)
         self.weight = 1.0 / NUM_PARTICLES
 
-    def update_weight(self, this_lidar_reading: LidarReading, true_lidar_reading: LidarReading):
+    def update_weight(
+        self, this_lidar_reading: LidarReading, true_lidar_reading: LidarReading
+    ):
         """
         Compare two LidarReading instances.
         Only compare points with exactly matching angles.
         """
-        
+
         # Calculate how closely the lidar readings match expected points
         sensor_std = MIN_SENSOR_STD + (MAX_SENSOR_STD - MIN_SENSOR_STD) * max(
             1 - certainty, 0
         )
-        
+
         this_points = this_lidar_reading.downsample().get_points()
         true_points = true_lidar_reading.downsample().get_points()
 
@@ -242,7 +253,10 @@ class Particle:
         i = j = 0
         n_this = len(this_points)
         n_true = len(true_points)
-        
+
+        # similarity_measure = 0
+        # num_assessed = 0
+
         while i < n_this and j < n_true:
             angle_this = this_points[i].angle
             angle_true = true_points[j].angle
@@ -252,35 +266,40 @@ class Particle:
                 reading_this = this_points[i].distance
                 reading_true = true_points[j].distance
                 self.weight *= normal_pdf(reading_this, reading_true, sensor_std * ppi)
+                # print(angle_this, reading_this, reading_true)
+                # if (reading_this > 0 and reading_true > 0):
+                #     smaller_reading = min(reading_this, reading_true)
+                #     larger_reading = max(reading_this, reading_true)
+                #     measure = (smaller_reading / larger_reading)**3
+                #     similarity_measure += measure
+                #     num_assessed += 1
+
                 i += 1
                 j += 1
             elif angle_this < angle_true:
                 i += 1  # this point angle is behind, move forward
             else:
                 j += 1  # true point angle is behind, move forward
+        # if num_assessed > 0:
+        # 	self.weight = (similarity_measure / num_assessed) + 1e-300
+                
+        self.weight += 1.0e-200
 
-        self.weight += 1.0e-300
-
-    def lidar_scan_tuned(self, num_points = NUM_SCAN_ANGLES):
+    def lidar_scan_tuned(self, num_points=NUM_SCAN_ANGLES):
         """Simulate a lidar scan with a tuned accuraracy"""
         scan_angles = np.linspace(
-            360/(2*num_points), 
-            360 - 360/(2*num_points), 
-            num_points
+            360 / (2 * num_points), 360 - 360 / (2 * num_points), num_points
         )
 
         lidar_reading = LidarReading()
 
         for angle in scan_angles:
-            scan_angle = normalize_angle(self.theta * (180 / math.pi) + angle)
-            
-            simulated_reading = loaded_sensor_readings[int(self.x)][int(self.y)][
-				scan_angle
-            ]
-            current_point = LidarPointReading(
-				int(scan_angle),
-				int(simulated_reading)
-			)
+            angle_in_rad = angle * math.pi / 180
+            scan_angle = normalize_angle(self.theta - angle_in_rad)
+            simulated_reading = (
+                loaded_sensor_readings[int(self.x)][int(self.y)][scan_angle] * M_TO_INCH
+            )
+            current_point = LidarPointReading(int(angle), int(simulated_reading))
             lidar_reading.add_point(current_point)
 
         return lidar_reading
@@ -292,13 +311,20 @@ class Particle:
         dx_noise = random.gauss(0, MOVEMENT_NOISE)
         dy_noise = random.gauss(0, MOVEMENT_NOISE)
         angular_noise = random.gauss(
-            0, math.radians(2)
+            0, math.radians(ANGULAR_NOISE)
         )  # Using the same noise parameter
 
         # The particle's movement is the commanded movement + noise
-        actual_dx = delta_x_command + dx_noise
-        actual_dy = delta_y_command + dy_noise
-        actual_dtheta = delta_theta_command + angular_noise
+        adjusted_dx_command = delta_x_command * math.cos(
+            self.theta
+        ) + delta_y_command * math.sin(self.theta)
+        adjusted_dy_command = delta_x_command * math.sin(
+            self.theta
+        ) + delta_y_command * -math.cos(self.theta)
+
+        actual_dx = adjusted_dx_command + dx_noise
+        actual_dy = adjusted_dy_command + dy_noise
+        actual_dtheta = delta_theta_command + angular_noise  # sign convention
 
         # Calculate new position (Direct addition in world coordinates)
         new_x = self.x + actual_dx

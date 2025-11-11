@@ -89,8 +89,8 @@ def start_receiver(ser, stop_event, lidar_reading: LidarReading):
                         synced = False
                         break
 
-            except serial.SerialException:
-                print("\n[Serial connection lost]")
+            except serial.SerialException as e:
+                print("\n[Serial connection lost : {e}]")
                 stop_event.set()
                 break
             except Exception as e:

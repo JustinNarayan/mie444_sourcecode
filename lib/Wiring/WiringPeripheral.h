@@ -20,7 +20,7 @@
 #define PIN_ENCODER_2_A 19
 #define PIN_ENCODER_2_B 18
 #define PIN_ENCODER_3_A 16
-#define PIN_ENCODER_3_B 2
+#define PIN_ENCODER_3_B 17
 #define IS_INTERRUPT(p) ((p == 2) || (p == 3))
 
 /*****************************************************
