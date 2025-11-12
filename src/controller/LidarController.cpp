@@ -13,29 +13,41 @@ LidarController::LidarController(Lidar* lidar, DriveController* driveController)
 	driveController(driveController),
 	reading({0}),
 	hasUnaddressedRequest(false),
-	lastCompleteSentTimestampMillis(0) {}
+	lastCompleteSentTimestampMillis(0),
+	hasNotSentComplete(false) {}
 
 /**
  * @brief Read input messages for LidarRequest type
  * 
  */
-void LidarController::checkLidarRequest(void)
+void LidarController::checkLidarState(void)
 {
-	// Dequeue LidarRequest
+	// Dequeue LidarState
 	Message message;
 	ControllerMessageQueueOutput ret = \
-		this->read(MessageType::LidarRequest, &message);
+		this->read(MessageType::LidarState, &message);
 	
 	if (ret == ControllerMessageQueueOutput::DequeueSuccess)
 	{
+		// Confirm message is a request, so it's valid
+		if (LidarStateTranslation.asEnum(&message) != LidarState::Request)
+			return;
+
+		// Determine if request is valid
 		if (this->shouldAcceptNewRequests())
 		{
+			// Accept
 			this->hasUnaddressedRequest = true;
 			this->reading = {0};
 		}
+		else
+		{
+			// Reject
+			this->sendLidarState(LidarState::Rejected);
+		}
 
-		// Eliminate stale messages
-		this->purge(MessageType::LidarRequest);
+		// Eliminate stale requests
+		this->purge(MessageType::LidarState);
 	}
 }
 
@@ -43,7 +55,7 @@ void LidarController::checkLidarRequest(void)
  * @brief Ping lidar for a complete reading
  * 
  */
-int LidarController::refreshLidarReading(void)
+void LidarController::refreshLidarReading(void)
 {
 	this->reading = {0}; // Shouldn't be required since reset on new request
 
@@ -51,13 +63,14 @@ int LidarController::refreshLidarReading(void)
 	this->driveController->demandHalt();
 
 	// Ping lidar
-	int lidarResult = this->lidar->requestReading(&reading);
+	LidarState result = this->lidar->requestReading(&reading);
 	
 	// Clear unaddressed request on successful ping
-	if (lidarResult == LIDAR_READING_SUCCESS)
+	if (result == LidarState::Success)
 		this->hasUnaddressedRequest = false;
 
-	return lidarResult;
+	// Send state
+	this->sendLidarState(result);
 }
 
 /**
@@ -141,14 +154,18 @@ bool LidarController::trySendNextLidarReadingPoint(void)
 }
 
 /**
- * @brief Notify that all Lidar information has been sent
+ * @brief Notify current Lidar state
  * 
  */
-void LidarController::sendLidarComplete(void)
+void LidarController::sendLidarState(LidarState state)
 {
 	Message message;
-	message.init(MessageType::LidarComplete, MESSAGE_CONTENT_SIZE_AUTOMATIC, "");
-	this->post(&message);
+	LidarStateTranslation.asMessage(state, &message);
+	ControllerMessageQueueOutput result = this->post(&message);
+	
+	if (state == LidarState::Complete)
+		if (result == ControllerMessageQueueOutput::EnqueueSuccess)
+			this->hasNotSentComplete = false;
 }
 
 /**
@@ -170,8 +187,8 @@ void LidarController::sendLidarData(void)
 	// If all data sent, mark as complete
 	if (isLidarReadingFullyProcessed(&(this->reading)))
 	{
-		lastCompleteSentTimestampMillis = millis();
-		this->sendLidarComplete();
+		this->lastCompleteSentTimestampMillis = millis();
+		this->hasNotSentComplete = true;
 	}
 }
 
@@ -196,7 +213,7 @@ bool LidarController::shouldRequestPrioritizedSender(void)
 void LidarController::process(void)
 {
 	// Monitor incoming messages
-	this->checkLidarRequest();
+	this->checkLidarState();
 
 	// Check if should request prioritized sender
 	if (this->shouldRequestPrioritizedSender())
@@ -218,5 +235,11 @@ void LidarController::process(void)
 	if (this->shouldSendLidarReading())
 	{
 		this->sendLidarData();
+	}
+
+	// Notify complete if required
+	if (this->hasNotSentComplete == true)
+	{
+		this->sendLidarState(LidarState::Complete);
 	}
 }

@@ -24,9 +24,8 @@ class MessageType(Enum):
     DrivetrainEncoderPinged = auto()
     DrivetrainEncoderDistances = auto()
 
-    LidarRequest = auto()
+    LidarState = auto()
     LidarPointReading = auto()
-    LidarComplete = auto()
 
     Count = auto()
 
@@ -71,6 +70,9 @@ class Message:
         
     def get_type(self):
         return self.type
+    
+    def get_content(self):
+        return self.content
 
     @classmethod
     def from_raw(self, raw: bytes):

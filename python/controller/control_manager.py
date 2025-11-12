@@ -26,7 +26,7 @@ def start_keyboard_listener(ser, stop_event, lidar_reading):
             for k in LIDAR_KEYS:
                 is_pressed = keyboard.is_pressed(k)
                 if is_pressed and not lidar_pressed[k]:
-                    send_lidar_request(ser, lidar_reading)
+                    send_lidar_request(ser, lidar_reading, k)
                     lidar_pressed[k] = True  # mark as pressed
                 elif not is_pressed and lidar_pressed[k]:
                     # reset state when key released

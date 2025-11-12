@@ -27,16 +27,16 @@ void Lidar::init(uint8_t controlPin, HardwareSerial* port)
  * @return  LIDAR_READING_FAILURE if failed
  * 			LIDAR_READING_SUCCESS otherwise
  */
-int Lidar::requestReading(LidarReading* reading)
+LidarState Lidar::requestReading(LidarReading* reading)
 {
 	// Verify Lidar is active
-	if (!this->rpLidar.isOpen()) return LIDAR_READING_FAILURE;
+	if (!this->rpLidar.isOpen()) return LidarState::NotOpen;
 
 	// Clear bitmask
 	memorySet(&(reading->bitmask), 0, sizeof(reading->bitmask));
 
-	// Allow motor to start scan
-	if (IS_FAIL(this->rpLidar.startScan(true))) return LIDAR_READING_FAILURE;
+	// Start scan
+	if (IS_FAIL(this->rpLidar.startScan(true))) return LidarState::CannotScan;
 	unsigned long scanStartTime = millis();
 
 	// Populate reading
@@ -81,7 +81,7 @@ int Lidar::requestReading(LidarReading* reading)
 	// Stop scanning
 	this->rpLidar.stop();
 
-	return LIDAR_READING_SUCCESS;
+	return LidarState::Success;
 }
 
 #endif

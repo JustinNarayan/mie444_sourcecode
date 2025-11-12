@@ -22,9 +22,8 @@ enum class MessageType {
 	DrivetrainEncoderDistances,
 
 	/* Sensor Readings*/
-	LidarRequest,
+	LidarState,
 	LidarPointReading,
-	LidarComplete,
 
 	Count
 };

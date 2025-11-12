@@ -9,11 +9,11 @@
  *                INPUT / OUTPUT TYPES               *
  *****************************************************/
 using MessageTypesInLidar = MessageTypes<
-    MessageType::LidarRequest // Request for Lidar ping
+    MessageType::LidarState // Request for Lidar ping
 >;
 using MessageTypesOutLidar = MessageTypes<
     MessageType::LidarPointReading, // Single Lidar point reading
-	MessageType::LidarComplete // Indicates Lidar data has been all sent
+	MessageType::LidarState // Indicates if read successful/failure and when sent
 >;
 
 /*****************************************************
@@ -46,19 +46,20 @@ private:
 	 */
 	bool hasUnaddressedRequest;
 	unsigned long lastCompleteSentTimestampMillis;
+	bool hasNotSentComplete;
 
 	/**
 	 * @brief Low-level utilities
 	 * 
 	 */
-	int refreshLidarReading(void);
+	void refreshLidarReading(void);
 
 	/**
 	 * @brief Communication utilities
 	 */
-	void checkLidarRequest(void);
+	void checkLidarState(void);
 	bool trySendNextLidarReadingPoint(void);
-	void sendLidarComplete(void);
+	void sendLidarState(LidarState state);
 	void sendLidarData(void);
 
 	/**
