@@ -8,10 +8,10 @@
  *                INPUT / OUTPUT TYPES               *
  *****************************************************/
 using MessageTypesInEncoder = MessageTypes<
-    MessageType::DrivetrainEncoderRequest // Request for Encoder readings
+    MessageType::DrivetrainEncoderState // Request for Encoder readings
 >;
 using MessageTypesOutEncoder = MessageTypes<
-    MessageType::DrivetrainEncoderPinged // Indicate Encoder pinged
+    MessageType::DrivetrainEncoderState // Indicate Encoder pinged
 >;
 
 /*****************************************************
@@ -36,7 +36,7 @@ private:
 	/**
 	 * @brief Communication utilities
 	 */
-	void checkEncoderRequest(void);
+	void checkEncoderState(void);
 	void envoyRequest(void);
 	void sendEncoderPinged(void);
 

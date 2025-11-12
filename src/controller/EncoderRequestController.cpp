@@ -1,4 +1,5 @@
 #include "EncoderRequestController.h"
+#include <Translate.h>
 
 /**
  * @brief Construct a new EncoderRequestController
@@ -9,22 +10,28 @@ EncoderRequestController::EncoderRequestController(CommsEnvoy* envoy) :
 	envoy(envoy) {}
 
 /**
- * @brief Read input messages for DrivetrainEncoderRequest type
+ * @brief Read input messages for DrivetrainEncoderState type
  * 
  */
-void EncoderRequestController::checkEncoderRequest(void)
+void EncoderRequestController::checkEncoderState(void)
 {
-	// Dequeue DrivetrainEncoderRequest
+	// Dequeue DrivetrainEncoderState
 	Message message;
 	ControllerMessageQueueOutput ret = \
-		this->read(MessageType::DrivetrainEncoderRequest, &message);
+		this->read(MessageType::DrivetrainEncoderState, &message);
 	
 	if (ret == ControllerMessageQueueOutput::DequeueSuccess)
 	{
+		// This controller only handles only requests for localization
+		if (
+			DrivetrainEncoderStateTranslation.asEnum(&message) != DrivetrainEncoderState::RequestFromLocalization
+		)
+			return;
+
 		this->hasUnaddressedRequest = true;
 
 		// Eliminate stale messages
-		this->purge(MessageType::DrivetrainEncoderRequest);
+		this->purge(MessageType::DrivetrainEncoderState);
 	}
 }
 
@@ -35,7 +42,10 @@ void EncoderRequestController::checkEncoderRequest(void)
 void EncoderRequestController::envoyRequest(void)
 {
 	Message message;
-	message.init(MessageType::DrivetrainEncoderRequest, MESSAGE_CONTENT_SIZE_AUTOMATIC, "");
+	DrivetrainEncoderStateTranslation.asMessage(
+		DrivetrainEncoderState::RequestFromLocalization, 
+		&message
+	);
 	this->envoy->envoy(&message);
 	this->hasUnaddressedRequest = false;
 }
@@ -47,7 +57,7 @@ void EncoderRequestController::envoyRequest(void)
 void EncoderRequestController::sendEncoderPinged(void)
 {
 	Message message;
-	message.init(MessageType::DrivetrainEncoderPinged, MESSAGE_CONTENT_SIZE_AUTOMATIC, "");
+	DrivetrainEncoderStateTranslation.asMessage(DrivetrainEncoderState::Pinged, &message);
 	this->post(&message);
 }
 
@@ -72,7 +82,7 @@ bool EncoderRequestController::shouldEnvoyRequest(void)
 void EncoderRequestController::process(void)
 {
 	// Monitor incoming messages
-	this->checkEncoderRequest();
+	this->checkEncoderState();
 
 	// Check if should ping encoders
 	if (this->shouldEnvoyRequest())

@@ -16,7 +16,7 @@ class MessageType(Enum):
  
 	DrivetrainManualCommand = auto()
 	DrivetrainManualResponse = auto()
-	DrivetrainEncoderRequest = auto()
+	DrivetrainEncoderState = auto()
 	DrivetrainEncoderDistances = auto()
  
 	LidarState = auto()

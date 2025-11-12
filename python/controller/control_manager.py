@@ -36,7 +36,7 @@ def start_keyboard_listener(ser, stop_event, lidar_reading):
             for k in ENCODER_KEYS:
                 is_pressed = keyboard.is_pressed(k)
                 if is_pressed and not encoder_pressed[k]:
-                    send_encoder_request(ser)
+                    send_encoder_request(ser, k)
                     encoder_pressed[k] = True  # mark as pressed
                 elif not is_pressed and encoder_pressed[k]:
                     # reset state when key released
