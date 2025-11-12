@@ -17,6 +17,8 @@ private:
 	HardwareSerial* port;
 	RPLidar rpLidar;
 
+	LidarState checkHealth(void);
+	void attemptReset(void);
 public:
 	Lidar(void) {};
 	void init(uint8_t controlPin, HardwareSerial* port);

@@ -23,6 +23,9 @@ enum class LidarState
 	Request,
 	Rejected,
 	NotOpen,
+	CannotScan,
+	HealthUnknown,
+	NotHealthy,
 	Success,
 	Complete,
 

@@ -21,6 +21,41 @@ void Lidar::init(uint8_t controlPin, HardwareSerial* port)
 }
 
 /**
+ * @brief Check if the Lidar device reports healthy status
+ * 
+ * @return reported state
+ */
+LidarState Lidar::checkHealth(void)
+{
+	// Get health
+    rplidar_response_device_health_t healthinfo;
+    u_result result = this->rpLidar.getHealth(healthinfo);
+
+    if (IS_FAIL(result)) return LidarState::HealthUnknown;
+    if (healthinfo.status != RPLIDAR_STATUS_OK) return LidarState::NotHealthy;
+
+    return LidarState::Success;
+}
+
+/**
+ * @brief Attempt to reset the Lidar in the event of a failed health check
+ * 
+ */
+void Lidar::attemptReset(void)
+{
+	if (!this->rpLidar.isOpen()) return;
+
+    this->rpLidar.stop();
+	delay(LIDAR_RESET_TIME_MS);
+
+	u_result res = this->rpLidar.reset();
+    if (IS_FAIL(res)) return;
+
+	delay(LIDAR_RESET_TIME_MS);
+	analogWrite(this->controlPin, LIDAR_MOTOR_SPIN_SPEED);
+}
+
+/**
  * @brief Request a complete reading from the Lidar module.
  * 
  * @param reading Now populated with Lidar data
@@ -31,6 +66,14 @@ LidarState Lidar::requestReading(LidarReading* reading)
 {
 	// Verify Lidar is active
 	if (!this->rpLidar.isOpen()) return LidarState::NotOpen;
+
+	// Check Health
+	LidarState healthCheck = this->checkHealth();
+	if (healthCheck != LidarState::Success)
+	{
+		this->attemptReset();
+		return healthCheck;
+	}
 
 	// Clear bitmask
 	memorySet(&(reading->bitmask), 0, sizeof(reading->bitmask));

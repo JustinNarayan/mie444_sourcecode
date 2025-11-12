@@ -97,6 +97,8 @@
  * 
  */
 #define LIDAR_MINIMUM_QUALITY_TO_SEND (0) // 0 - 63, < 15 is noisy
+#define LIDAR_CHECK_HEALTH_PERIOD_MS (100UL) // millis
 #define LIDAR_GRANULARITY_NUM_POINTS (360) // X even samples across 360 degree sweep
 #define LIDAR_SWEEP_STARTUP_MS (500UL) // millis
 #define LIDAR_SWEEP_TIMEOUT_MS (1000UL) // millis
+#define LIDAR_RESET_TIME_MS (2000UL) // millis
