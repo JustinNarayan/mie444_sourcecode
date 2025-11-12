@@ -22,14 +22,14 @@ with open(
 
 
 ### TUNABLE PARAMETERS
-NUM_PARTICLES = 2000            # number of particles
-NUM_SCAN_ANGLES = 30           # number of beams used per particle (then downsampled)
-MOVEMENT_NOISE_LINEAR = 0.25      # inches (std dev of translational motion noise)
-MOVEMENT_NOISE_ANGULAR = 0.15     # radians (std dev of rotational motion noise)
-SENSOR_STD_INCHES = 5.0          # std dev of measurement noise (in inches); used in Gaussian likelihood
-MIN_WEIGHT = 1e-100               # floor weight to avoid zeroing out particles (tunable)
-RESAMPLE_JITTER_POS = 0.25        # inches, positional jitter after resampling
-RESAMPLE_JITTER_THETA = 0.15     # radians, angular jitter after resampling
+NUM_PARTICLES = 3000            # number of particles
+NUM_SCAN_ANGLES = 60           # number of beams used per particle (then downsampled)
+MOVEMENT_NOISE_LINEAR = 0.3      # inches (std dev of translational motion noise)
+MOVEMENT_NOISE_ANGULAR = 0.125     # radians (std dev of rotational motion noise)
+SENSOR_STD_PERCENT_ERROR = 0.3     # std dev of normalized measurement noise (in percent); used in Gaussian likelihood
+MIN_WEIGHT = 1e-6                # floor weight to avoid zeroing out particles (tunable)
+RESAMPLE_JITTER_POS = 0.5        # inches, positional jitter after resampling
+RESAMPLE_JITTER_THETA = 0.2     # radians, angular jitter after resampling
 
 # LIDAR reasonable bounds (inches)
 LIDAR_RANGE_MIN = 3.0
@@ -462,7 +462,7 @@ class Particle:
         log_likelihood = 0.0
         
         # Precompute gaussian coefficient term for speed: log(1/(sigma*sqrt(2pi)))
-        sensor_std = SENSOR_STD_INCHES / LIDAR_RANGE_MAX # normalized
+        sensor_std = SENSOR_STD_PERCENT_ERROR # normalized
         gaussian_log_prefactor = -0.5 * math.log(2.0 * math.pi * (sensor_std ** 2))
 
 		# Iterate through angles and get log-likelihoods
@@ -471,7 +471,9 @@ class Particle:
             z_real = real_lidar_map[ang]    # observed distance (inches)
 
             # Compute log PDF of normal distribution
-            diff = z_simulated - z_real
+            raw_diff = z_simulated - z_real
+            raw_sign = 1 if (z_simulated > z_real) else -1
+            diff = (raw_diff**2) * raw_sign
             log_pdf = gaussian_log_prefactor - 0.5 * ((diff ** 2) / (sensor_std ** 2))
             log_likelihood += log_pdf
 

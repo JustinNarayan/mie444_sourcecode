@@ -50,7 +50,7 @@ _TYPE_FORMATS = {
 }
 
 SHOULD_NOT_PRINT_TO_SCREEN = [
-	MessageType.DrivetrainEncoderDistances,
+	# MessageType.DrivetrainEncoderDistances,
 	MessageType.DrivetrainManualCommand,
 	MessageType.LidarPointReading,
 ]
