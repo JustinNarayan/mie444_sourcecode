@@ -4,7 +4,7 @@ from typing import List
 
 # --- Tunables / constants for LIDAR file ---
 MM_TO_INCH = 0.0393701     # millimeters -> inches (kept for backward compatibility if needed)
-DOWNSAMPLE_POINTS = 15     # default number of buckets for downsampling
+DOWNSAMPLE_POINTS = 30     # default number of buckets for downsampling
 EPSILON = 1e-12                # tiny value to avoid division by zero in normalization
 # Force real Lidar data to conform to simulated measurements. 0 is forward.
 LIDAR_ZERO_ANGLE_OFFSET_REAL = -48.0  # degrees

@@ -27,6 +27,15 @@ static constexpr EnumStringMap DrivetrainManualResponseMap[] = {
 };
 COMPILE_TIME_ENFORCE_ENUM_MAP_COUNT(DrivetrainManualResponseMap, DrivetrainManualResponse);
 
+static constexpr EnumStringMap DrivetrainEncoderStateMap[] = {
+    ENUM_MAP_ENTRY(DrivetrainEncoderState::Invalid,					"invalid"), // placeholder
+    ENUM_MAP_ENTRY(DrivetrainEncoderState::NoReceived,				""),
+    ENUM_MAP_ENTRY(DrivetrainEncoderState::RequestFromLocalization,	"e"),
+    ENUM_MAP_ENTRY(DrivetrainEncoderState::RequestFromController,	"c"),
+    ENUM_MAP_ENTRY(DrivetrainEncoderState::Pinged,					"p"),
+};
+COMPILE_TIME_ENFORCE_ENUM_MAP_COUNT(DrivetrainEncoderStateMap, DrivetrainEncoderState);
+
 /*****************************************************
  *                  STRUCT MAPPING                   *
  *****************************************************/

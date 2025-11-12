@@ -20,13 +20,11 @@ class MessageType(Enum):
 
     DrivetrainManualCommand = auto()
     DrivetrainManualResponse = auto()
-    DrivetrainEncoderRequest = auto()
-    DrivetrainEncoderPinged = auto()
+    DrivetrainEncoderState = auto()
     DrivetrainEncoderDistances = auto()
 
-    LidarRequest = auto()
+    LidarState = auto()
     LidarPointReading = auto()
-    LidarComplete = auto()
 
     Count = auto()
 
@@ -36,21 +34,29 @@ class MessageType(Enum):
 # Similar to Translate.h
 _TYPE_FORMATS = {
     MessageType.DrivetrainEncoderDistances: dict(
-        fmt="<fff",  # three float32_t
-        units=("in",) * 3,  # all in cm
-        disp="{:.2f} {u}",  # display format
+        fmt="<?fff",  # bool, three float32_t
+        units=("", "in", "in", "in"), # bool, three inches
+        disp=[
+            "{} {u}",
+            "{:.2f} {u}",
+            "{:.2f} {u}",
+            "{:.2f} {u}"
+		] # display format
     ),
     MessageType.LidarPointReading: dict(
         fmt="<hh",  # two int16_t
         units=("°", "mm"),  # degree, mm
-        disp="{}{u}",  # display format
+        disp=[
+            "{}{u}",
+            "{} {u}"
+        ],  # display format
     ),
     MessageType.Generic: dict(text=True),
     MessageType.Error: dict(text=True),
 }
 
 SHOULD_NOT_PRINT_TO_SCREEN = [
-	MessageType.DrivetrainEncoderDistances,
+	# MessageType.DrivetrainEncoderDistances,
 	MessageType.DrivetrainManualCommand,
 	MessageType.LidarPointReading,
 ]
@@ -71,6 +77,9 @@ class Message:
         
     def get_type(self):
         return self.type
+    
+    def get_content(self):
+        return self.content
 
     @classmethod
     def from_raw(self, raw: bytes):
@@ -155,10 +164,12 @@ class Message:
         if meta and "fmt" in meta:
             # metadata will include formatting method
             disp, units = meta["disp"], meta["units"]
-            parts = [
-                disp.format(v, u=units[i] if i < len(units) else "")
-                for i, v in enumerate(val)
-            ]
+            parts = []
+            for i, v in enumerate(val):
+                fmt = disp[i] if isinstance(disp, (list, tuple)) and i < len(disp) else disp
+                unit = units[i] if i < len(units) else ""
+                parts.append(fmt.format(v, u=unit))
+                
             return f"<{self.type.name}({', '.join(parts)})>"
         
         if meta and meta.get("text"):

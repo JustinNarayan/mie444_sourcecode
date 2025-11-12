@@ -8,11 +8,10 @@
  *                INPUT / OUTPUT TYPES               *
  *****************************************************/
 using MessageTypesInDriveEncoder = MessageTypes<
-    MessageType::DrivetrainEncoderRequest // Request an encoder reading
+    MessageType::DrivetrainEncoderState // Request an encoder reading
 >;
 using MessageTypesOutDriveEncoder = MessageTypes<
-    MessageType::DrivetrainEncoderDistances, // Encoder reading
-    MessageType::Error // Errors
+    MessageType::DrivetrainEncoderDistances // Encoder reading
 >;
 
 /*****************************************************
@@ -32,26 +31,28 @@ private:
 	/**
 	 * Whether a request was received and not yet addressed
 	 */
-	bool hasUnaddressedRequest;
-	unsigned long lastSentTimestampMillis;
+	bool hasUnaddressedRequestFromLocalization;
+	unsigned long lastSentToLocalizationTimestampMillis;
+	bool hasUnaddressedRequestFromController;
+	unsigned long lastSentToControllerTimestampMillis;
 
 	/**
 	 * @brief Low-level utilities
 	 * 
 	 */
-	void getDrivetrainEncoderDistances(DrivetrainEncoderDistances* distances);
+	void getDrivetrainEncoderDistances(DrivetrainEncoderDistances* distances, bool isForLocalization);
 	
 	/**
 	 * @brief Communication utilities
 	 */
-	void checkDrivetrainEncoderRequest(void);
-	void sendDrivetrainEncoderDistances(void);
+	void checkDrivetrainEncoderState(void);
+	void sendDrivetrainEncoderDistances(bool isForLocalization);
 
 	/**
 	 * @brief Proces utilities
 	 * 
 	 */
-	bool shouldSend(void);
+	bool shouldSend(bool isForLocalization);
 public:
 	DriveEncoderController(DrivetrainEncoders* drivetrainEncoders);
 	void process(void);

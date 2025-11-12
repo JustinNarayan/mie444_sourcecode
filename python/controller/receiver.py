@@ -57,10 +57,11 @@ def start_receiver(ser, stop_event, lidar_reading: LidarReading):
                                 )
                                 lidar_reading.add_point(point, is_real_lidar_data=True)
 
-                            elif msg.type == MessageType.LidarComplete:
-                                # Ping encoder after receiving a complete lidar scan
-                                send_encoder_request(ser)
-                                lidar_reading_ready_for_localization = True
+                            elif msg.type == MessageType.LidarState:
+                                if msg.get_content() == b'complete': # complete
+									# Ping encoder after receiving a complete lidar scan
+                                    send_encoder_request(ser)
+                                    lidar_reading_ready_for_localization = True
 
                             # --- ENCODER integration ---
                             elif msg.type == MessageType.DrivetrainEncoderDistances:

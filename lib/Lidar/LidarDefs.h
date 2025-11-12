@@ -10,6 +10,29 @@
 #define BITMASK_CLEAR(b, n)    ((b)[(n)/8] &= ~(1 << ((n)%8)))
 
 /*****************************************************
+ *                       ENUMS                       *
+ *****************************************************/
+
+/**
+ * Valid messages for Lidar communication
+ */
+enum class LidarState
+{
+	Invalid,
+	NoReceived,
+	Request,
+	Rejected,
+	NotOpen,
+	CannotScan,
+	HealthUnknown,
+	NotHealthy,
+	Success,
+	Complete,
+
+	Count
+};
+
+/*****************************************************
  *                      STRUCTS                      *
  *****************************************************/
 

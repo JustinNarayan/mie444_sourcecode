@@ -10,6 +10,8 @@
  */
 ENUM_MESSAGE_MAP_TRANSLATION(DrivetrainManualCommand)
 ENUM_MESSAGE_MAP_TRANSLATION(DrivetrainManualResponse)
+ENUM_MESSAGE_MAP_TRANSLATION(DrivetrainEncoderState)
+ENUM_MESSAGE_MAP_TRANSLATION(LidarState)
 
 /**
  * @brief Instantiate all StructMessageMap objects for translation

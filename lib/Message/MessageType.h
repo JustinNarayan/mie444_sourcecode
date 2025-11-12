@@ -17,14 +17,12 @@ enum class MessageType {
 	/* Drivetrain */
 	DrivetrainManualCommand,
 	DrivetrainManualResponse,
-	DrivetrainEncoderRequest,
-	DrivetrainEncoderPinged,
+	DrivetrainEncoderState,
 	DrivetrainEncoderDistances,
 
 	/* Sensor Readings*/
-	LidarRequest,
+	LidarState,
 	LidarPointReading,
-	LidarComplete,
 
 	Count
 };

@@ -16,10 +16,10 @@ class MessageType(Enum):
  
 	DrivetrainManualCommand = auto()
 	DrivetrainManualResponse = auto()
-	DrivetrainEncoderRequest = auto()
+	DrivetrainEncoderState = auto()
 	DrivetrainEncoderDistances = auto()
  
-	LidarRequest = auto()
+	LidarState = auto()
 	LidarPointReading = auto()
  
 	Count = auto()
@@ -102,7 +102,7 @@ def main():
                     break
             
             if lidar_key_pressed:
-                msg = encode_message(MessageType.LidarRequest, "")
+                msg = encode_message(MessageType.LidarState, "l")
                 ser.write(msg)
                 ser.flush()
 
