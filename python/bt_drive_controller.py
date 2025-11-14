@@ -30,7 +30,7 @@ def encode_message(type: MessageType, content: str):
 
 
 # ======= USER SETTINGS =======
-PORT = "COM6"       # Replace with your COM port
+PORT = "COM5"       # Replace with your COM port
 BAUD = 57600        # Match Arduino baud rate
 SEND_INTERVAL = 0.01  # seconds (10 ms)
 # =============================

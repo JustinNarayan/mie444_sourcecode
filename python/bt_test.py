@@ -5,7 +5,7 @@ import sys
 import queue
 
 # Set your COM port and baud rate here
-PORT = "COM6"   # Replace with your COM port
+PORT = "COM5"   # Replace with your COM port
 BAUD = 57600    # Match Arduino baud rate
 
 def print_send_line(message):
