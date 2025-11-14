@@ -19,7 +19,7 @@
 #if defined(BOARD_CONTROLLER)
 #define STRING_LENGTH_MAX 64
 #elif defined(BOARD_PERIPHERAL)
-#define STRING_LENGTH_MAX 64
+#define STRING_LENGTH_MAX 32
 #else
 #error "Unsupported board! Please defined BOARD_xxx in platformio.ini"
 #endif
