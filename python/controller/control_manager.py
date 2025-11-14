@@ -32,7 +32,7 @@ def start_keyboard_listener(ser, stop_event, lidar_reading):
                     # reset state when key released
                     lidar_pressed[k] = False
             
-            # ----- Lidar keys (edge-triggered) -----
+            # ----- Encoder keys (edge-triggered) -----
             for k in ENCODER_KEYS:
                 is_pressed = keyboard.is_pressed(k)
                 if is_pressed and not encoder_pressed[k]:

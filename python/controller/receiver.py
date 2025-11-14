@@ -7,6 +7,10 @@ from lidar_reading import LidarPointReading, LidarReading
 from encoder_reading import EncoderReading
 from localization import current_encoder_reading, last_sent_encoder_reading, post_lidar_encoder_reading, prepare_info_for_localization_step
 from encoder_control_manager import send_encoder_request
+from lidar_reading import init_lidar_plot, update_lidar_plot
+
+# Lidar visualization
+VISUALIZE_LIDAR = True
 
 def print_rcvd_message(msg: Message):
     sys.stdout.write('\r\033[K')
@@ -19,6 +23,11 @@ def start_receiver(ser, stop_event, lidar_reading: LidarReading):
         buffer = bytearray()
         synced = False
         lidar_reading_ready_for_localization = False
+        
+        # Lidar vis
+        _lidar_fig = None
+        _lidar_ax = None
+        _lidar_scatter = None
 
         while not stop_event.is_set():
             try:
@@ -39,6 +48,10 @@ def start_receiver(ser, stop_event, lidar_reading: LidarReading):
                         
                         # Ping encoder for first reading
                         send_encoder_request(ser)
+                        
+                        # Initialize lidar vis
+                        if VISUALIZE_LIDAR:
+                            _lidar_fig, _lidar_ax, _lidar_scatter = init_lidar_plot(_lidar_fig, _lidar_ax, _lidar_scatter)
                     else:
                         continue
 
@@ -62,6 +75,9 @@ def start_receiver(ser, stop_event, lidar_reading: LidarReading):
 									# Ping encoder after receiving a complete lidar scan
                                     send_encoder_request(ser)
                                     lidar_reading_ready_for_localization = True
+                                    # Visualize
+                                    if VISUALIZE_LIDAR:
+                                        _lidar_fig, _lidar_ax, _lidar_scatter = update_lidar_plot(_lidar_fig, _lidar_ax, _lidar_scatter, lidar_reading)
 
                             # --- ENCODER integration ---
                             elif msg.type == MessageType.DrivetrainEncoderDistances:

@@ -2,7 +2,7 @@
 #include "Types.h"
 #include <CommsInterface.h>
 #include <Controller.h>
-#include "DriveController.h"
+#include "PeripheralEnvoy.h"
 #include <Lidar.h>
 
 /*****************************************************
@@ -31,9 +31,9 @@ private:
 	Lidar* lidar;
 
 	/**
-	 * Reference to DriveController to request halts before Lidar reading
+	 * Reference to Peripheral Envoy to request halts before Lidar reading
 	 */
-	DriveController* driveController;
+	PeripheralEnvoy* envoy;
 
 	/**
 	 * @brief Current Lidar data
@@ -71,6 +71,6 @@ private:
 	bool shouldSendLidarReading(void);
 	bool shouldRequestPrioritizedSender(void);
 public:
-	LidarController(Lidar* lidar, DriveController* driveController);
+	LidarController(Lidar* lidar, PeripheralEnvoy* envoy);
 	void process(void);
 };

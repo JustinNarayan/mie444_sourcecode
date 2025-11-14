@@ -2,11 +2,10 @@
 
 #include <Wiring.h>
 #include <CommsInterface.h>
-#include <CommsRepeater.h>
-#include <CommsEnvoy.h>
 #include <Taskmaster.h>
-#include "DriveController.h"
-#include "EncoderRequestController.h"
+#include "PeripheralEnvoy.h"
+#include "PeripheralEcho.h"
+#include "PeripheralForwardingController.h"
 #include "LidarController.h"
 #include "Settings.h"
 #include "Errors.h"
@@ -16,32 +15,33 @@
  *****************************************************/
 CommsInterface g_externalComms;
 CommsInterface g_peripheralComms;
-CommsEnvoy g_envoyToPeripheral(&g_peripheralComms);
+PeripheralEnvoy g_envoyToPeripheral(&g_peripheralComms);
 
 /*****************************************************
  *                    CONTROLLERS                    *
  *****************************************************/
-Drivetrain g_drivetrain;
-DriveController g_driveController(&g_drivetrain);
-EncoderRequestController g_encoderRequestController(&g_envoyToPeripheral);
+PeripheralForwardingController g_peripheralForwardingController(&g_envoyToPeripheral);
 Lidar g_lidar;
-LidarController g_lidarController(&g_lidar, &g_driveController);
+LidarController g_lidarController(&g_lidar, &g_envoyToPeripheral);
 
 /*****************************************************
  *                    TASKMASTERS                    *
  *****************************************************/
-static ControllerGeneric* primaryControllers[] = { 
-	&g_driveController,
-	&g_encoderRequestController,
+static ControllerGeneric* primaryControllers[] = {
+	&g_peripheralForwardingController,
 	&g_lidarController 
 };
 TASKMASTER_DECLARE(primaryTaskmaster, &g_externalComms, primaryControllers)
 
 /*****************************************************
- *                  COMMS REPEATERS                  *
+ *                  PERIPHERAL ECHO                  *
  *****************************************************/
 
-CommsRepeater g_commsRepeater(&g_peripheralComms, &g_externalComms, &primaryTaskmaster);
+PeripheralEcho g_peripheralEcho(
+	&g_peripheralComms, // Read from peripheral
+	&g_externalComms,  // Echo on external
+	&primaryTaskmaster // Priority sending
+);
 
 
 /**
@@ -52,7 +52,6 @@ void setup()
 	// Wiring
 	Wiring_InitPins();
 	Wiring_InitComms(&g_externalComms, &g_peripheralComms);
-	Wiring_InitDrivetrain(&g_drivetrain);
 	Wiring_InitLidar(&g_lidar);
 }
 
@@ -63,5 +62,5 @@ void loop()
 {
 	primaryTaskmaster.execute();
 
-	g_commsRepeater.process();
+	g_peripheralEcho.process();
 }

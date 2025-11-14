@@ -12,8 +12,7 @@ using MessageTypesInDrive = MessageTypes<
     MessageType::DrivetrainManualCommand // Manual commands
 >;
 using MessageTypesOutDrive = MessageTypes<
-    MessageType::DrivetrainManualResponse, // Manual command responses
-	MessageType::DrivetrainManualCommand // Manual command echo
+    MessageType::DrivetrainManualResponse // Manual command responses
 >;
 
 /*****************************************************
@@ -46,7 +45,6 @@ private:
 	 */
 	DrivetrainManualCommand getDrivetrainManualCommand(void);
 	void sendDrivetrainManualResponse(DrivetrainManualResponse response);
-	void echoDrivetrainManualCommand(DrivetrainManualCommand command);
 
 	/**
 	 * @brief Process utilities
@@ -58,5 +56,5 @@ public:
 	DriveController(Drivetrain* drivetrain);
 	void process(void);
 
-	void demandHalt(void);
+	void voluntaryHalt(void);
 };

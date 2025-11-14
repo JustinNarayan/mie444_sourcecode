@@ -2,7 +2,6 @@
 #include "Settings.h"
 #include "Types.h"
 #include <CommsInterface.h>
-#include <Drivetrain.h>
 #include <Lidar.h>
 #include "Wiring.h"
 
@@ -28,17 +27,6 @@
 /* Ultrasonic Sensors */
 #define PIN_US_TEST_TRIGGER PB7
 #define PIN_US_TEST_ECHO PB6
-
-/* Drivetrain */
-#define PIN_MOTOR_1_IN1 3
-#define PIN_MOTOR_1_IN2 2
-#define PIN_MOTOR_1_ENABLE 4
-#define PIN_MOTOR_2_IN1 12
-#define PIN_MOTOR_2_IN2 13
-#define PIN_MOTOR_2_ENABLE 11
-#define PIN_MOTOR_3_IN1 6
-#define PIN_MOTOR_3_IN2 7
-#define PIN_MOTOR_3_ENABLE 5
 
 /* Lidar */
 #define PIN_LIDAR_MOTOCTRL 9
@@ -73,19 +61,6 @@ void Wiring_InitComms(CommsInterface *externalComms, CommsInterface *peripheralC
 
 	// Internal communications setup
 	peripheralComms->init(UART_INTERNAL_TO_PERIPHERAL, INTERNAL_COMMS_BAUD_RATE);
-}
-
-/**
- * @brief Initialize drivetrain
- * 
- */
-void Wiring_InitDrivetrain(Drivetrain *drivetrain)
-{
-	drivetrain->init(
-		PIN_MOTOR_1_ENABLE, PIN_MOTOR_1_IN1, PIN_MOTOR_1_IN2,
-		PIN_MOTOR_2_ENABLE, PIN_MOTOR_2_IN1, PIN_MOTOR_2_IN2,
-		PIN_MOTOR_3_ENABLE, PIN_MOTOR_3_IN1, PIN_MOTOR_3_IN2
-	);
 }
 
 /**

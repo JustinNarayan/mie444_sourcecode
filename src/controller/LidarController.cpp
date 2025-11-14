@@ -8,9 +8,9 @@
  * @param lidar
  * @param driveController To request a full halt before pinging Lidar
  */
-LidarController::LidarController(Lidar* lidar, DriveController* driveController) :
+LidarController::LidarController(Lidar* lidar, PeripheralEnvoy* envoy) :
 	lidar(lidar),
-	driveController(driveController),
+	envoy(envoy),
 	reading({0}),
 	hasUnaddressedRequest(false),
 	lastCompleteSentTimestampMillis(0),
@@ -60,7 +60,7 @@ void LidarController::refreshLidarReading(void)
 	this->reading = {0}; // Shouldn't be required since reset on new request
 
 	// Bring drivetrain to a halt
-	this->driveController->demandHalt();
+	this->envoy->envoyDrivetrainManualCommand(DrivetrainManualCommand::Halt);
 
 	// Ping lidar
 	LidarState result = this->lidar->requestReading(&reading);

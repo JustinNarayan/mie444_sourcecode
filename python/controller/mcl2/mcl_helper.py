@@ -24,11 +24,11 @@ with open(
 ### TUNABLE PARAMETERS
 NUM_PARTICLES = 3000            # number of particles
 NUM_SCAN_ANGLES = 60           # number of beams used per particle (then downsampled)
-MOVEMENT_NOISE_LINEAR = 0.3      # inches (std dev of translational motion noise)
+MOVEMENT_NOISE_LINEAR = 0.6      # inches (std dev of translational motion noise)
 MOVEMENT_NOISE_ANGULAR = 0.125     # radians (std dev of rotational motion noise)
-SENSOR_STD_PERCENT_ERROR = 0.3     # std dev of normalized measurement noise (in percent); used in Gaussian likelihood
-MIN_WEIGHT = 1e-6                # floor weight to avoid zeroing out particles (tunable)
-RESAMPLE_JITTER_POS = 0.5        # inches, positional jitter after resampling
+SENSOR_STD_PERCENT_ERROR = 0.4     # std dev of normalized measurement noise (in percent); used in Gaussian likelihood
+MIN_WEIGHT = 1e-4                # floor weight to avoid zeroing out particles (tunable)
+RESAMPLE_JITTER_POS = 0.8        # inches, positional jitter after resampling
 RESAMPLE_JITTER_THETA = 0.2     # radians, angular jitter after resampling
 
 # LIDAR reasonable bounds (inches)
@@ -473,7 +473,7 @@ class Particle:
             # Compute log PDF of normal distribution
             raw_diff = z_simulated - z_real
             raw_sign = 1 if (z_simulated > z_real) else -1
-            diff = (raw_diff**2) * raw_sign
+            diff = (abs(raw_diff)**1.5) * raw_sign
             log_pdf = gaussian_log_prefactor - 0.5 * ((diff ** 2) / (sensor_std ** 2))
             log_likelihood += log_pdf
 

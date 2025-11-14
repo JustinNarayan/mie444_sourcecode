@@ -2,6 +2,7 @@
 #include "Settings.h"
 #include "Types.h"
 #include <CommsInterface.h>
+#include <Drivetrain.h>
 #include <DrivetrainEncoders.h>
 #include "Wiring.h"
 
@@ -17,10 +18,21 @@
 /* Encoders */
 #define PIN_ENCODER_1_A 14
 #define PIN_ENCODER_1_B 15
-#define PIN_ENCODER_2_A 19
-#define PIN_ENCODER_2_B 18
+#define PIN_ENCODER_2_A 18
+#define PIN_ENCODER_2_B 19
 #define PIN_ENCODER_3_A 16
 #define PIN_ENCODER_3_B 17
+
+/* Drivetrain */
+#define PIN_MOTOR_1_IN1 6
+#define PIN_MOTOR_1_IN2 7
+#define PIN_MOTOR_1_ENABLE 5
+#define PIN_MOTOR_2_IN1 13
+#define PIN_MOTOR_2_IN2 12 
+#define PIN_MOTOR_2_ENABLE 11
+#define PIN_MOTOR_3_IN1 8
+#define PIN_MOTOR_3_IN2 9
+#define PIN_MOTOR_3_ENABLE 10
 #define IS_INTERRUPT(p) ((p == 2) || (p == 3))
 
 /*****************************************************
@@ -174,4 +186,17 @@ void Wiring_InitDrivetrainEncoders(DrivetrainEncoders *drivetrainEncoders)
 	Wiring_GenerateInterrutServiceRoutine(PIN_ENCODER_1_A, drivetrainEncoders->ISR_encoder1);
 	Wiring_GenerateInterrutServiceRoutine(PIN_ENCODER_2_A, drivetrainEncoders->ISR_encoder2);
 	Wiring_GenerateInterrutServiceRoutine(PIN_ENCODER_3_A, drivetrainEncoders->ISR_encoder3);
+}
+
+/**
+ * @brief Initialize drivetrain
+ * 
+ */
+void Wiring_InitDrivetrain(Drivetrain *drivetrain)
+{
+	drivetrain->init(
+		PIN_MOTOR_1_ENABLE, PIN_MOTOR_1_IN1, PIN_MOTOR_1_IN2,
+		PIN_MOTOR_2_ENABLE, PIN_MOTOR_2_IN1, PIN_MOTOR_2_IN2,
+		PIN_MOTOR_3_ENABLE, PIN_MOTOR_3_IN1, PIN_MOTOR_3_IN2
+	);
 }
