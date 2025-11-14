@@ -44,18 +44,6 @@ void DriveController::sendDrivetrainManualResponse(DrivetrainManualResponse resp
 	this->post(&message);
 }
 
-/**
- * @brief Echo received DrivetrainManualCommand
- * 
- * @param command To write
- */
-void DriveController::echoDrivetrainManualCommand(DrivetrainManualCommand command)
-{
-	Message message;
-	DrivetrainManualCommandTranslation.asMessage(command, &message);
-	this->post(&message);
-}
-
 
 /**
  * @brief Arbitrate command to drivetrain and record it.
@@ -134,7 +122,6 @@ void DriveController::process(void)
 	// Send acknowledgement if invalid command
 	if (currentCommand == DrivetrainManualCommand::Invalid)
 	{
-		this->echoDrivetrainManualCommand(currentCommand);
 		this->sendDrivetrainManualResponse(DrivetrainManualResponse::AcknowledgeInvalidCommand);
 		return;
 	}
@@ -143,7 +130,6 @@ void DriveController::process(void)
 	if (currentCommand != DrivetrainManualCommand::NoReceived)
 	{
 		this->arbitrateCommand(currentCommand);
-		this->echoDrivetrainManualCommand(currentCommand);
 		this->sendDrivetrainManualResponse(DrivetrainManualResponse::AcknowledgeValidCommand);
 		return;
 	}
@@ -151,20 +137,19 @@ void DriveController::process(void)
 	// Check if should halt based on no recent commands
 	if (this->shouldHalt())
 	{
-		this->demandHalt();
+		this->voluntaryHalt();
 		return;
 	}
 }
 
 /**
- * @brief Bring drivetrain to a halt. Allow other controllers to poke the drivetrain to halt.
+ * @brief Bring drivetrain to a halt without direct command.
  * 
  */
-void DriveController::demandHalt(void)
+void DriveController::voluntaryHalt(void)
 {
 	// Come to a stop and notify
 	this->arbitrateCommand(DrivetrainManualCommand::Halt);
-	this->echoDrivetrainManualCommand(DrivetrainManualCommand::Halt);
 	this->sendDrivetrainManualResponse(DrivetrainManualResponse::NotifyHalting);
 
 	// Prevent other stale from coming in immediately after

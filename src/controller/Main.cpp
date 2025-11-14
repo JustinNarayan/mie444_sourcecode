@@ -20,8 +20,6 @@ PeripheralEnvoy g_envoyToPeripheral(&g_peripheralComms);
 /*****************************************************
  *                    CONTROLLERS                    *
  *****************************************************/
-Drivetrain g_drivetrain;
-DriveController g_driveController(&g_drivetrain);
 EncoderRequestController g_encoderRequestController(&g_envoyToPeripheral);
 Lidar g_lidar;
 LidarController g_lidarController(&g_lidar, &g_envoyToPeripheral);
@@ -29,8 +27,7 @@ LidarController g_lidarController(&g_lidar, &g_envoyToPeripheral);
 /*****************************************************
  *                    TASKMASTERS                    *
  *****************************************************/
-static ControllerGeneric* primaryControllers[] = { 
-	&g_driveController,
+static ControllerGeneric* primaryControllers[] = {
 	&g_encoderRequestController,
 	&g_lidarController 
 };
@@ -55,7 +52,6 @@ void setup()
 	// Wiring
 	Wiring_InitPins();
 	Wiring_InitComms(&g_externalComms, &g_peripheralComms);
-	Wiring_InitDrivetrain(&g_drivetrain);
 	Wiring_InitLidar(&g_lidar);
 }
 

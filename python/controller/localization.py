@@ -17,8 +17,8 @@ L = 3.73771654 # inches, 94.938 mm - DISTANCE_FROM_OBJECT_CENTER_TO_WHEEL_MIDPOI
 
 DEG_TO_RAD = math.pi/180
 THETA_1 = 180 * DEG_TO_RAD # radians
-THETA_2 = 300 * DEG_TO_RAD # radians
-THETA_3 = 60 * DEG_TO_RAD # radians
+THETA_2 = 60 * DEG_TO_RAD # radians
+THETA_3 = 300 * DEG_TO_RAD # radians
 
 A = np.array([
     [-math.sin(THETA_1), math.cos(THETA_1), L],
@@ -78,7 +78,6 @@ def get_delta_position_orientation(post_lidar: EncoderReading, last_sent: Encode
     ])
     Robot_displacement = A_INV @ motor_displacements
     # Return delta_x, delta_y, delta_theta
-    ### HACKY - manually edit displacements
-    delta_x, delta_y, delta_theta = Robot_displacement[0], Robot_displacement[1], -Robot_displacement[2]
+    delta_x, delta_y, delta_theta = Robot_displacement[0], Robot_displacement[1], Robot_displacement[2]
     
     return delta_x, delta_y, delta_theta
