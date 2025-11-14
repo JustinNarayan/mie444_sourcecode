@@ -34,10 +34,9 @@ class MessageType(Enum):
 # Similar to Translate.h
 _TYPE_FORMATS = {
     MessageType.DrivetrainEncoderDistances: dict(
-        fmt="<?fff",  # bool, three float32_t
-        units=("", "in", "in", "in"), # bool, three inches
+        fmt="<fff",  # three float32_t
+        units=("in", "in", "in"), # three inches
         disp=[
-            "{} {u}",
             "{:.2f} {u}",
             "{:.2f} {u}",
             "{:.2f} {u}"

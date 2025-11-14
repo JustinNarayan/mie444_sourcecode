@@ -31,28 +31,26 @@ private:
 	/**
 	 * Whether a request was received and not yet addressed
 	 */
-	bool hasUnaddressedRequestFromLocalization;
-	unsigned long lastSentToLocalizationTimestampMillis;
-	bool hasUnaddressedRequestFromController;
-	unsigned long lastSentToControllerTimestampMillis;
+	bool hasUnaddressedRequest;;
+	unsigned long lastSentTimestampMillis;
 
 	/**
 	 * @brief Low-level utilities
 	 * 
 	 */
-	void getDrivetrainEncoderDistances(DrivetrainEncoderDistances* distances, bool isForLocalization);
+	void getDrivetrainEncoderDistances(DrivetrainEncoderDistances* distances);
 	
 	/**
 	 * @brief Communication utilities
 	 */
 	void checkDrivetrainEncoderState(void);
-	void sendDrivetrainEncoderDistances(bool isForLocalization);
+	void sendDrivetrainEncoderDistances(void);
 
 	/**
 	 * @brief Proces utilities
 	 * 
 	 */
-	bool shouldSend(bool isForLocalization);
+	bool shouldSend(void);
 public:
 	DriveEncoderController(DrivetrainEncoders* drivetrainEncoders);
 	void process(void);

@@ -29,15 +29,11 @@ public:
 	 * @brief Envoy encoder request on comms interface
 	 *
 	 */
-	void envoyEncoderRequest(bool isFromLocalization)
+	void envoyEncoderRequest(void)
 	{
-		DrivetrainEncoderState requester = isFromLocalization ? \
-			DrivetrainEncoderState::RequestFromLocalization :
-			DrivetrainEncoderState::RequestFromController;
-
 		Message message;
 		DrivetrainEncoderStateTranslation.asMessage(
-			requester, 
+			DrivetrainEncoderState::Request, 
 			&message
 		);
 		this->envoy(&message);

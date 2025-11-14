@@ -25,7 +25,7 @@ void PeripheralForwardingController::checkEncoderState(void)
 	{
 		// This controller only handles only requests for localization
 		if (
-			DrivetrainEncoderStateTranslation.asEnum(&message) != DrivetrainEncoderState::RequestFromLocalization
+			DrivetrainEncoderStateTranslation.asEnum(&message) != DrivetrainEncoderState::Request
 		)
 			return;
 
@@ -42,19 +42,8 @@ void PeripheralForwardingController::checkEncoderState(void)
  */
 void PeripheralForwardingController::envoyEncoderRequest(void)
 {
-	this->envoy->envoyEncoderRequest(true); // request from localization
+	this->envoy->envoyEncoderRequest(); // request from localization
 	this->hasUnaddressedEncoderRequest = false;
-}
-
-/**
- * @brief Indicate encoder has been pinged
- * 
- */
-void PeripheralForwardingController::sendEncoderPinged(void)
-{
-	Message message;
-	DrivetrainEncoderStateTranslation.asMessage(DrivetrainEncoderState::Pinged, &message);
-	this->post(&message);
 }
 
 /**
@@ -144,7 +133,6 @@ void PeripheralForwardingController::process(void)
 	if (this->shouldEnvoyRequest())
 	{
 		this->envoyEncoderRequest();
-		this->sendEncoderPinged();
 	}
 
 	// Check if should send drivetrain manual commands

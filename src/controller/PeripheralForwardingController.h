@@ -11,9 +11,7 @@ using MessageTypesInForwarding = MessageTypes<
     MessageType::DrivetrainEncoderState, // Request for Encoder readings,
 	MessageType::DrivetrainManualCommand // Commands for drivetrain
 >;
-using MessageTypesOutForwarding = MessageTypes<
-    MessageType::DrivetrainEncoderState // Indicate Encoder pinged
->;
+using MessageTypesOutForwarding = MessageTypes<>;
 
 /*****************************************************
  *                     CONTROLLER                    *
@@ -46,7 +44,6 @@ private:
 	 */
 	void checkEncoderState(void);
 	void envoyEncoderRequest(void);
-	void sendEncoderPinged(void);
 	bool shouldEnvoyRequest(void);
 
 	/**

@@ -43,9 +43,7 @@ enum class DrivetrainEncoderState
 {
 	Invalid,
 	NoReceived,
-	RequestFromLocalization,
-	RequestFromController,
-	Pinged,
+	Request,
 
 	Count
 };
@@ -59,7 +57,6 @@ enum class DrivetrainEncoderState
  */
 struct DrivetrainEncoderDistances
 {
-	bool isForLocalization;
 	float32_t encoder1Dist_in;
 	float32_t encoder2Dist_in;
 	float32_t encoder3Dist_in;
