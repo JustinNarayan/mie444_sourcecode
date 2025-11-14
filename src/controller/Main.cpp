@@ -2,10 +2,9 @@
 
 #include <Wiring.h>
 #include <CommsInterface.h>
-#include <CommsRepeater.h>
-#include <CommsEnvoy.h>
 #include <Taskmaster.h>
-#include "DriveController.h"
+#include "PeripheralEnvoy.h"
+#include "PeripheralEcho.h"
 #include "EncoderRequestController.h"
 #include "LidarController.h"
 #include "Settings.h"
@@ -16,7 +15,7 @@
  *****************************************************/
 CommsInterface g_externalComms;
 CommsInterface g_peripheralComms;
-CommsEnvoy g_envoyToPeripheral(&g_peripheralComms);
+PeripheralEnvoy g_envoyToPeripheral(&g_peripheralComms);
 
 /*****************************************************
  *                    CONTROLLERS                    *
@@ -25,7 +24,7 @@ Drivetrain g_drivetrain;
 DriveController g_driveController(&g_drivetrain);
 EncoderRequestController g_encoderRequestController(&g_envoyToPeripheral);
 Lidar g_lidar;
-LidarController g_lidarController(&g_lidar, &g_driveController);
+LidarController g_lidarController(&g_lidar, &g_envoyToPeripheral);
 
 /*****************************************************
  *                    TASKMASTERS                    *
@@ -38,10 +37,14 @@ static ControllerGeneric* primaryControllers[] = {
 TASKMASTER_DECLARE(primaryTaskmaster, &g_externalComms, primaryControllers)
 
 /*****************************************************
- *                  COMMS REPEATERS                  *
+ *                  PERIPHERAL ECHO                  *
  *****************************************************/
 
-CommsRepeater g_commsRepeater(&g_peripheralComms, &g_externalComms, &primaryTaskmaster);
+PeripheralEcho g_peripheralEcho(
+	&g_peripheralComms, // Read from peripheral
+	&g_externalComms,  // Echo on external
+	&primaryTaskmaster // Priority sending
+);
 
 
 /**
@@ -63,5 +66,5 @@ void loop()
 {
 	primaryTaskmaster.execute();
 
-	g_commsRepeater.process();
+	g_peripheralEcho.process();
 }

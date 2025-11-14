@@ -2,7 +2,7 @@
 #include <CommsInterface.h>
 #include <Taskmaster.h>
 
-class CommsRepeater
+class PeripheralEcho
 {
 private:
 	CommsInterface* toReceive;
@@ -11,13 +11,13 @@ private:
 
 public:
 	/**
-	 * @brief Construct a new CommsRepeater
+	 * @brief Construct a new PeripheralEcho
 	 * 
 	 * @param toReceive Channel to listen for messages
 	 * @param toSend Channel to repeat back those messages
 	 * @param taskmaster Taskmaster sharing the toSend interface
 	 */
-	CommsRepeater(CommsInterface* toReceive, CommsInterface* toSend, Taskmaster* taskmaster) :
+	PeripheralEcho(CommsInterface* toReceive, CommsInterface* toSend, Taskmaster* taskmaster) :
 		toReceive(toReceive), toSend(toSend), taskmaster(taskmaster) {};
 	
 	/**
