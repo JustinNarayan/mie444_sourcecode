@@ -74,6 +74,8 @@
  * @brief Drivetrain control custom parameters
  * 
  */
+#define DRIVETRAIN_MANUAL_COMMAND_FORWARDING_TIME_TO_DISCARD (100UL) // millis
+
 #define DRIVETRAIN_TIME_TO_HALT_AFTER_LAST_RECEIVED_COMMAND (100UL) // millis
 #define DRIVETRAIN_TRANSLATE_SPEED (110) // 0 to 255
 #define DRIVETRAIN_ROTATE_SPEED (70) // 0 to 255

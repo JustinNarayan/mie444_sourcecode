@@ -5,7 +5,7 @@
 #include <Taskmaster.h>
 #include "PeripheralEnvoy.h"
 #include "PeripheralEcho.h"
-#include "EncoderRequestController.h"
+#include "PeripheralForwardingController.h"
 #include "LidarController.h"
 #include "Settings.h"
 #include "Errors.h"
@@ -20,7 +20,7 @@ PeripheralEnvoy g_envoyToPeripheral(&g_peripheralComms);
 /*****************************************************
  *                    CONTROLLERS                    *
  *****************************************************/
-EncoderRequestController g_encoderRequestController(&g_envoyToPeripheral);
+PeripheralForwardingController g_peripheralForwardingController(&g_envoyToPeripheral);
 Lidar g_lidar;
 LidarController g_lidarController(&g_lidar, &g_envoyToPeripheral);
 
@@ -28,7 +28,7 @@ LidarController g_lidarController(&g_lidar, &g_envoyToPeripheral);
  *                    TASKMASTERS                    *
  *****************************************************/
 static ControllerGeneric* primaryControllers[] = {
-	&g_encoderRequestController,
+	&g_peripheralForwardingController,
 	&g_lidarController 
 };
 TASKMASTER_DECLARE(primaryTaskmaster, &g_externalComms, primaryControllers)
