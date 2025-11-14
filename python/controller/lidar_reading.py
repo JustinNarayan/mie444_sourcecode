@@ -1,6 +1,9 @@
 # lidar_reading.py
 from bisect import bisect_left
 from typing import List
+import matplotlib.pyplot as plt
+import math
+import numpy as np
 
 # --- Tunables / constants for LIDAR file ---
 MM_TO_INCH = 0.0393701     # millimeters -> inches (kept for backward compatibility if needed)
@@ -9,6 +12,7 @@ EPSILON = 1e-12                # tiny value to avoid division by zero in normali
 # Force real Lidar data to conform to simulated measurements. 0 is forward.
 LIDAR_ZERO_ANGLE_OFFSET_REAL = -48.0  # degrees
 LIDAR_ZERO_ANGLE_OFFSET_SIMULATED = 0.0  # degrees
+L = 3.73771654 # inches, 94.938 mm - DISTANCE_FROM_OBJECT_CENTER_TO_WHEEL_MIDPOINT
 class LidarPointReading:
     """
     Represents one LIDAR beam measurement.
@@ -161,3 +165,102 @@ class LidarReading:
 
     def __repr__(self):
         return f"LidarReading({len(self.points)} points: {self.points})"
+
+
+def init_lidar_plot(_lidar_fig, _lidar_ax, _lidar_scatter):
+    """Initialize or recreate the LIDAR scatter plot window. Returns updated handles."""
+    # If old fig exists but user closed the window → reset
+    if _lidar_fig is not None and not plt.fignum_exists(_lidar_fig.number):
+        _lidar_fig = None
+        _lidar_ax = None
+        _lidar_scatter = None
+
+    # Create new figure if needed
+    if _lidar_fig is None:
+        plt.ion()
+        _lidar_fig, _lidar_ax = plt.subplots()
+        _lidar_fig.canvas.manager.set_window_title("Live LIDAR (x,y) Plot")
+
+        _lidar_ax.set_title("LIDAR Scan")
+        _lidar_ax.set_xlabel("x")
+        _lidar_ax.set_ylabel("y")
+        _lidar_ax.set_aspect("equal", "box")
+        _lidar_ax.grid(True)
+
+        # initial placeholder scatter (will be replaced on update)
+        _lidar_scatter = _lidar_ax.scatter([], [])
+
+        _lidar_fig.show()
+
+    return _lidar_fig, _lidar_ax, _lidar_scatter
+
+
+def update_lidar_plot(_lidar_fig, _lidar_ax, _lidar_scatter, lidar_reading):
+    """
+    Clear the plot completely and draw:
+      - a blue dot at (0,0)
+      - a short blue line pointing straight up from (0,0)
+    Returns updated (fig, ax, scatter) handles. If the plot window was closed,
+    this will recreate it.
+    """
+    # ensure figure/axes exist (and reassign returned handles)
+    _lidar_fig, _lidar_ax, _lidar_scatter = init_lidar_plot(_lidar_fig, _lidar_ax, _lidar_scatter)
+
+    # Clear entire axes
+    _lidar_ax.cla()
+
+    # Redraw axes decorations after clearing
+    _lidar_ax.set_title("LIDAR Scan")
+    _lidar_ax.set_xlabel("x")
+    _lidar_ax.set_ylabel("y")
+    _lidar_ax.set_aspect("equal", "box")
+    _lidar_ax.grid(True)
+
+    # Convert lidar points → x,y
+    xs = []
+    ys = []
+    normalized = False
+
+    for p in lidar_reading.get_points():
+        theta_rad = math.radians(-p.angle + 90)
+        r = p.distance  # normalized 0..1
+        x = r * math.cos(theta_rad)
+        y = r * math.sin(theta_rad)
+        xs.append(x)
+        ys.append(y)
+    
+    if max(xs) < 1:
+        normalized = True
+
+    # Plot lidar points as red dots
+    if xs:
+        _lidar_ax.scatter(xs, ys, c='red', s=20, zorder=4)
+
+    # Compute auto-limits centered at 0,0
+    if xs:
+        max_x = max(abs(min(xs)), abs(max(xs)))
+        max_y = max(abs(min(ys)), abs(max(ys)))
+    else:
+        max_x = max_y = 1.0  # fall back if no data
+
+    max_range = 1.1 * max(max_x, max_y)
+
+    _lidar_ax.set_xlim(-max_range, max_range)
+    _lidar_ax.set_ylim(-max_range, max_range)
+    
+    
+    # Draw robot
+    _lidar_ax.scatter([0.0], [0.0], c='blue', s=40, zorder=3)
+    # Draw a short line facing straight up from (0,0)
+    dir_len = 0.05 * max_range  # length of the direction indicator (adjust as desired)
+    _lidar_ax.plot([0.0, 0.0], [0.0, dir_len], color='blue', linewidth=2, zorder=2)
+    if not normalized:
+        # Plot circle of radius L
+        circle = plt.Circle((0, 0), L, fill=False, edgecolor='green', linewidth=1.5, zorder=1)
+        _lidar_ax.add_patch(circle)
+
+    # Redraw and flush events
+    _lidar_fig.canvas.draw()
+    _lidar_fig.canvas.flush_events()
+
+    return _lidar_fig, _lidar_ax, _lidar_scatter
