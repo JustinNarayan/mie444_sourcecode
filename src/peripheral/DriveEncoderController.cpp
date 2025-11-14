@@ -9,10 +9,8 @@
  */
 DriveEncoderController::DriveEncoderController(DrivetrainEncoders* drivetrainEncoders) :
 	drivetrainEncoders(drivetrainEncoders),
-	hasUnaddressedRequestFromLocalization(false),
-	lastSentToLocalizationTimestampMillis(0),
-	hasUnaddressedRequestFromController(false),
-	lastSentToControllerTimestampMillis(0) {}
+	hasUnaddressedRequest(false),
+	lastSentTimestampMillis(0) {}
 
 /**
  * @brief Read input messages for DrivetrainEncoderState type
@@ -27,12 +25,12 @@ void DriveEncoderController::checkDrivetrainEncoderState(void)
 	
 	if (ret == ControllerMessageQueueOutput::DequeueSuccess)
 	{
-		// Decode which party requested message
 		DrivetrainEncoderState state = DrivetrainEncoderStateTranslation.asEnum(&message);
-		if (state == DrivetrainEncoderState::RequestFromLocalization)
-			this->hasUnaddressedRequestFromLocalization = true;
-		else if (state == DrivetrainEncoderState::RequestFromController)
-			this->hasUnaddressedRequestFromController = true;
+		if (state == DrivetrainEncoderState::Request)
+			this->hasUnaddressedRequest = true;
+
+		// Eliminate stale messages
+		this->purge(MessageType::DrivetrainEncoderState);
 	}
 }
 
@@ -41,12 +39,10 @@ void DriveEncoderController::checkDrivetrainEncoderState(void)
  * 
  * @param distances 
  */
-void DriveEncoderController::getDrivetrainEncoderDistances(DrivetrainEncoderDistances* distances, bool isForLocalization)
+void DriveEncoderController::getDrivetrainEncoderDistances(DrivetrainEncoderDistances* distances)
 {
 	long distance1, distance2, distance3;
 	this->drivetrainEncoders->getCurrentDistances(&distance1, &distance2, &distance3);
-
-	distances->isForLocalization = isForLocalization;
 	distances->encoder1Dist_in = (float32_t)distance1 * ENCODER_1_TO_IN;
 	distances->encoder2Dist_in = (float32_t)distance2 * ENCODER_2_TO_IN;
 	distances->encoder3Dist_in = (float32_t)distance3 * ENCODER_3_TO_IN;
@@ -56,10 +52,10 @@ void DriveEncoderController::getDrivetrainEncoderDistances(DrivetrainEncoderDist
  * @brief Send current drivetrain encoder distances
  * 
  */
-void DriveEncoderController::sendDrivetrainEncoderDistances(bool isForLocalization)
+void DriveEncoderController::sendDrivetrainEncoderDistances(void)
 {
 	DrivetrainEncoderDistances distances;
-	this->getDrivetrainEncoderDistances(&distances, isForLocalization);
+	this->getDrivetrainEncoderDistances(&distances);
 
 	Message message;
 	DrivetrainEncoderDistancesTranslation.asMessage(&distances, &message);
@@ -68,16 +64,8 @@ void DriveEncoderController::sendDrivetrainEncoderDistances(bool isForLocalizati
 	if (result == ControllerMessageQueueOutput::EnqueueSuccess)
 	{
 		// Indicate message was sent
-		if (isForLocalization)
-		{
-			this->hasUnaddressedRequestFromLocalization = false;
-			this->lastSentToLocalizationTimestampMillis = millis();
-		}
-		else
-		{
-			this->hasUnaddressedRequestFromController = false;
-			this->lastSentToControllerTimestampMillis = millis();
-		}
+		this->hasUnaddressedRequest = false;
+		this->lastSentTimestampMillis = millis();
 	}
 }
 
@@ -85,15 +73,8 @@ void DriveEncoderController::sendDrivetrainEncoderDistances(bool isForLocalizati
  * @brief Determine if drivetrain should send. If no reading has been sent recently, send.
  * 
  */
-bool DriveEncoderController::shouldSend(bool isForLocalization)
+bool DriveEncoderController::shouldSend(void)
 {
-	bool hasUnaddressedRequest = isForLocalization ? 
-		this->hasUnaddressedRequestFromLocalization : 
-		this->hasUnaddressedRequestFromController;
-	unsigned long lastSentTimestampMillis = isForLocalization ?
-		this->hasUnaddressedRequestFromLocalization :
-		this->hasUnaddressedRequestFromController;
-
 	return (
 		// Controller board has requested
 		hasUnaddressedRequest ||
@@ -113,14 +94,6 @@ bool DriveEncoderController::shouldSend(bool isForLocalization)
 void DriveEncoderController::process(void)
 {
 	this->checkDrivetrainEncoderState();
-
-	// Sending for localization
-	bool isForLocalization = true;
-	if (this->shouldSend(isForLocalization))
-		this->sendDrivetrainEncoderDistances(isForLocalization);
-
-	// Sending for controller
-	isForLocalization = false;
-	if (this->shouldSend(isForLocalization))
-		this->sendDrivetrainEncoderDistances(isForLocalization);
+	if (this->shouldSend())
+		this->sendDrivetrainEncoderDistances();
 }

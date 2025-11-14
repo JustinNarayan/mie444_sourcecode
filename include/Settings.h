@@ -52,11 +52,17 @@
  *                   DRIVETRAIN                      *
  *****************************************************/
 /**
+ * @brief Drivetrain dimensions
+ * 
+ */
+#define DISTANCE_CENTER_TO_WHEEL_MIDPOINT_IN (3.569)
+#define WHEEL_DIAMETER_IN (2.20472)
+#define WHEEL_CIRCUMFERENCE_IN (2 * PI * WHEEL_DIAMETER_IN)
+
+/**
  * @brief Drivetrain encoder custom parameters
  * 
  */
-#define WHEEL_DIAMETER_IN (2.20472)
-#define WHEEL_CIRCUMFERENCE_IN (2 * PI * WHEEL_DIAMETER_IN)
 #define DEFAULT_ENCODER_TICKS_PER_ROTATION (1670) // approx
 #define DEFAULT_ENCODER_GAIN_IN ((WHEEL_CIRCUMFERENCE_IN) / (DEFAULT_ENCODER_TICKS_PER_ROTATION))
 #define ENCODER_1_TUNING_GAIN ((float64_t)1.0200)

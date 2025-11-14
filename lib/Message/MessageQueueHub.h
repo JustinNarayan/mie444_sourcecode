@@ -36,12 +36,11 @@ private:
     {
         // Expand over all allowed types and check each
         MessageQueueGeneric* result = nullptr;
-        bool found = false;
         using expander = int[];
         (void)expander{0, (
 			(allowedTypes == desiredType ? (
-				result = QueueHolder<allowedTypes>::getGenericQueue(), found = true
-			) : false), 
+				result = QueueHolder<allowedTypes>::getGenericQueue()
+			) : nullptr), 
 			0)...
 		};
         return result;
