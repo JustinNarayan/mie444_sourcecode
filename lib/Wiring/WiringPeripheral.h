@@ -16,12 +16,12 @@
 #define UART_INTERNAL_TO_CONTROLLER (&Serial)
 
 /* Encoders */
-#define PIN_ENCODER_1_A 14
-#define PIN_ENCODER_1_B 15
-#define PIN_ENCODER_2_A 18
-#define PIN_ENCODER_2_B 19
-#define PIN_ENCODER_3_A 16
-#define PIN_ENCODER_3_B 17
+#define PIN_ENCODER_1_A 16
+#define PIN_ENCODER_1_B 17
+#define PIN_ENCODER_2_A 14
+#define PIN_ENCODER_2_B 15
+#define PIN_ENCODER_3_A 4
+#define PIN_ENCODER_3_B 3
 
 /* Drivetrain */
 #define PIN_MOTOR_1_IN1 6

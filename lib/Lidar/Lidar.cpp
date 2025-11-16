@@ -80,7 +80,7 @@ LidarState Lidar::requestReading(LidarReading* reading)
 
 	// Start scan
 	if (IS_FAIL(this->rpLidar.startScan(true))) return LidarState::CannotScan;
-	unsigned long scanStartTime = millis();
+	time_ms scanStartTime = millis();
 
 	// Populate reading
 	reading->numCollected = 0;
@@ -115,7 +115,7 @@ LidarState Lidar::requestReading(LidarReading* reading)
 			{
 				BITMASK_SET(reading->bitmask, pointIdx);
 				reading->point[pointIdx].angle = (lidarAngle_deg)angle;
-				reading->point[pointIdx].distance = (lidarDistance_mm)distance;
+				reading->point[pointIdx].distance = (lidarDistance_in)(MM_TO_INCH(distance));
 				reading->numCollected++;
 			}
 		}

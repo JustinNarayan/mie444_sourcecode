@@ -1,8 +1,8 @@
 #pragma once
 #include "Types.h"
 
-#define SPEED_MIN 0
-#define SPEED_MAX 255
+#define MOTOR_SPEED_MIN 0
+#define MOTOR_SPEED_MAX 255
 
 /**
  * Motor Controller driver using L298N
@@ -13,7 +13,7 @@ private:
 	uint8_t _enablePin;
 	uint8_t _in1Pin;
 	uint8_t _in2Pin;
-	uint8_t _speed;
+	motorSpeedRaw _speed;
 
 public:
 	/**
@@ -35,11 +35,11 @@ public:
 	/**
 	 * @brief Set motor speed via PWM enable pin
 	 * 
-	 * @param speed From 0 to 255
+	 * @param speed Must be constrained form 0 to 255
 	 */
-	void setSpeed(uint8_t speed)
+	void setSpeed(motorSpeedRaw rawSpeed)
 	{
-		_speed = constrain(speed, SPEED_MIN, SPEED_MAX);
+		_speed = (motorSpeedApplied)constrain(rawSpeed, MOTOR_SPEED_MIN, MOTOR_SPEED_MAX);
 		analogWrite(_enablePin, _speed);
 	}
 	
@@ -48,7 +48,7 @@ public:
 	 * 
 	 * @param isForward If forward in arbitrary convention
 	 */
-	void setDirection(bool isForward)
+	void setDirection(motorDirection isForward)
 	{
 		if (isForward)
 		{

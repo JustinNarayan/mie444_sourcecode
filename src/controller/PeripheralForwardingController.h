@@ -37,7 +37,7 @@ private:
 	 * 
 	 */
 	DrivetrainManualCommand drivetrainManualCommand;
-	unsigned long drivetrainManualCommandLastReceivedTimestampMillis;
+	time_ms drivetrainManualCommandLastReceivedTime;
 
 	/**
 	 * @brief Encoder utilities

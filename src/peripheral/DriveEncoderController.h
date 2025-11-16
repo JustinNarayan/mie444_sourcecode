@@ -32,14 +32,8 @@ private:
 	 * Whether a request was received and not yet addressed
 	 */
 	bool hasUnaddressedRequest;;
-	unsigned long lastSentTimestampMillis;
+	time_ms lastSentTime;
 
-	/**
-	 * @brief Low-level utilities
-	 * 
-	 */
-	void getDrivetrainEncoderDistances(DrivetrainEncoderDistances* distances);
-	
 	/**
 	 * @brief Communication utilities
 	 */
@@ -53,5 +47,6 @@ private:
 	bool shouldSend(void);
 public:
 	DriveEncoderController(DrivetrainEncoders* drivetrainEncoders);
+	void getDrivetrainEncoderDistances(DrivetrainEncoderDistances* distances);
 	void process(void);
 };

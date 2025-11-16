@@ -28,8 +28,7 @@ enum class DrivetrainManualResponse
 {
 	Invalid,
 	NoReceived,
-	AcknowledgeValidCommand,
-	AcknowledgeInvalidCommand,
+	Acknowledge,
 	NotifyHalting,
 	
 	Count
@@ -57,9 +56,9 @@ enum class DrivetrainEncoderState
  */
 struct DrivetrainEncoderDistances
 {
-	float32_t encoder1Dist_in;
-	float32_t encoder2Dist_in;
-	float32_t encoder3Dist_in;
+	encoderDistance_in encoder1Dist;
+	encoderDistance_in encoder2Dist;
+	encoderDistance_in encoder3Dist;
 };
 
 /**
@@ -72,6 +71,21 @@ struct DrivetrainDisplacements
 	float32_t dY; // 90 deg CCW
 	float32_t dTheta; // CCW
 };
+
+/**
+ * Structure for motor commands on all three wheels to drivetrain
+ */
+struct DrivetrainMotorCommand
+
+{
+	motorDirection direction1;
+	motorSpeedRaw speed1;
+	motorDirection direction2;
+	motorSpeedRaw speed2;
+	motorDirection direction3;
+	motorSpeedRaw speed3;
+};
+
 
 /**
  * Compute drivetrain displacements from encoder information
@@ -101,12 +115,25 @@ struct DrivetrainDisplacements
  *        | 1/(3L)      1/(3L)      1/(3L)  |   | Ainv13   Ainv23   Ainv33 |
  *          ---------------------------------     --------------------------
  */
+static const float32_t A[9] = {
+	( 0.000000), ( 1.000000), ( 3.569000),
+	(-0.866025), ( 0.500000), ( 3.569000),
+	( 0.866025), ( 0.500000), ( 3.569000),
+};
+
 static const float32_t Ainv[9] = {
   	( 0.000000), (-0.666666), ( 0.093396),
 	(-0.577350), ( 0.333333), ( 0.093396),
 	( 0.577350), ( 0.333333), ( 0.093396)
 };
 
+/**
+ * @brief Inverse kinematics. Get drivetrain displacement from encoder readings.
+ * 
+ * @param displacements Updated after call
+ * @param encodersBefore 
+ * @param encodersAfter 
+ */
 static inline void displacementsFromEncoderReadings(
 	DrivetrainDisplacements *displacements,
 	DrivetrainEncoderDistances *encodersBefore,
@@ -117,9 +144,9 @@ static inline void displacementsFromEncoderReadings(
 		return;
 	
 	// Compute encoder displacements
-	float32_t d1 = encodersAfter->encoder1Dist_in - encodersBefore->encoder1Dist_in;
-	float32_t d2 = encodersAfter->encoder2Dist_in - encodersBefore->encoder2Dist_in;
-	float32_t d3 = encodersAfter->encoder3Dist_in - encodersBefore->encoder3Dist_in;
+	const encoderDistance_in d1 = encodersAfter->encoder1Dist - encodersBefore->encoder1Dist;
+	const encoderDistance_in d2 = encodersAfter->encoder2Dist - encodersBefore->encoder2Dist;
+	const encoderDistance_in d3 = encodersAfter->encoder3Dist - encodersBefore->encoder3Dist;
 
 	// Compute displacements
 	displacements->dX = 	(Ainv[0] * d1) + (Ainv[1] * d2) + (Ainv[2] * d3);

@@ -10,7 +10,7 @@
 DriveEncoderController::DriveEncoderController(DrivetrainEncoders* drivetrainEncoders) :
 	drivetrainEncoders(drivetrainEncoders),
 	hasUnaddressedRequest(false),
-	lastSentTimestampMillis(0) {}
+	lastSentTime(0) {}
 
 /**
  * @brief Read input messages for DrivetrainEncoderState type
@@ -43,9 +43,9 @@ void DriveEncoderController::getDrivetrainEncoderDistances(DrivetrainEncoderDist
 {
 	long distance1, distance2, distance3;
 	this->drivetrainEncoders->getCurrentDistances(&distance1, &distance2, &distance3);
-	distances->encoder1Dist_in = (float32_t)distance1 * ENCODER_1_TO_IN;
-	distances->encoder2Dist_in = (float32_t)distance2 * ENCODER_2_TO_IN;
-	distances->encoder3Dist_in = (float32_t)distance3 * ENCODER_3_TO_IN;
+	distances->encoder1Dist = (encoderDistance_in)distance1 * ENCODER_1_TO_IN;
+	distances->encoder2Dist = (encoderDistance_in)distance2 * ENCODER_2_TO_IN;
+	distances->encoder3Dist = (encoderDistance_in)distance3 * ENCODER_3_TO_IN;
 }
 
 /**
@@ -65,7 +65,7 @@ void DriveEncoderController::sendDrivetrainEncoderDistances(void)
 	{
 		// Indicate message was sent
 		this->hasUnaddressedRequest = false;
-		this->lastSentTimestampMillis = millis();
+		this->lastSentTime = millis();
 	}
 }
 
@@ -82,7 +82,7 @@ bool DriveEncoderController::shouldSend(void)
 		// No reading has been recently sent and encoder volunteers readings
 		(
 			ENCODER_WILL_VOLUNTEER_READINGS &&
-			((millis() - lastSentTimestampMillis) > ENCODER_TIME_TO_SEND_AFTER_LAST_SENT_DISTANCES)
+			((millis() - lastSentTime) > ENCODER_TIME_TO_SEND_AFTER_LAST_SENT_DISTANCES)
 		)
 	);
 }

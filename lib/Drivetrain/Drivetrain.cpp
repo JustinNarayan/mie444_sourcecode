@@ -23,15 +23,15 @@ void Drivetrain::init(
  * @return RET_SET_COMMAND_SUCCESS if successful
  * 			RET_SET_COMMAND_FAILURE otherwise
  */
-int Drivetrain::setTranslate(uint8_t speed, bool isForward)
+int Drivetrain::setTranslate(float32_t rawSpeed, bool isForward)
 {
 	this->motor1->stop();
 
-	this->motor2->setDirection(!isForward);
-	this->motor2->setSpeed(MOTOR_2_SPEED(speed));
+	this->motor2->setDirection((motorDirection)!isForward);
+	this->motor2->setSpeed(MOTOR_2_EMPIRICAL_GAIN(rawSpeed));
 
-	this->motor3->setDirection(isForward);
-	this->motor3->setSpeed(MOTOR_3_SPEED(speed));
+	this->motor3->setDirection((motorDirection)isForward);
+	this->motor3->setSpeed(MOTOR_3_EMPIRICAL_GAIN(rawSpeed));
 
 	// Failure states not yet implemented
 	return RET_SET_COMMAND_SUCCESS;
@@ -45,19 +45,42 @@ int Drivetrain::setTranslate(uint8_t speed, bool isForward)
  * @return RET_SET_COMMAND_SUCCESS if successful
  * 			RET_SET_COMMAND_FAILURE otherwise
  */
-int Drivetrain::setRotate(uint8_t speed, bool isLeft)
+int Drivetrain::setRotate(float32_t rawSpeed, bool isLeft)
 {
-	this->motor1->setDirection(false == isLeft);
-	this->motor1->setSpeed(MOTOR_1_SPEED(speed));
+	this->motor1->setDirection((motorDirection)(false == isLeft));
+	this->motor1->setSpeed(MOTOR_1_EMPIRICAL_GAIN(rawSpeed));
 
-	this->motor2->setDirection(false == isLeft);
-	this->motor2->setSpeed(MOTOR_2_SPEED(speed));
+	this->motor2->setDirection((motorDirection)(false == isLeft));
+	this->motor2->setSpeed(MOTOR_2_EMPIRICAL_GAIN(rawSpeed));
 
-	this->motor3->setDirection(false == isLeft);
-	this->motor3->setSpeed(MOTOR_3_SPEED(speed));
+	this->motor3->setDirection((motorDirection)(false == isLeft));
+	this->motor3->setSpeed(MOTOR_3_EMPIRICAL_GAIN(rawSpeed));
 
 	// Failure states not yet implemented
 	return RET_SET_COMMAND_SUCCESS;
+}
+
+/**
+ * @brief Set motors to move at a requested speed and direction
+ * 
+ * @param command // Apply raw values
+ * @return RET_SET_COMMAND_SUCCESS if successful
+ * 			RET_SET_COMMAND_FAILURE otherwise
+ */
+int Drivetrain::setMotors(DrivetrainMotorCommand *command)
+{
+	this->motor1->setDirection(command->direction1);
+	this->motor1->setSpeed(command->speed1);
+
+	this->motor2->setDirection(command->direction2);
+	this->motor2->setSpeed(command->speed2);
+
+	this->motor3->setDirection(command->direction3);
+	this->motor3->setSpeed(command->speed3);
+
+	// Failure states not yet implemented
+	return RET_SET_COMMAND_SUCCESS;
+	
 }
 
 /**

@@ -19,11 +19,10 @@ static constexpr EnumStringMap DrivetrainManualCommandMap[] = {
 COMPILE_TIME_ENFORCE_ENUM_MAP_COUNT(DrivetrainManualCommandMap, DrivetrainManualCommand);
 
 static constexpr EnumStringMap DrivetrainManualResponseMap[] = {
-    ENUM_MAP_ENTRY(DrivetrainManualResponse::Invalid,                   "invalid"), // placeholder
-    ENUM_MAP_ENTRY(DrivetrainManualResponse::NoReceived,                ""),
-    ENUM_MAP_ENTRY(DrivetrainManualResponse::AcknowledgeValidCommand,   "ackval"),
-    ENUM_MAP_ENTRY(DrivetrainManualResponse::AcknowledgeInvalidCommand, "ackinv"),
-    ENUM_MAP_ENTRY(DrivetrainManualResponse::NotifyHalting,             "notifhalt"),
+    ENUM_MAP_ENTRY(DrivetrainManualResponse::Invalid,       "invalid"), // placeholder
+    ENUM_MAP_ENTRY(DrivetrainManualResponse::NoReceived,    ""),
+    ENUM_MAP_ENTRY(DrivetrainManualResponse::Acknowledge,   "ackval"),
+    ENUM_MAP_ENTRY(DrivetrainManualResponse::NotifyHalting, "notifhalt"),
 };
 COMPILE_TIME_ENFORCE_ENUM_MAP_COUNT(DrivetrainManualResponseMap, DrivetrainManualResponse);
 

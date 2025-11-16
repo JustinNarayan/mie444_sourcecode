@@ -73,7 +73,7 @@ void PeripheralForwardingController::checkDrivetrainManualCommand(void)
 	if (ret == ControllerMessageQueueOutput::DequeueSuccess)
 	{
 		this->drivetrainManualCommand = DrivetrainManualCommandTranslation.asEnum(&message);
-		this->drivetrainManualCommandLastReceivedTimestampMillis = millis();
+		this->drivetrainManualCommandLastReceivedTime = millis();
 	}
 }
 
@@ -109,7 +109,7 @@ bool PeripheralForwardingController::shouldEnvoyDrivetrainManualCommand(void)
 bool PeripheralForwardingController::validateDrivetrainManualCommandFresh(void)
 {
 	if (
-		(millis() - this->drivetrainManualCommandLastReceivedTimestampMillis) >
+		(millis() - this->drivetrainManualCommandLastReceivedTime) >
 		DRIVETRAIN_MANUAL_COMMAND_FORWARDING_TIME_TO_DISCARD
 	)
 	{

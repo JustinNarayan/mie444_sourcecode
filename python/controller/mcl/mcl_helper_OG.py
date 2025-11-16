@@ -299,7 +299,7 @@ class Particle:
             simulated_reading = (
                 loaded_sensor_readings[int(self.x)][int(self.y)][scan_angle] * M_TO_INCH
             )
-            current_point = LidarPointReading(int(angle), int(simulated_reading), needs_mm_to_inch_conversion=False)
+            current_point = LidarPointReading(int(angle), int(simulated_reading))
             lidar_reading.add_point(current_point)
 
         return lidar_reading

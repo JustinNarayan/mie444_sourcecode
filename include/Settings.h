@@ -63,11 +63,11 @@
  * @brief Drivetrain encoder custom parameters
  * 
  */
-#define DEFAULT_ENCODER_TICKS_PER_ROTATION (1670) // approx
+#define DEFAULT_ENCODER_TICKS_PER_ROTATION (1000) // approx
 #define DEFAULT_ENCODER_GAIN_IN ((WHEEL_CIRCUMFERENCE_IN) / (DEFAULT_ENCODER_TICKS_PER_ROTATION))
-#define ENCODER_1_TUNING_GAIN ((float64_t)1.0200)
-#define ENCODER_2_TUNING_GAIN ((float64_t)0.9975)
-#define ENCODER_3_TUNING_GAIN ((float64_t)1.0735)
+#define ENCODER_1_TUNING_GAIN ((float64_t)0.517)
+#define ENCODER_2_TUNING_GAIN ((float64_t)0.519)
+#define ENCODER_3_TUNING_GAIN ((float64_t)1.107)
 
 #define ENCODER_1_TO_IN (DEFAULT_ENCODER_GAIN_IN * ENCODER_1_TUNING_GAIN)
 #define ENCODER_2_TO_IN (DEFAULT_ENCODER_GAIN_IN * ENCODER_2_TUNING_GAIN)
@@ -83,12 +83,12 @@
 #define DRIVETRAIN_MANUAL_COMMAND_FORWARDING_TIME_TO_DISCARD (100UL) // millis
 
 #define DRIVETRAIN_TIME_TO_HALT_AFTER_LAST_RECEIVED_COMMAND (100UL) // millis
-#define DRIVETRAIN_TRANSLATE_SPEED (110) // 0 to 255
-#define DRIVETRAIN_ROTATE_SPEED (70) // 0 to 255
+#define DRIVETRAIN_TRANSLATE_SPEED (100) // 0 to 255
+#define DRIVETRAIN_ROTATE_SPEED (80) // 0 to 255
 
-#define MOTOR_1_SPEED(s) ((uint8_t)(1.6f * s))
-#define MOTOR_2_SPEED(s) ((uint8_t)(1.1f * s))
-#define MOTOR_3_SPEED(s) ((uint8_t)(1.0f * s))
+#define MOTOR_1_EMPIRICAL_GAIN(s) ((1.32f * s))
+#define MOTOR_2_EMPIRICAL_GAIN(s) ((1.0f * s))
+#define MOTOR_3_EMPIRICAL_GAIN(s) ((1.77f * s))
 
 /*****************************************************
  *                       LIDAR                       *

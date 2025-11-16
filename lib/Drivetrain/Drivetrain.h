@@ -1,6 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "Settings.h"
+#include "DrivetrainDefs.h"
 #include <MotorController.h>
 
 #define RET_SET_COMMAND_SUCCESS (0)
@@ -30,7 +31,8 @@ public:
 		uint8_t motor2_enable, uint8_t motor2_in1, uint8_t motor2_in2,
 		uint8_t motor3_enable, uint8_t motor3_in1, uint8_t motor3_in2
 	);
-	int setTranslate(uint8_t speed, bool isForward);
-	int setRotate(uint8_t speed, bool isLeft);
+	int setTranslate(float32_t rawSpeed, bool isForward);
+	int setRotate(float32_t rawSpeed, bool isLeft);
+	int setMotors(DrivetrainMotorCommand *motorCommand);
 	int halt(void);
 };
