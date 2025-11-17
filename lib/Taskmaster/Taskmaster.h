@@ -36,6 +36,13 @@ private:
 	 */
 	ControllerGeneric* prioritizedSender;
 
+	/**
+	 * @brief An external module can pass in a message to be dispatched, such as from the echo
+	 * 
+	 */
+	bool hasExternalMessage;
+	Message externalMessage;
+
 	void receive(void);
 	bool poll(Message* message);
 	void dispatch(Message* message);
@@ -43,10 +50,8 @@ private:
 	void monitorPrioritzedSenderRequests(void);
 	void collect(void);
 public:
-	Taskmaster(
-		CommsInterface* comms, ControllerGeneric* controllers[], size_t numControllers
-	) : comms(comms), controllers(controllers), numControllers(numControllers) {};
-
+	Taskmaster(CommsInterface* comms, ControllerGeneric* controllers[], size_t numControllers);
 	bool hasPrioritizedSender(void);
+	void provideExternalMessage(Message* message);
 	void execute(void);
 };

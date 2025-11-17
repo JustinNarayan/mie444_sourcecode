@@ -1,4 +1,20 @@
+#include "MemoryUtilities.h"
 #include "Taskmaster.h"
+
+/**
+ * @brief Construct a Taskmaster
+ *
+ * @param comms
+ * @param controllers
+ * @param numControllers
+ */
+Taskmaster::Taskmaster(
+    CommsInterface *comms,
+    ControllerGeneric *controllers[],
+    size_t numControllers) : comms(comms),
+                             controllers(controllers),
+                             numControllers(numControllers),
+                             hasExternalMessage(false) {}; // externalMessage is uninitialized
 
 /**
  * @brief Read CommsInterface for all bytes
@@ -118,12 +134,29 @@ bool Taskmaster::hasPrioritizedSender(void)
 }
 
 /**
+ * @brief Allow another party to provide a message to be dispatched by Taskmaster
+ *
+ * @param message
+ */
+void Taskmaster::provideExternalMessage(Message *message)
+{
+    memoryCopy(&this->externalMessage, message, sizeof(Message));
+    this->hasExternalMessage = true;
+}
+
+/**
  * @brief Execute a full loop of the Taskmaster.
  * 
  */
 void Taskmaster::execute(void)
 {
 	receive();
+
+    if (this->hasExternalMessage)
+    {
+        dispatch(&this->externalMessage);
+        this->hasExternalMessage = false;
+    }
 
 	Message message;
 	while(poll(&message))
