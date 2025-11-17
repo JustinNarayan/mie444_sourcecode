@@ -25,6 +25,8 @@ enum class MessageType {
 	/* Sensor Readings*/
 	LidarState,
 	LidarPointReading,
+    UltrasonicState,
+    UltrasonicPointReading,
 
 	Count
 };

@@ -27,3 +27,6 @@ typedef float32_t encoderDistance_in;
 typedef float32_t motorSpeedRaw;
 typedef uint8_t motorSpeedApplied;
 typedef bool motorDirection; // true is forward
+
+typedef int16_t ultrasonicAngle_deg;
+typedef float32_t ultrasonicDistance_in;

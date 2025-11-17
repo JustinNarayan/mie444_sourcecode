@@ -128,3 +128,12 @@
 #define LIDAR_SWEEP_STARTUP_MS (500UL) // millis
 #define LIDAR_SWEEP_TIMEOUT_MS (1000UL) // millis
 #define LIDAR_RESET_TIME_MS (2000UL) // millis
+
+/*****************************************************
+ *                     ULTRASONIC                    *
+ *****************************************************/
+
+#define ULTRASONIC_TIME_TRIGGER_RESET_MS (2) // millis
+#define ULTRASONIC_TIME_TRIGGER_HIGH_US (10) // micros
+#define SPEED_OF_SOUND_DIV2_MPS (170) // meters/second
+#define ULTRASONIC_SWEEP_INCREMENTS_DEG (15) // degrres
