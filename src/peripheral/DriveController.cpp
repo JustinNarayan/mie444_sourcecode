@@ -7,10 +7,18 @@
  * 
  * @param drivetrain
  */
-DriveController::DriveController(Drivetrain* drivetrain) : 
+DriveController::DriveController(Drivetrain* drivetrain, DriveEncoderController* encoders) : 
 	drivetrain(drivetrain), 
-	lastReceivedValidCommand(DrivetrainManualCommand::NoReceived),
-	lastIssuedCommand(DrivetrainManualCommand::Halt) {}
+	encoders(encoders),
+	lastReceivedValidManualCommandTime(0),
+	lastIssuedCommand(DrivetrainManualCommand::Halt),
+	automatedCommandState(DrivetrainAutomatedResponse::NoReceived),
+	currentAutomatedCommand({0}),
+	hasUnaddressedAutomatedCommand(false),
+	lastIssuedAutomatedCommandTime(0),
+	encodersStart({0}),
+	encodersTarget({0}),
+	automatedCommandDirection({0}) {}
 
 /**
  * @brief Read input messages for DrivetrainManualCommand type
@@ -25,11 +33,46 @@ DrivetrainManualCommand DriveController::getDrivetrainManualCommand(void)
 		this->read(MessageType::DrivetrainManualCommand, &message);
 
 	// Translate DrivetrainManualCommand
-	if (ret == ControllerMessageQueueOutput::DequeueQueueEmpty)
-		return DrivetrainManualCommand::NoReceived;
+	DrivetrainManualCommand received = DrivetrainManualCommand::NoReceived;
 	if (ret == ControllerMessageQueueOutput::DequeueSuccess)
-		return DrivetrainManualCommandTranslation.asEnum(&message);
-	return DrivetrainManualCommand::Invalid;
+	{
+		received = DrivetrainManualCommandTranslation.asEnum(&message);
+
+		// Purge stale messages
+		this->purge(MessageType::DrivetrainManualCommand);
+	}
+	return received;
+}
+
+/**
+ * @brief Read input messages for DrivetrainAutomatedCommand type.
+ *  If no automated command is in progress, store the new command and flag it as
+ *  unaddressed. On any received command, purge the queue to eliminate stale messages.
+ * 
+ * @return DrivetrainAutomatedCommands received command
+ */
+void DriveController::checkDrivetrainAutomatedCommand(void)
+{
+	// Dequeue DrivetrainManualCommand
+	Message message;
+	ControllerMessageQueueOutput ret = \
+		this->read(MessageType::DrivetrainAutomatedCommand, &message);
+
+	// Discard new automated commands if current command is in progress
+	if (ret == ControllerMessageQueueOutput::DequeueSuccess)
+	{
+		if (this->automatedCommandState != DrivetrainAutomatedResponse::InProgress)
+		{
+			DrivetrainAutomatedCommandTranslation.asStruct(
+				&message, 
+				&this->currentAutomatedCommand
+			);
+			this->hasUnaddressedAutomatedCommand = true;
+		}
+
+		// Purge stale commands
+		this->purge(MessageType::DrivetrainAutomatedCommand);
+	}
 }
 
 /**
@@ -44,23 +87,33 @@ void DriveController::sendDrivetrainManualResponse(DrivetrainManualResponse resp
 	this->post(&message);
 }
 
+/**
+ * @brief Write DrivetrainAutomatedResponse
+ * 
+ * @param response To write
+ */
+void DriveController::sendDrivetrainAutomatedResponse(DrivetrainAutomatedResponse response)
+{
+	Message message;
+	DrivetrainAutomatedResponseTranslation.asMessage(response, &message);
+	this->post(&message);
+}
 
 /**
- * @brief Arbitrate command to drivetrain and record it.
+ * @brief Process manual command to drivetrain and record it.
  * 
  * @param command 
  * @param drivetrain
  */
-void DriveController::arbitrateCommand(DrivetrainManualCommand command)
+void DriveController::processManualCommand(DrivetrainManualCommand command)
 {
-	// Record command as received
-	this->lastReceivedValidCommand = command;
-	this->lastReceivedValidCommandTimestampMillis = millis();
+	// Record command as valid received
+	this->lastReceivedValidManualCommandTime = millis();
 
 	// Apply command if not a continued command and record command as issued
 	if (command != this->lastIssuedCommand)
 	{
-		this->applyCommand(command);
+		this->applyManualCommand(command);
 		this->lastIssuedCommand = command;
 	}
 }
@@ -71,7 +124,7 @@ void DriveController::arbitrateCommand(DrivetrainManualCommand command)
  * @param command 
  * @param drivetrain
  */
-void DriveController::applyCommand(DrivetrainManualCommand command)
+void DriveController::applyManualCommand(DrivetrainManualCommand command)
 {
 	switch (command)
 	{
@@ -95,6 +148,145 @@ void DriveController::applyCommand(DrivetrainManualCommand command)
 }
 
 /**
+ * @brief Initialize a drivetrain automated command.
+ * 
+ */
+void DriveController::initializeAutomatedCommand(void)
+{
+	// Process automated command state
+	this->encoders->getDrivetrainEncoderDistances(&this->encodersStart);
+	encoderReadingsFromDisplacement(
+		&(this->currentAutomatedCommand.desiredDelta),
+		&(this->encodersStart),
+		&(this->encodersTarget) // Now holds target values
+	);
+	commandDirectionFromEncoderReadings(
+		&(this->encodersStart),
+		&(this->encodersTarget),
+		&(this->automatedCommandDirection) // Now holds direction
+	);
+
+	// Issue command to drivetrain
+	this->applyAutomatedCommand();
+
+	// Mark request as addressed
+	this->automatedCommandState = DrivetrainAutomatedResponse::InProgress;
+	this->hasUnaddressedAutomatedCommand = false;
+	this->lastIssuedAutomatedCommandTime = millis();
+
+	// Notify command is acknowledged
+	this->sendDrivetrainAutomatedResponse(DrivetrainAutomatedResponse::Acknowledge);
+}
+
+/**
+ * @brief Issue a drivetrain automated command.
+ * 
+ */
+void DriveController::applyAutomatedCommand(void)
+{	
+	// Construct drivetrain command
+	DrivetrainMotorCommand command;
+	getDrivetrainMotorCommand(
+		&this->encodersStart,
+		&this->encodersTarget,
+		&command
+	);
+	
+	// Send command to drivetrain
+	drivetrain->setMotors(&command);
+
+	// Record the command as issued
+	this->lastIssuedCommand = DrivetrainManualCommand::Automated;
+}
+
+/**
+ * @brief Monitor a drivetrain automated command to determine when it's complete.
+ * 
+ */
+void DriveController::monitorAutomatedCommand(void)
+{
+	// Check if command has timed out
+	if (
+		(millis() - this->lastIssuedAutomatedCommandTime) > DRIVETRAIN_AUTOMATED_COMMAND_MAX_TIME
+	)
+	{
+		this->clearAutomatedCommand();
+		return;
+	}
+
+	// Update encoder readings
+	DrivetrainEncoderDistances encodersNow;
+	this->encoders->getDrivetrainEncoderDistances(&encodersNow);
+
+	// Check if at target
+	this->automatedCommandState = areEncodersAtTarget(
+		&(this->automatedCommandDirection),
+		&encodersNow,
+		&(this->encodersTarget)
+	);
+	
+	// Exit command if successful or failure
+	if (this->automatedCommandState != DrivetrainAutomatedResponse::InProgress)
+	{
+		this->voluntaryHalt();
+		this->sendDrivetrainAutomatedResponse(this->automatedCommandState);
+	}
+}
+
+
+/**
+ * @brief Abort the current automated command, but do not issue a drivetrain halt command.
+ * 
+ */
+void DriveController::clearAutomatedCommand(void)
+{
+	if (this->automatedCommandState == DrivetrainAutomatedResponse::InProgress)
+	{
+		this->automatedCommandState = DrivetrainAutomatedResponse::Aborted;
+		this->currentAutomatedCommand = {0};
+		this->hasUnaddressedAutomatedCommand = false;
+		this->encodersStart = {0};
+		this->encodersTarget = {0};
+		this->automatedCommandDirection = {0};
+
+		this->sendDrivetrainAutomatedResponse(this->automatedCommandState); // Aborted
+	}
+}
+
+/**
+ * @brief Receive commands and issue to Drivetrain. Send back an appropriate acknowledge.
+ * 
+ */
+void DriveController::arbitrateCommands(DrivetrainManualCommand currentManualCommand)
+{
+	// Process a manual command if received
+	if (
+		(currentManualCommand != DrivetrainManualCommand::NoReceived) &&
+		(currentManualCommand != DrivetrainManualCommand::Invalid)
+	)
+	{
+		// this->clearAutomatedCommand();
+		this->processManualCommand(currentManualCommand);
+		this->sendDrivetrainManualResponse(DrivetrainManualResponse::Acknowledge);
+		return;
+	}
+
+	// Initialize automated command if received
+	if (this->hasUnaddressedAutomatedCommand)
+	{
+		this->initializeAutomatedCommand();
+		return;
+	}
+
+	// Monitor progress of automated command
+	if (this->automatedCommandState == DrivetrainAutomatedResponse::InProgress)
+	{
+		this->monitorAutomatedCommand();
+		return;
+	}
+}
+
+/**
  * @brief Determine if drivetrain should halt. If no command has been recently received and 
  * drivetrain is not currently halted, halt.
  * 
@@ -105,41 +297,12 @@ bool DriveController::shouldHalt(void)
 		// Do not halt repeatedly
 		(this->lastIssuedCommand != DrivetrainManualCommand::Halt) &&
 
+		// Do not halt if executing an automated command
+		(this->automatedCommandState != DrivetrainAutomatedResponse::InProgress) &&
+
 		// Halt if too much time elapsed since received command
-		((millis() - this->lastReceivedValidCommandTimestampMillis) > DRIVETRAIN_TIME_TO_HALT_AFTER_LAST_RECEIVED_COMMAND)
+		((millis() - this->lastReceivedValidManualCommandTime) > DRIVETRAIN_TIME_TO_HALT_AFTER_LAST_RECEIVED_COMMAND)
 	);
-}
-
-
-/**
- * @brief Receive commands and issue to Drivetrain. Send back an appropriate acknowledge.
- * 
- */
-void DriveController::process(void)
-{
-	DrivetrainManualCommand currentCommand = this->getDrivetrainManualCommand();
-
-	// Send acknowledgement if invalid command
-	if (currentCommand == DrivetrainManualCommand::Invalid)
-	{
-		this->sendDrivetrainManualResponse(DrivetrainManualResponse::AcknowledgeInvalidCommand);
-		return;
-	}
-	
-	// Send echo and acknowledgement if valid command
-	if (currentCommand != DrivetrainManualCommand::NoReceived)
-	{
-		this->arbitrateCommand(currentCommand);
-		this->sendDrivetrainManualResponse(DrivetrainManualResponse::AcknowledgeValidCommand);
-		return;
-	}
-
-	// Check if should halt based on no recent commands
-	if (this->shouldHalt())
-	{
-		this->voluntaryHalt();
-		return;
-	}
 }
 
 /**
@@ -149,9 +312,34 @@ void DriveController::process(void)
 void DriveController::voluntaryHalt(void)
 {
 	// Come to a stop and notify
-	this->arbitrateCommand(DrivetrainManualCommand::Halt);
+	this->processManualCommand(DrivetrainManualCommand::Halt);
 	this->sendDrivetrainManualResponse(DrivetrainManualResponse::NotifyHalting);
 
 	// Prevent other stale from coming in immediately after
 	this->purge(MessageType::DrivetrainManualCommand);
+}
+
+/**
+ * @brief Receive manual and automated commands and issue to Drivetrain.
+ *  New automated commands will be discard forever while an automated command is in progress.
+ *  Manual commands will overwrite and clear automated commands. Drivetrain will voluntarily halt
+ *  when an automated command is completed or if no received manual command has been recently
+ *  received and drivetrain is in motion.
+ * 
+ */
+void DriveController::process(void)
+{
+	// Get commands
+	DrivetrainManualCommand currentManualCommand = this->getDrivetrainManualCommand();
+	this->checkDrivetrainAutomatedCommand();
+
+	// Arbitrate commands
+	this->arbitrateCommands(currentManualCommand);
+
+	// Check if should halt based on no recent commands
+	if (this->shouldHalt())
+	{
+		this->voluntaryHalt();
+		return;
+	}
 }

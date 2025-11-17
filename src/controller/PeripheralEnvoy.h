@@ -52,4 +52,18 @@ public:
 		);
 		this->envoy(&message);
 	}
+
+    /**
+	 * @brief Envoy drivetrain automated command on comms interface
+	 *
+	 */
+	void envoyDrivetrainAutomatedCommand(DrivetrainAutomatedCommand *command)
+	{
+		Message message;
+		DrivetrainAutomatedCommandTranslation.asMessage(
+			command, 
+			&message
+		);
+		this->envoy(&message);
+	}
 };

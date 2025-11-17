@@ -90,6 +90,24 @@
 #define MOTOR_2_EMPIRICAL_GAIN(s) ((1.0f * s))
 #define MOTOR_3_EMPIRICAL_GAIN(s) ((1.77f * s))
 
+#define DRIVETRAIN_ENCODERS_EQUAL_TOLERANCE_THRESHOLD (0.25) // inches
+
+/**
+ * @brief Drivetrain automation custom parameters
+ * 
+ */
+#define DRIVETRAIN_AUTOMATED_COMMAND_FORWARDING_TIME_TO_DISCARD (500UL) // millis
+
+#define DRIVETRAIN_AUTOMATED_MAX_DELTA_X (12) // inches
+#define DRIVETRAIN_AUTOMATED_MAX_DELTA_Y (12) // inches
+#define DRIVETRAIN_AUTOMATED_MAX_DELTA_THETA (2 * PI) // radians
+#define DRIVETRAIN_AUTOMATED_COMMAND_MAX_TIME (3000UL) // millis
+
+#define DRIVETRAIN_AUTOMATED_MAX_SPEED (150) // 0 to 255
+#define DRIVETRAIN_AUTOMATED_MAX_SLEW (20) // delta speed to motor
+#define DRIVETRAIN_AUTOMATED_DEADBAND (5)
+#define DRIVETRAIN_AUTOMATED_GAIN_KP (0.5)
+
 /*****************************************************
  *                       LIDAR                       *
  *****************************************************/

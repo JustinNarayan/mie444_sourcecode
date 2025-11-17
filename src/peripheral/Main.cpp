@@ -17,10 +17,10 @@ static CommsInterface g_controllerComms;
 /*****************************************************
  *                    CONTROLLERS                    *
  *****************************************************/
-Drivetrain g_drivetrain;
-DriveController g_driveController(&g_drivetrain);
 static DrivetrainEncoders g_drivetrainEncoders;
 static DriveEncoderController g_driveEncoderController(&g_drivetrainEncoders);
+Drivetrain g_drivetrain;
+DriveController g_driveController(&g_drivetrain, &g_driveEncoderController);
 
 /*****************************************************
  *                    TASKMASTERS                    *
