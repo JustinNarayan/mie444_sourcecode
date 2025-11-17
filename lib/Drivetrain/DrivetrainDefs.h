@@ -97,7 +97,9 @@ struct DrivetrainDisplacements
  */
 struct DrivetrainAutomatedCommand
 {
-	DrivetrainDisplacements desiredDelta;
+	int16_t dX;
+    int16_t dY;
+    int16_t dTheta;
 };
 
 /**
@@ -165,6 +167,22 @@ static const float32_t Ainv[9] = {
 	(-0.577350), ( 0.333333), ( 0.093396),
 	( 0.577350), ( 0.333333), ( 0.093396)
 };
+
+/**
+ * @brief Convert a drivetrain command into a set of displacements as floats
+ * 
+ * @param displacements Updated after call
+ * @param command 
+ */
+static inline void displacementsFromDrivetrainCommand(
+	DrivetrainDisplacements *displacements,
+    DrivetrainAutomatedCommand* command
+)
+{
+    displacements->dX = (float32_t)command->dX;
+    displacements->dY = (float32_t)command->dY;
+    displacements->dTheta = (float32_t)command->dTheta;
+}
 
 /**
  * @brief Inverse kinematics. Get drivetrain displacement from encoder readings.

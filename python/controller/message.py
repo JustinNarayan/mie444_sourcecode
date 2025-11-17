@@ -41,7 +41,7 @@ _TYPE_FORMATS = {
         disp=["{:.2f} {u}", "{:.2f} {u}", "{:.2f} {u}"],  # display format
     ),
     MessageType.DrivetrainAutomatedCommand: dict(
-        fmt="<fff",  # three float32_t
+        fmt="<hhh",  # three float32_t
         units=("in", "in", "°"),  # delta x, delta y, delta theta
         disp=["{:.2f} {u}", "{:.2f} {u}", "{:.2f} {u}"],  # display format
     ),
@@ -158,6 +158,7 @@ class Message:
         """
         Get string representation of Message
         """
+        
         meta = _TYPE_FORMATS.get(self.type)
         val = self.decode()
         if meta and "fmt" in meta:

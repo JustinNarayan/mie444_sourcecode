@@ -12,7 +12,9 @@ using MessageTypesInForwarding = MessageTypes<
 	MessageType::DrivetrainManualCommand, // Commands for drivetrain
     MessageType::DrivetrainAutomatedCommand // Automated commands for drivetrain
 >;
-using MessageTypesOutForwarding = MessageTypes<>;
+using MessageTypesOutForwarding = MessageTypes<
+    MessageType::DrivetrainAutomatedCommand
+>;
 
 /*****************************************************
  *                     CONTROLLER                    *

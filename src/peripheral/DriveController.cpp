@@ -153,10 +153,14 @@ void DriveController::applyManualCommand(DrivetrainManualCommand command)
  */
 void DriveController::initializeAutomatedCommand(void)
 {
+    // Convert command to displacements
+    DrivetrainDisplacements displacements;
+    displacementsFromDrivetrainCommand(&displacements, &(this->currentAutomatedCommand));
+
 	// Process automated command state
 	this->encoders->getDrivetrainEncoderDistances(&this->encodersStart);
 	encoderReadingsFromDisplacement(
-		&(this->currentAutomatedCommand.desiredDelta),
+		&displacements,
 		&(this->encodersStart),
 		&(this->encodersTarget) // Now holds target values
 	);

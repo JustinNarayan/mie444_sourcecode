@@ -5,18 +5,19 @@ from lidar_control_manager import send_lidar_request
 from encoder_control_manager import send_encoder_request
 
 DRIVETRAIN_KEYS = ["q", "a", "d", "w", "s"]
-DRIVETRAIN_AUTOMATED_KEYS = []#["y", "h", "g", "j", "t", "u"]
+DRIVETRAIN_AUTOMATED_KEYS = ["y", "h", "g", "j", "t", "u"]
 LIDAR_KEYS = ["l"]
 ENCODER_KEYS = ["e"]
 
+DELTA_POS, DELTA_ANG = 6, 15
 DRIVETRAIN_AUTOMATED_KEYS_MAPPING = {
     # key: [delta_x (inches), delta_y (inches), delta_theta (radians)]
-    "y": [3.0, 0.0, 0.0],  # forward
-    "h": [-3.0, 0.0, 0.0],  # backward
-    "g": [0.0, 0.0, 15.0],  # rotate left
-    "j": [0.0, 0.0, -15.0],  # rotate right
-    "t": [0.0, 3.0, 0.0],  # strate left
-    "u": [0.0, -3.0, 0.0],  # strage right
+    "y": [DELTA_POS, 0.0, 0.0],  # forward
+    "h": [-DELTA_POS, 0.0, 0.0],  # backward
+    "g": [0.0, 0.0, DELTA_ANG],  # rotate left
+    "j": [0.0, 0.0, -DELTA_ANG],  # rotate right
+    "t": [0.0, DELTA_POS, 0.0],  # strate left
+    "u": [0.0, -DELTA_POS, 0.0],  # strage right
 }
 
 
