@@ -3,10 +3,12 @@ import keyboard
 from drive_control_manager import send_drive_command, send_drive_automated_command
 from lidar_control_manager import send_lidar_request
 from encoder_control_manager import send_encoder_request
+from mcl2.mcl_main import reset_localization
 
 DRIVETRAIN_KEYS = ["q", "a", "d", "w", "s"]
 DRIVETRAIN_AUTOMATED_KEYS = ["y", "h", "g", "j", "t", "u"]
 LIDAR_KEYS = ["l"]
+LOCALIZATION_RESET_KEYS = ['p']
 ENCODER_KEYS = ["e"]
 
 DELTA_POS, DELTA_ANG = 6, 15
@@ -29,6 +31,7 @@ def start_keyboard_listener(ser, stop_event, lidar_reading):
             k: False for k in DRIVETRAIN_AUTOMATED_KEYS
         }  # track edge for drivetrain automated keys
         lidar_pressed = {k: False for k in LIDAR_KEYS}  # track edge for LIDAR keys
+        localization_reset_pressed = {k: False for k in LOCALIZATION_RESET_KEYS}  # track edge for localization reset keys
         encoder_pressed = {
             k: False for k in ENCODER_KEYS
         }  # track edge for ENCODER keys
@@ -63,6 +66,16 @@ def start_keyboard_listener(ser, stop_event, lidar_reading):
                 elif not is_pressed and lidar_pressed[k]:
                     # reset state when key released
                     lidar_pressed[k] = False
+            
+            # ----- Localization reset keys (edge-triggered) -----
+            for k in LOCALIZATION_RESET_KEYS:
+                is_pressed = keyboard.is_pressed(k)
+                if is_pressed and not localization_reset_pressed[k]:
+                    reset_localization()
+                    localization_reset_pressed[k] = True  # mark as pressed
+                elif not is_pressed and localization_reset_pressed[k]:
+                    # reset state when key released
+                    localization_reset_pressed[k] = False
 
             # ----- Encoder keys (edge-triggered) -----
             for k in ENCODER_KEYS:

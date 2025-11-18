@@ -86,9 +86,9 @@
 #define DRIVETRAIN_TRANSLATE_SPEED (120) // 0 to 255
 #define DRIVETRAIN_ROTATE_SPEED (80) // 0 to 255
 
-#define MOTOR_1_EMPIRICAL_GAIN(s) ((1.32f * s))
+#define MOTOR_1_EMPIRICAL_GAIN(s) ((1.40f * s))
 #define MOTOR_2_EMPIRICAL_GAIN(s) ((1.0f * s))
-#define MOTOR_3_EMPIRICAL_GAIN(s) ((1.75f * s))
+#define MOTOR_3_EMPIRICAL_GAIN(s) ((1.65f * s))
 
 #define DRIVETRAIN_ENCODERS_EQUAL_TOLERANCE_THRESHOLD (0.25) // inches
 
