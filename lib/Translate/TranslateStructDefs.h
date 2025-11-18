@@ -11,8 +11,11 @@
         #struct " size exceeds MESSAGE_CONTENT_LENGTH_MAX" \
     )
 
-#define STRUCT_MESSAGE_MAP_TRANSLATION(s) static StructMessageMap<s> \
-	s##Translation(MessageType::s);
+#define STRUCT_MESSAGE_MAP_TRANSLATION(s) \
+    static StructMessageMap<s> s##Translation(MessageType::s); \
+    /* Declare the unique deserialization function */ \
+    template<> \
+    void StructMessageMap<s>::strToStruct(s*, const char*) const;
 
 /* 
  * Define a StructMessageMap to connect an struct to a given MessageType.
@@ -40,11 +43,10 @@ private:
 	 * 
 	 * @param s A pointer to struct of type S
 	 * @param buffer A string, of known initial size based on sizeof(S).
+     * 
+     * Must be instantiated by each individual class. See Translate.h
 	 */
-	void strToStruct(S *s, const char* buffer) const {
-    	if (!buffer || buffer[0] == '\0') return;
-		memoryCopy(s, buffer, this->size);
-    }
+	void strToStruct(S *s, const char* buffer) const = delete;
 
 public:
 	StructMessageMap(MessageType type) : type(type), size(sizeof(S)) {};
