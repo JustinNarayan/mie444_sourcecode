@@ -41,7 +41,7 @@ _TYPE_FORMATS = {
         disp=["{:.2f} {u}", "{:.2f} {u}", "{:.2f} {u}"],  # display format
     ),
     MessageType.DrivetrainAutomatedCommand: dict(
-        fmt="<hhh",  # three float32_t
+        fmt="<hhh",  # three int16_t
         units=("in", "in", "°"),  # delta x, delta y, delta theta
         disp=["{:.2f} {u}", "{:.2f} {u}", "{:.2f} {u}"],  # display format
     ),

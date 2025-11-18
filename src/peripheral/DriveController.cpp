@@ -269,7 +269,7 @@ void DriveController::arbitrateCommands(DrivetrainManualCommand currentManualCom
 		(currentManualCommand != DrivetrainManualCommand::Invalid)
 	)
 	{
-		// this->clearAutomatedCommand();
+		this->clearAutomatedCommand();
 		this->processManualCommand(currentManualCommand);
 		this->sendDrivetrainManualResponse(DrivetrainManualResponse::Acknowledge);
 		return;

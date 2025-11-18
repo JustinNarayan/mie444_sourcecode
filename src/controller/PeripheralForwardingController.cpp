@@ -153,10 +153,6 @@ void PeripheralForwardingController::envoyDrivetrainAutomatedCommand(void)
 	this->envoy->envoyDrivetrainAutomatedCommand(&this->drivetrainAutomatedCommand);
 	this->drivetrainAutomatedCommand = {0};
     this->hasUnforwardDrivetrainAutomatedCommand = false;
-
-    Message message;
-    DrivetrainAutomatedCommandTranslation.asMessage(&this->drivetrainAutomatedCommand, &message);
-    this->post(&message);
 }
 
 /**
