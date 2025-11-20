@@ -192,7 +192,7 @@ void DriveController::initializeAutomatedCommand(void)
 	// Mark request as addressed
 	this->automatedCommandState = DrivetrainAutomatedResponse::InProgress;
 	this->hasUnaddressedAutomatedCommand = false;
-	this->lastIssuedAutomatedCommandTime = millis();
+	this->lastIssuedAutomatedCommandTime = this->lastControlAdjustmentTime;
 
 	// Notify command is acknowledged
 	this->sendDrivetrainAutomatedResponse(DrivetrainAutomatedResponse::Acknowledge);
@@ -204,24 +204,55 @@ void DriveController::initializeAutomatedCommand(void)
  */
 void DriveController::applyAutomatedCommand(bool isFirstApplicationOfCommand)
 {	
-    // Get current encoder readings
-    DrivetrainEncoderDistances encodersNow;
-	this->encoders->getDrivetrainEncoderDistances(&encodersNow);
+#if DRIVETRAIN_WILL_USE_SIMPLE_AUTOMATED_INTERFACE
+    {
+        // Prioritize rotation
+        if (fabsf(this->currentAutomatedCommand.dTheta_deg) > DRIVETRAIN_AUTOMATED_MIN_DELTA_THETA)
+        {
+            this->drivetrain->setRotate(
+                DRIVETRAIN_ROTATE_SPEED_AUTOMATED, (this->currentAutomatedCommand.dTheta_deg < 0)
+            );
+        }
+        // Then translation
+        else if (fabsf(this->currentAutomatedCommand.dX_in) > DRIVETRAIN_AUTOMATED_MIN_DELTA_X)
+        {
+            this->drivetrain->setTranslate(
+                DRIVETRAIN_TRANSLATE_SPEED_AUTOMATED, (this->currentAutomatedCommand.dX_in > 0)
+            );
+        }
+        // Then strafing
+        else if (fabsf(this->currentAutomatedCommand.dY_in) > DRIVETRAIN_AUTOMATED_MIN_DELTA_Y)
+        {
+            this->drivetrain->setStrafe(
+                DRIVETRAIN_STRAFE_SPEED_AUTOMATED, (this->currentAutomatedCommand.dY_in > 0)
+            );
+        }
+    }
+#else
+    {
+        // Get current encoder readings
+        DrivetrainEncoderDistances encodersNow;
+        this->encoders->getDrivetrainEncoderDistances(&encodersNow);
 
-	// Construct drivetrain command
-	DrivetrainMotorCommand command;
-	getDrivetrainMotorCommand(
-		&encodersNow,
-		&this->encodersTarget,
-		&command,
-        isFirstApplicationOfCommand
-	);
-	
-	// Send command to drivetrain
-	drivetrain->setMotors(&command);
+        // Construct drivetrain command
+        DrivetrainMotorCommand command;
+        getDrivetrainMotorCommand(
+            &encodersNow,
+            &this->encodersTarget,
+            &command,
+            isFirstApplicationOfCommand
+        );
+        
+        // Send command to drivetrain
+        drivetrain->setMotors(&command);
+    }
+#endif
 
 	// Record the command as issued
 	this->lastIssuedCommand = DrivetrainManualCommand::Automated;
+
+    // Record control as updated
+    this->lastControlAdjustmentTime = millis();
 }
 
 /**
@@ -235,6 +266,7 @@ void DriveController::monitorAutomatedCommand(void)
 		(millis() - this->lastIssuedAutomatedCommandTime) > DRIVETRAIN_AUTOMATED_COMMAND_MAX_TIME
 	)
 	{
+		this->voluntaryHalt();
 		this->clearAutomatedCommand();
 		return;
 	}
@@ -267,30 +299,33 @@ void DriveController::monitorAutomatedCommand(void)
 void DriveController::clearAutomatedCommand(void)
 {
     // Send net displacements
-    if (DRIVETRAIN_WILL_VOLUNTEER_AUTOMATED_DISPLACEMENTS)
-    {
-        DrivetrainEncoderDistances encodersNow;
-        this->encoders->getDrivetrainEncoderDistances(&encodersNow);
-        DrivetrainDisplacements displacements;
-        displacementsFromEncoderReadings(
-            &displacements,
-            &this->encodersStart,
-            &encodersNow
-        );
-        this->sendDrivetrainDisplacements(&displacements);
-    }
+#if (DRIVETRAIN_WILL_VOLUNTEER_AUTOMATED_DISPLACEMENTS)
+    delay(DRIVETRAIN_AUTOMATED_POST_COMMAND_DISPLACEMENT_WAIT); // reduce decode errors on encoders
+    DrivetrainEncoderDistances encodersNow;
+    this->encoders->getDrivetrainEncoderDistances(&encodersNow);
+    DrivetrainDisplacements displacements;
+    displacementsFromEncoderReadings(
+        &displacements,
+        &this->encodersStart,
+        &encodersNow
+    );
+    this->sendDrivetrainDisplacements(&displacements);
+#endif
 
+    // Abort the command and notify
 	if (this->automatedCommandState == DrivetrainAutomatedResponse::InProgress)
 	{
 		this->automatedCommandState = DrivetrainAutomatedResponse::Aborted;
-		this->currentAutomatedCommand = {0};
-		this->hasUnaddressedAutomatedCommand = false;
-		this->encodersStart = {0};
-		this->encodersTarget = {0};
-		this->automatedCommandDirection = {0};
+        this->sendDrivetrainAutomatedResponse(this->automatedCommandState);
+    }
 
-		this->sendDrivetrainAutomatedResponse(this->automatedCommandState); // Aborted
-	}
+    // Clear the state and set the state back to none received
+    this->currentAutomatedCommand = {0};
+    this->hasUnaddressedAutomatedCommand = false;
+    this->encodersStart = {0};
+    this->encodersTarget = {0};
+    this->automatedCommandDirection = {0};
+    this->automatedCommandState = DrivetrainAutomatedResponse::NoReceived;
 }
 
 /**
@@ -326,7 +361,12 @@ void DriveController::arbitrateCommands(DrivetrainManualCommand currentManualCom
 	if (this->automatedCommandState == DrivetrainAutomatedResponse::InProgress)
 	{
         // Update command with control algorithm
-        this->applyAutomatedCommand(false); // is not first application
+        if (
+            (millis() - this->lastControlAdjustmentTime) > DRIVETRAIN_MINIMUM_TIME_BETWEEN_CONTROL_ADJUSTEMENTS
+        )
+        {
+            this->applyAutomatedCommand(false); // is not first application
+        }
 
         // Track progress
 		this->monitorAutomatedCommand();

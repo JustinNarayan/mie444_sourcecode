@@ -51,6 +51,7 @@ private:
     DrivetrainEncoderDistances encodersStart;
     DrivetrainEncoderDistances encodersTarget;
     DrivetrainCommandDirection automatedCommandDirection;
+    time_ms lastControlAdjustmentTime;
 
 	/**
 	 * @brief Communication utilities

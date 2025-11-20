@@ -160,13 +160,13 @@ struct DrivetrainMotorCommand
  */
 static const float32_t A[9] = {
 	( 0.000000), ( 1.000000), ( 3.569000),
-	(-0.866025), ( 0.500000), ( 3.569000),
-	( 0.866025), ( 0.500000), ( 3.569000),
+	(-0.866025), (-0.500000), ( 3.569000), // A[2,2] negated for y-sign convention
+	( 0.866025), (-0.500000), ( 3.569000), // A[3,2] negated for y-sign convention
 };
 
 static const float32_t Ainv[9] = {
     ( 0.000000), (-0.577350), ( 0.577350),
-    (-0.666666), ( 0.333333), ( 0.333333),
+    ( 0.666666), (-0.333333), (-0.333333),
     ( 0.093396), ( 0.093396), ( 0.093396)
 };
 
@@ -199,8 +199,8 @@ static inline void drivetrainCommandFromDisplacements(
 )
 {
     command->dX_in = (int16_t)displacements->dX_in;
-    command->dY_in = (int16_t)displacements->dY_in;
-    command->dTheta_deg = (int16_t)(RAD_TO_DEG * displacements->dTheta_rad);
+    command->dY_in = (int16_t)(displacements->dY_in); // convention is reversed
+    command->dTheta_deg = (int16_t)(RAD_TO_DEG * displacements->dTheta_rad); // unit conversion
 }
 
 /**
@@ -328,16 +328,16 @@ static inline DrivetrainAutomatedResponse areEncodersAtTarget(
 	if (t1Near && t2Near && t3Near) return DrivetrainAutomatedResponse::Success;
 
 	// Determine if any motors are yet to pass target
-	// bool undershoot1 = direction->increase1ToTarget ? (d1 > 0) : (d1 < 0);
-	// bool undershoot2 = direction->increase2ToTarget ? (d2 > 0) : (d2 < 0);
-	// bool undershoot3 = direction->increase3ToTarget ? (d3 > 0) : (d3 < 0);
+	bool undershoot1 = direction->increase1ToTarget ? (d1 > 0) : (d1 < 0);
+	bool undershoot2 = direction->increase2ToTarget ? (d2 > 0) : (d2 < 0);
+	bool undershoot3 = direction->increase3ToTarget ? (d3 > 0) : (d3 < 0);
 
 	// Fail if any motor has overshot target and no longer near
-	// if (
-	// 	(!t1Near && !undershoot1) ||
-	// 	(!t2Near && !undershoot2) ||
-	// 	(!t3Near && !undershoot3)
-	// ) return DrivetrainAutomatedResponse::Failure;
+	if (
+		(!t1Near && !undershoot1) ||
+		(!t2Near && !undershoot2) ||
+		(!t3Near && !undershoot3)
+	) return DrivetrainAutomatedResponse::Failure;
 
 	// Otherwise, return in progress
 	return DrivetrainAutomatedResponse::InProgress;
@@ -413,6 +413,8 @@ static inline void motorCommandFromDisplacement(
 	}
 }
 
+#if (false == DRIVETRAIN_WILL_USE_SIMPLE_AUTOMATED_INTERFACE)
+
 /**
  * @brief Compute the drivetrain motor speed with a slew limit.
  * 
@@ -440,7 +442,7 @@ static inline void getDrivetrainMotorCommand(
 	DrivetrainEncoderDistances *encodersNow,
 	DrivetrainEncoderDistances *encodersTarget,
 	DrivetrainMotorCommand *command,
-    bool isFirstCommand = true // Resets integral control
+    bool isFirstCommand // Resets integral control
 )
 {
 	// Compute inverse kinematics
@@ -461,7 +463,7 @@ static inline void getDrivetrainMotorCommand(
     {
         lastMillis = millis();
         integratedDisplacements = {0};
-        lastDisplacements = {0};
+        lastDisplacements = displacements;
         prevCommand = {0};
     }
     else
@@ -471,39 +473,46 @@ static inline void getDrivetrainMotorCommand(
         time_s dt = MS_TO_S(now - lastMillis);
 
         // Update integral and derivative terms if enough time elapsed
-        if (dt < DRIVETRAIN_MINIMUM_DT_PID)
-        {
-            differentiatedDisplacements = {0};
-        }
-        else
+        if (dt > DRIVETRAIN_MINIMUM_DT_PID)
         {
             // Integral
             integratedDisplacements.dX_in = constrain(
-                integratedDisplacements.dX_in + displacements.dX_in * dt,
+                integratedDisplacements.dX_in + (displacements.dX_in * dt),
                 -DRIVETRAIN_MAXIMUM_INTEGRAL, 
                 DRIVETRAIN_MAXIMUM_INTEGRAL
             );
             integratedDisplacements.dY_in = constrain(
-                integratedDisplacements.dY_in + displacements.dY_in * dt,
+                integratedDisplacements.dY_in + (displacements.dY_in * dt),
                 -DRIVETRAIN_MAXIMUM_INTEGRAL, 
                 DRIVETRAIN_MAXIMUM_INTEGRAL
             );
             integratedDisplacements.dTheta_rad = constrain(
-                integratedDisplacements.dTheta_rad + displacements.dTheta_rad * dt,
+                integratedDisplacements.dTheta_rad + (displacements.dTheta_rad * dt),
                 -DRIVETRAIN_MAXIMUM_INTEGRAL, 
                 DRIVETRAIN_MAXIMUM_INTEGRAL
             );
 
             // Derivative
-            differentiatedDisplacements.dX_in = \
-                (displacements.dX_in - lastDisplacements.dX_in) / dt;
-            differentiatedDisplacements.dY_in = \
-                (displacements.dY_in - lastDisplacements.dY_in) / dt;
-            differentiatedDisplacements.dTheta_rad = \
-                (displacements.dTheta_rad - lastDisplacements.dTheta_rad) / dt;
+            // Do not directly divide by time to avoid small number floating point errors
+            differentiatedDisplacements.dX_in = constrain(
+                (displacements.dX_in - lastDisplacements.dX_in),
+                -DRIVETRAIN_MAXIMUM_DERIVATIVE,
+                DRIVETRAIN_MAXIMUM_DERIVATIVE
+            );
+            differentiatedDisplacements.dY_in = constrain(
+                (displacements.dY_in - lastDisplacements.dY_in),
+                -DRIVETRAIN_MAXIMUM_DERIVATIVE,
+                DRIVETRAIN_MAXIMUM_DERIVATIVE
+            );
+            differentiatedDisplacements.dTheta_rad = constrain(
+                (displacements.dTheta_rad - lastDisplacements.dTheta_rad),
+                -DRIVETRAIN_MAXIMUM_DERIVATIVE,
+                DRIVETRAIN_MAXIMUM_DERIVATIVE
+            );
+            differentiatedDisplacements = {0}; // work in progress until tuning complete
 
             // Update static
-            memoryCopy(&lastDisplacements, &displacements, sizeof(DrivetrainDisplacements));
+            lastDisplacements = displacements;
             lastMillis = now;
         }
     }
@@ -512,16 +521,16 @@ static inline void getDrivetrainMotorCommand(
     DrivetrainDisplacements controlDisplacements;
 	controlDisplacements.dX_in = \
         (displacements.dX_in * DRIVETRAIN_AUTOMATED_GAIN_KP_DX) +
-        (integratedDisplacements.dX_in * DRIVETRAIN_AUTOMATED_GAIN_KI_DX)
-         + (differentiatedDisplacements.dX_in * DRIVETRAIN_AUTOMATED_GAIN_KD_DX);
+        (integratedDisplacements.dX_in * DRIVETRAIN_AUTOMATED_GAIN_KI_DX) +
+        (differentiatedDisplacements.dX_in * DRIVETRAIN_AUTOMATED_GAIN_KD_DX);
 	controlDisplacements.dY_in = \
         (displacements.dY_in * DRIVETRAIN_AUTOMATED_GAIN_KP_DY) +
-        (integratedDisplacements.dY_in * DRIVETRAIN_AUTOMATED_GAIN_KI_DY)
-         + (differentiatedDisplacements.dY_in * DRIVETRAIN_AUTOMATED_GAIN_KD_DY);
+        (integratedDisplacements.dY_in * DRIVETRAIN_AUTOMATED_GAIN_KI_DY) +
+        (differentiatedDisplacements.dY_in * DRIVETRAIN_AUTOMATED_GAIN_KD_DY);
 	controlDisplacements.dTheta_rad = \
         (displacements.dTheta_rad * DRIVETRAIN_AUTOMATED_GAIN_KP_DTHETA) +
-        (integratedDisplacements.dTheta_rad * DRIVETRAIN_AUTOMATED_GAIN_KI_DTHETA)
-         + (differentiatedDisplacements.dTheta_rad * DRIVETRAIN_AUTOMATED_GAIN_KD_DTHETA);
+        (integratedDisplacements.dTheta_rad * DRIVETRAIN_AUTOMATED_GAIN_KI_DTHETA) +
+        (differentiatedDisplacements.dTheta_rad * DRIVETRAIN_AUTOMATED_GAIN_KD_DTHETA);
 	
 	// Compute forward kinematics after gain
 	motorCommandFromDisplacement(
@@ -536,6 +545,7 @@ static inline void getDrivetrainMotorCommand(
 	command->speed2 = applySlewLimit(command->speed2, prevCommand.speed2);
 	command->speed3 = applySlewLimit(command->speed3, prevCommand.speed3);
 	
-	// Store previous command	
-	memoryCopy(&prevCommand, command, sizeof(DrivetrainMotorCommand));
+	// Store previous command
+    prevCommand = *command;
 }
+#endif
