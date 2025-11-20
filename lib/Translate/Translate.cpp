@@ -41,9 +41,36 @@ void StructMessageMap<DrivetrainAutomatedCommand>::strToStruct(
 {
     const uint8_t* asBytes = (const uint8_t*)buffer;
     // Interpret as three int16_t, little endian
-    s->dX =     (int16_t)(asBytes[0] | ((uint16_t)(asBytes[1]) << 8));
-    s->dY =     (int16_t)(asBytes[2] | ((uint16_t)(asBytes[3]) << 8));
-    s->dTheta = (int16_t)(asBytes[4] | ((uint16_t)(asBytes[5]) << 8));
+    s->dX_in =      (int16_t)(asBytes[0] | ((uint16_t)(asBytes[1]) << 8));
+    s->dY_in =      (int16_t)(asBytes[2] | ((uint16_t)(asBytes[3]) << 8));
+    s->dTheta_deg = (int16_t)(asBytes[4] | ((uint16_t)(asBytes[5]) << 8));
+}
+
+/// DrivetrainDisplacements
+template <>
+void StructMessageMap<DrivetrainDisplacements>::strToStruct(
+    DrivetrainDisplacements* s, const char* buffer) const
+{
+    const uint8_t* asBytes = (const uint8_t*)buffer;
+    // Interpret as three float32_t, little endian
+    s->dX_in = (float32_t)(
+        asBytes[0] | 
+        ((uint32_t)(asBytes[1]) << 8) | 
+        ((uint32_t)(asBytes[2]) << 16) | 
+        ((uint32_t)(asBytes[3]) << 24)
+    );
+    s->dY_in = (float32_t)(
+        asBytes[4] | 
+        ((uint32_t)(asBytes[5]) << 8) | 
+        ((uint32_t)(asBytes[6]) << 16) | 
+        ((uint32_t)(asBytes[7]) << 24)
+    );
+    s->dTheta_rad = (float32_t)(
+        asBytes[8] | 
+        ((uint32_t)(asBytes[9]) << 8) | 
+        ((uint32_t)(asBytes[10]) << 16) | 
+        ((uint32_t)(asBytes[11]) << 24)
+    );
 }
 
 // LidarPointReading

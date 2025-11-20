@@ -24,6 +24,7 @@ class MessageType(Enum):
     DrivetrainAutomatedResponse = auto()
     DrivetrainEncoderState = auto()
     DrivetrainEncoderDistances = auto()
+    DrivetrainDisplacements = auto()
 
     LidarState = auto()
     LidarPointReading = auto()
@@ -39,6 +40,11 @@ _TYPE_FORMATS = {
         fmt="<fff",  # three float32_t
         units=("in", "in", "in"),  # three inches
         disp=["{:.2f} {u}", "{:.2f} {u}", "{:.2f} {u}"],  # display format
+    ),
+    MessageType.DrivetrainDisplacements: dict(
+        fmt="<fff",  # three float32_t
+        units=("in", "in", "rad"),  # delta x, delta y, delta theta
+        disp=["{:.2f} {u}", "{:.2f} {u}", "{:.4f} {u}"],  # display format
     ),
     MessageType.DrivetrainAutomatedCommand: dict(
         fmt="<hhh",  # three int16_t

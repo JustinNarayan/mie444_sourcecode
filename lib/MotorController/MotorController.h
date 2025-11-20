@@ -62,6 +62,17 @@ public:
 		}
 	}
 
+    /**
+	 * @brief Set motor to brake
+	 * 
+	 * @param isForward If forward in arbitrary convention
+	 */
+	void setBrake(void)
+	{
+        digitalWrite(_in1Pin, HIGH);
+        digitalWrite(_in2Pin, HIGH);
+    }
+
 	/**
 	 * @brief Emergency stop for motor
 	 * 

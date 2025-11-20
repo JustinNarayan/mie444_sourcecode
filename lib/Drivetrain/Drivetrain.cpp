@@ -25,7 +25,8 @@ void Drivetrain::init(
  */
 int Drivetrain::setTranslate(float32_t rawSpeed, bool isForward)
 {
-	this->motor1->stop();
+	this->motor1->setBrake();
+	this->motor1->setSpeed(MOTOR_1_EMPIRICAL_GAIN(rawSpeed));
 
 	this->motor2->setDirection((motorDirection)!isForward);
 	this->motor2->setSpeed(MOTOR_2_EMPIRICAL_GAIN(rawSpeed));

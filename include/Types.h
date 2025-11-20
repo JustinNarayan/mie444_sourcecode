@@ -5,8 +5,9 @@
  *                  UNIT CONVERSIONS                 *
  *****************************************************/
 
-#define MM_TO_INCH(mm) (0.0393701 * mm)
-#define M_TO_INCH(m) (39.3701 * m)
+#define MM_TO_INCH(mm) (0.0393701f * mm)
+#define M_TO_INCH(m) (39.3701f * m)
+#define MS_TO_S(ms) ((float32_t) ms / 1000.0f)
 
 /*****************************************************
  *                     DATA TYPES                    *
@@ -15,6 +16,7 @@
 typedef float float32_t;
 typedef double float64_t;
 
+typedef float32_t time_s; // Seconds
 typedef unsigned long time_ms; // Millis
 typedef unsigned long time_us; // Micros
 

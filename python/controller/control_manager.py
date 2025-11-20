@@ -11,7 +11,7 @@ LIDAR_KEYS = ["l"]
 LOCALIZATION_RESET_KEYS = ['p']
 ENCODER_KEYS = ["e"]
 
-DELTA_POS, DELTA_ANG = 6, 15
+DELTA_POS, DELTA_ANG = 12, 30
 DRIVETRAIN_AUTOMATED_KEYS_MAPPING = {
     # key: [delta_x (inches), delta_y (inches), delta_theta (radians)]
     "y": [DELTA_POS, 0.0, 0.0],  # forward
