@@ -26,12 +26,12 @@ void Drivetrain::init(
 int Drivetrain::setTranslate(float32_t rawSpeed, bool isForward)
 {
 	this->motor1->setBrake();
-	this->motor1->setSpeed(MOTOR_1_EMPIRICAL_GAIN(rawSpeed));
+	this->motor1->setSpeed(DRIVETRAIN_BRAKE_SPEED);
 
-	this->motor2->setDirection((motorDirection)!isForward);
+	this->motor2->setDirection(!isForward);
 	this->motor2->setSpeed(MOTOR_2_EMPIRICAL_GAIN(rawSpeed));
 
-	this->motor3->setDirection((motorDirection)isForward);
+	this->motor3->setDirection(isForward);
 	this->motor3->setSpeed(MOTOR_3_EMPIRICAL_GAIN(rawSpeed));
 
 	// Failure states not yet implemented
@@ -48,14 +48,37 @@ int Drivetrain::setTranslate(float32_t rawSpeed, bool isForward)
  */
 int Drivetrain::setRotate(float32_t rawSpeed, bool isLeft)
 {
-	this->motor1->setDirection((motorDirection)(false == isLeft));
+	this->motor1->setDirection(!isLeft);
 	this->motor1->setSpeed(MOTOR_1_EMPIRICAL_GAIN(rawSpeed));
 
-	this->motor2->setDirection((motorDirection)(false == isLeft));
+	this->motor2->setDirection(!isLeft);
 	this->motor2->setSpeed(MOTOR_2_EMPIRICAL_GAIN(rawSpeed));
 
-	this->motor3->setDirection((motorDirection)(false == isLeft));
+	this->motor3->setDirection(!isLeft);
 	this->motor3->setSpeed(MOTOR_3_EMPIRICAL_GAIN(rawSpeed));
+
+	// Failure states not yet implemented
+	return RET_SET_COMMAND_SUCCESS;
+}
+
+/**
+ * @brief Set the flat motor to move and the other motors to rotate
+ * 
+ * @param speed 0 to 255
+ * @param isLeft 
+ * @return RET_SET_COMMAND_SUCCESS if successful
+ * 			RET_SET_COMMAND_FAILURE otherwise
+ */
+int Drivetrain::setStrafe(float32_t rawSpeed, bool isLeft)
+{
+	this->motor1->setDirection(isLeft);
+	this->motor1->setSpeed(MOTOR_1_EMPIRICAL_GAIN(rawSpeed));
+
+	this->motor2->setDirection(!isLeft);
+	this->motor2->setSpeed(MOTOR_2_EMPIRICAL_GAIN(rawSpeed / 2));
+
+	this->motor3->setDirection(!isLeft);
+	this->motor3->setSpeed(MOTOR_3_EMPIRICAL_GAIN(rawSpeed / 2));
 
 	// Failure states not yet implemented
 	return RET_SET_COMMAND_SUCCESS;
@@ -70,18 +93,39 @@ int Drivetrain::setRotate(float32_t rawSpeed, bool isLeft)
  */
 int Drivetrain::setMotors(DrivetrainMotorCommand *command)
 {
-	this->motor1->setDirection(command->direction1);
+	this->motor1->setDirection(command->is1Forward);
 	this->motor1->setSpeed(command->speed1);
 
-	this->motor2->setDirection(command->direction2);
+	this->motor2->setDirection(command->is2Forward);
 	this->motor2->setSpeed(command->speed2);
 
-	this->motor3->setDirection(command->direction3);
+	this->motor3->setDirection(command->is3Forward);
 	this->motor3->setSpeed(command->speed3);
 
 	// Failure states not yet implemented
 	return RET_SET_COMMAND_SUCCESS;
 	
+}
+
+/**
+ * @brief Set vehicle to brake
+ * 
+ * @return RET_SET_COMMAND_SUCCESS if successful
+ * 			RET_SET_COMMAND_FAILURE otherwise
+ */
+int Drivetrain::setBrake(void)
+{
+	this->motor1->setBrake();
+	this->motor1->setSpeed(DRIVETRAIN_BRAKE_SPEED);
+
+	this->motor2->setBrake();
+	this->motor2->setSpeed(DRIVETRAIN_BRAKE_SPEED);
+
+	this->motor3->setBrake();
+	this->motor3->setSpeed(DRIVETRAIN_BRAKE_SPEED);
+
+	// Failure states not yet implemented
+	return RET_SET_COMMAND_SUCCESS;
 }
 
 /**
@@ -92,10 +136,15 @@ int Drivetrain::setMotors(DrivetrainMotorCommand *command)
  */
 int Drivetrain::halt(void)
 {
-	this->motor1->stop();
-	this->motor2->stop();
-	this->motor3->stop();
+	this->motor1->coast();
+	this->motor1->setSpeed(0);
+
+	this->motor2->coast();
+	this->motor2->setSpeed(0);
+
+	this->motor3->coast();
+	this->motor3->setSpeed(0);
 
 	// Failure states not yet implemented
-	return RET_SET_COMMAND_FAILURE;
+	return RET_HALT_COMMAND_SUCCESS;
 }

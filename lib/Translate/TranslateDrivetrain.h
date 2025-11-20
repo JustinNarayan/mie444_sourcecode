@@ -14,6 +14,7 @@ static constexpr EnumStringMap DrivetrainManualCommandMap[] = {
     ENUM_MAP_ENTRY(DrivetrainManualCommand::TranslateBackward, "s"),
     ENUM_MAP_ENTRY(DrivetrainManualCommand::RotateLeft,        "a"),
     ENUM_MAP_ENTRY(DrivetrainManualCommand::RotateRight,       "d"),
+    ENUM_MAP_ENTRY(DrivetrainManualCommand::Brake,             "z"),
     ENUM_MAP_ENTRY(DrivetrainManualCommand::Halt,              "h"),
     ENUM_MAP_ENTRY(DrivetrainManualCommand::Automated,         "a"),
 };
@@ -24,6 +25,7 @@ static constexpr EnumStringMap DrivetrainManualResponseMap[] = {
     ENUM_MAP_ENTRY(DrivetrainManualResponse::NoReceived,    ""),
     ENUM_MAP_ENTRY(DrivetrainManualResponse::Acknowledge,   "ackval"),
     ENUM_MAP_ENTRY(DrivetrainManualResponse::NotifyHalting, "notifhalt"),
+    ENUM_MAP_ENTRY(DrivetrainManualResponse::NotifyBraking, "notifbrake"),
 };
 COMPILE_TIME_ENFORCE_ENUM_MAP_COUNT(DrivetrainManualResponseMap, DrivetrainManualResponse);
 

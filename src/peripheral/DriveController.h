@@ -72,7 +72,8 @@ private:
     void clearAutomatedCommand(void);
     void arbitrateCommands(DrivetrainManualCommand currentCommand);
 	bool shouldHalt(void);
-	void voluntaryHalt(void);
+	void voluntaryHalt(bool startWithBrake = false);
+	void voluntaryBrake(void);
 public:
 	DriveController(Drivetrain* drivetrain, DriveEncoderController* encoders);
 	void process(void);

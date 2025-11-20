@@ -5,7 +5,7 @@ from lidar_control_manager import send_lidar_request
 from encoder_control_manager import send_encoder_request
 from mcl2.mcl_main import reset_localization
 
-DRIVETRAIN_KEYS = ["q", "a", "d", "w", "s"]
+DRIVETRAIN_KEYS = ["q", "z", "a", "d", "w", "s"]
 DRIVETRAIN_AUTOMATED_KEYS = ["y", "h", "g", "j", "t", "u"]
 LIDAR_KEYS = ["l"]
 LOCALIZATION_RESET_KEYS = ['p']

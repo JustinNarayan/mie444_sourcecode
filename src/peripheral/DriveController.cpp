@@ -153,6 +153,9 @@ void DriveController::applyManualCommand(DrivetrainManualCommand command)
 		case DrivetrainManualCommand::RotateRight:
 			drivetrain->setRotate(DRIVETRAIN_ROTATE_SPEED, false);
 			break;
+        case DrivetrainManualCommand::Brake:
+            drivetrain->setBrake();
+            break;
 		case DrivetrainManualCommand::Halt:
 		default:
 			drivetrain->halt();
@@ -354,14 +357,29 @@ bool DriveController::shouldHalt(void)
  * @brief Bring drivetrain to a halt without direct command.
  * 
  */
-void DriveController::voluntaryHalt(void)
+void DriveController::voluntaryHalt(bool startWithBrake)
 {
+    // Brake first
+    if (startWithBrake)
+    {
+        this->voluntaryBrake();
+        delay(DRIVETRAIN_BRAKE_TIME_BEFORE_HALT_VOLUNTARY);
+    }
+
 	// Come to a stop and notify
 	this->processManualCommand(DrivetrainManualCommand::Halt);
 	this->sendDrivetrainManualResponse(DrivetrainManualResponse::NotifyHalting);
+}
 
-	// Prevent other stale from coming in immediately after
-	this->purge(MessageType::DrivetrainManualCommand);
+/**
+ * @brief Apply full brake without direct command.
+ * 
+ */
+void DriveController::voluntaryBrake(void)
+{
+	// Come to a stop and notify
+	this->processManualCommand(DrivetrainManualCommand::Brake);
+	this->sendDrivetrainManualResponse(DrivetrainManualResponse::NotifyBraking);
 }
 
 /**

@@ -18,6 +18,7 @@ enum class DrivetrainManualCommand
 	TranslateBackward,
 	RotateLeft,
 	RotateRight,
+    Brake,
 	Halt,
 	Automated,
 
@@ -33,6 +34,7 @@ enum class DrivetrainManualResponse
 	NoReceived,
 	Acknowledge,
 	NotifyHalting,
+    NotifyBraking,
 	
 	Count
 };
@@ -119,11 +121,11 @@ struct DrivetrainCommandDirection
 struct DrivetrainMotorCommand
 
 {
-	motorDirection direction1;
+	bool is1Forward;
 	motorSpeedRaw speed1;
-	motorDirection direction2;
+	bool is2Forward;
 	motorSpeedRaw speed2;
-	motorDirection direction3;
+	bool is3Forward;
 	motorSpeedRaw speed3;
 };
 
@@ -373,11 +375,11 @@ static inline void motorCommandFromDisplacement(
         (A[8] * displacements->dTheta_rad);
 
 	// Assign raw motor commands
-	motorCommand->direction1 = d1 > 0;
+	motorCommand->is1Forward = d1 > 0;
 	motorCommand->speed1 = fabsf(d1);
-	motorCommand->direction2 = d2 > 0;
+	motorCommand->is2Forward = d2 > 0;
 	motorCommand->speed2 = fabsf(d2);
-	motorCommand->direction3 = d3 > 0;
+	motorCommand->is3Forward = d3 > 0;
 	motorCommand->speed3 = fabsf(d3);
 
     // Check deadbands and find smallest nonzero motor speed

@@ -5,6 +5,7 @@ import struct
 MESSAGE_END_CHAR = b"$"
 NULL_TERMINATOR = b"\x00"
 ENCODING_MINIMUM_LENGTH = 3  # type char, size char, end char
+RAD_TO_DEG = 180/3.14159
 
 
 # Type of Message.
@@ -43,8 +44,12 @@ _TYPE_FORMATS = {
     ),
     MessageType.DrivetrainDisplacements: dict(
         fmt="<fff",  # three float32_t
-        units=("in", "in", "rad"),  # delta x, delta y, delta theta
-        disp=["{:.2f} {u}", "{:.2f} {u}", "{:.4f} {u}"],  # display format
+        units=("in", "in", "°"),  # delta x, delta y, delta theta
+        disp=[
+            "{:.2f} {u}", 
+            "{:.2f} {u}", 
+            lambda v, u: f"{v * RAD_TO_DEG:.2f} {u}",  # rad→deg for display
+            ],  # display format
     ),
     MessageType.DrivetrainAutomatedCommand: dict(
         fmt="<hhh",  # three int16_t
@@ -178,7 +183,10 @@ class Message:
                     else disp
                 )
                 unit = units[i] if i < len(units) else ""
-                parts.append(fmt.format(v, u=unit))
+                if callable(fmt):
+                    parts.append(fmt(v, unit))   # <-- NEW
+                else:
+                    parts.append(fmt.format(v, u=unit))
 
             return f"<{self.type.name}({', '.join(parts)})>"
 

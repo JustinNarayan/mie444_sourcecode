@@ -172,25 +172,6 @@ bool PeripheralForwardingController::shouldEnvoyDrivetrainAutomatedCommand(void)
 }
 
 /**
- * @brief Check if drivetrain automated command is stale. Discard if stale.
- * 
- * @return Whether command was not stale
- */
-bool PeripheralForwardingController::validateDrivetrainAutomatedCommandFresh(void)
-{
-	if (
-		(millis() - this->drivetrainAutomatedCommandLastReceivedTime) >
-		DRIVETRAIN_AUTOMATED_COMMAND_FORWARDING_TIME_TO_DISCARD
-	)
-	{
-		this->drivetrainAutomatedCommand = {0};
-        this->hasUnforwardDrivetrainAutomatedCommand = false;
-		return false;
-	}
-	return true;
-}
-
-/**
  * @brief Forward internal drivetrain automated command
  *  
  */
@@ -269,10 +250,7 @@ void PeripheralForwardingController::process(void)
 	// Check if should send drivetrain automated commands
 	if (this->shouldEnvoyDrivetrainAutomatedCommand())
 	{
-		if (this->validateDrivetrainAutomatedCommandFresh())
-		{
-			this->envoyDrivetrainAutomatedCommand();
-		}
+        this->envoyDrivetrainAutomatedCommand();
 	}
 
     // Check if should send internal drivetrain automated commands
