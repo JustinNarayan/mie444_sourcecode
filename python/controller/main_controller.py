@@ -2,17 +2,18 @@ import threading
 import time
 import pygame
 from bluetooth_manager import connect, disconnect
-from receiver import start_receiver
+from receiver import start_receiver, LOCALIZATION
 from control_manager import start_keyboard_listener
 from lidar_reading import LidarReading
 from mcl2.mcl_main import begin_localization
 
 # ======= USER SETTINGS =======
-PORT = "COM5"       
-BAUD = 57600        
+PORT = "COM5"
+BAUD = 57600
 SEND_INTERVAL = 0.01  # seconds (10 ms)
 WAIT_INTERVAL = 0.01
 # =============================
+
 
 def main():
     ser = connect(PORT, BAUD)
@@ -25,10 +26,13 @@ def main():
     lidar_reading = LidarReading()
 
     start_receiver(ser, stop_event, lidar_reading)
-    start_keyboard_listener(ser, stop_event, lidar_reading)  # you may pass lidar_reading if needed
-    
+    start_keyboard_listener(
+        ser, stop_event, lidar_reading
+    )  # you may pass lidar_reading if needed
+
     # Localization begin
-    begin_localization()
+    if LOCALIZATION:
+        begin_localization()
 
     try:
         while not stop_event.is_set():
@@ -42,6 +46,7 @@ def main():
         stop_event.set()
         disconnect(ser)
         pygame.quit()
+
 
 if __name__ == "__main__":
     main()

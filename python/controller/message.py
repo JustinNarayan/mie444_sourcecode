@@ -20,8 +20,11 @@ class MessageType(Enum):
 
     DrivetrainManualCommand = auto()
     DrivetrainManualResponse = auto()
+    DrivetrainAutomatedCommand = auto()
+    DrivetrainAutomatedResponse = auto()
     DrivetrainEncoderState = auto()
     DrivetrainEncoderDistances = auto()
+    DrivetrainDisplacements = auto()
 
     LidarState = auto()
     LidarPointReading = auto()
@@ -35,29 +38,32 @@ class MessageType(Enum):
 _TYPE_FORMATS = {
     MessageType.DrivetrainEncoderDistances: dict(
         fmt="<fff",  # three float32_t
-        units=("in", "in", "in"), # three inches
-        disp=[
-            "{:.2f} {u}",
-            "{:.2f} {u}",
-            "{:.2f} {u}"
-		] # display format
+        units=("in", "in", "in"),  # three inches
+        disp=["{:.2f} {u}", "{:.2f} {u}", "{:.2f} {u}"],  # display format
+    ),
+    MessageType.DrivetrainDisplacements: dict(
+        fmt="<fff",  # three float32_t
+        units=("in", "in", "rad"),  # delta x, delta y, delta theta
+        disp=["{:.2f} {u}", "{:.2f} {u}", "{:.4f} {u}"],  # display format
+    ),
+    MessageType.DrivetrainAutomatedCommand: dict(
+        fmt="<hhh",  # three int16_t
+        units=("in", "in", "°"),  # delta x, delta y, delta theta
+        disp=["{:.2f} {u}", "{:.2f} {u}", "{:.2f} {u}"],  # display format
     ),
     MessageType.LidarPointReading: dict(
         fmt="<hh",  # two int16_t
-        units=("°", "mm"),  # degree, mm
-        disp=[
-            "{}{u}",
-            "{} {u}"
-        ],  # display format
+        units=("°", "in"),  # degree, in
+        disp=["{}{u}", "{} {u}"],  # display format
     ),
     MessageType.Generic: dict(text=True),
     MessageType.Error: dict(text=True),
 }
 
 SHOULD_NOT_PRINT_TO_SCREEN = [
-	# MessageType.DrivetrainEncoderDistances,
-	MessageType.DrivetrainManualCommand,
-	MessageType.LidarPointReading,
+    # MessageType.DrivetrainEncoderDistances,
+    MessageType.DrivetrainManualCommand,
+    MessageType.LidarPointReading,
 ]
 
 # Message class
@@ -73,10 +79,10 @@ class Message:
         self.content = content
         self.size = len(content)
         self.raw = self.encode()
-        
+
     def get_type(self):
         return self.type
-    
+
     def get_content(self):
         return self.content
 
@@ -156,8 +162,9 @@ class Message:
 
     def __repr__(self):
         """
-		Get string representation of Message
+        Get string representation of Message
         """
+        
         meta = _TYPE_FORMATS.get(self.type)
         val = self.decode()
         if meta and "fmt" in meta:
@@ -165,25 +172,30 @@ class Message:
             disp, units = meta["disp"], meta["units"]
             parts = []
             for i, v in enumerate(val):
-                fmt = disp[i] if isinstance(disp, (list, tuple)) and i < len(disp) else disp
+                fmt = (
+                    disp[i]
+                    if isinstance(disp, (list, tuple)) and i < len(disp)
+                    else disp
+                )
                 unit = units[i] if i < len(units) else ""
                 parts.append(fmt.format(v, u=unit))
-                
+
             return f"<{self.type.name}({', '.join(parts)})>"
-        
+
         if meta and meta.get("text"):
-			# display raw text representation
+            # display raw text representation
             return f"<{self.type.name}({val})>"
-        
+
         if not self.content:
             # no content to display
             return f"<{self.type.name}()>"
-        
+
         # raw bytes representation as last resort
         try:
             return f"<{self.type.name}({self.content.decode(errors='replace')})>"
         except Exception:
             return f"<{self.type.name}({self.content!r})>"
+
 
 # Helps parse received bytes on Serial into Messages
 #

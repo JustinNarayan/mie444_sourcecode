@@ -3,6 +3,7 @@
 #include "Types.h"
 #include <CommsInterface.h>
 #include <Lidar.h>
+#include <Ultrasonic.h>
 #include "Wiring.h"
 
 /**
@@ -25,8 +26,10 @@
 #define UART_LIDAR (&Serial3)
 
 /* Ultrasonic Sensors */
-#define PIN_US_TEST_TRIGGER PB7
-#define PIN_US_TEST_ECHO PB6
+#define PIN_ULTRASONIC_1_TRIGGER 54
+#define PIN_ULTRASONIC_1_ECHO 55
+#define PIN_ULTRASONIC_2_TRIGGER 56
+#define PIN_ULTRASONIC_2_ECHO 57
 
 /* Lidar */
 #define PIN_LIDAR_MOTOCTRL 9
@@ -40,10 +43,6 @@ void Wiring_InitPins()
 {
 	// Blinker
 	pinMode(PIN_BLINKER, OUTPUT);
-
-	// Ultrasonic Sensors
-	pinMode(PIN_US_TEST_TRIGGER, OUTPUT);
-	pinMode(PIN_US_TEST_ECHO, INPUT);
 }
 
 /**
@@ -75,4 +74,14 @@ void Wiring_InitLidar(Lidar *lidar)
 	lidar->init(
 		PIN_LIDAR_MOTOCTRL, UART_LIDAR
 	);
+}
+
+/**
+ * @brief Initialize ultrasonics
+ * 
+ */
+void Wiring_InitUltrasonics(Ultrasonic* ultrasonic1, Ultrasonic* ultrasonic2)
+{
+    ultrasonic1->init(PIN_ULTRASONIC_1_ECHO, PIN_ULTRASONIC_1_TRIGGER);
+    ultrasonic2->init(PIN_ULTRASONIC_2_ECHO, PIN_ULTRASONIC_2_TRIGGER);
 }

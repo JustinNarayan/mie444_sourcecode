@@ -45,7 +45,7 @@ private:
 	 * Whether a request was received and not yet addressed
 	 */
 	bool hasUnaddressedRequest;
-	unsigned long lastCompleteSentTimestampMillis;
+	time_ms lastCompleteSentTime;
 	bool hasNotSentComplete;
 
 	/**

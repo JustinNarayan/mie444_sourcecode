@@ -1,0 +1,104 @@
+#include <Translate.h>
+
+/**
+ * @brief For all StructMessageMap instantiatons, define the particular deserialization function.
+ * 
+ * This can NOT be generally done with one function.
+ * 
+ */
+/// DrivetrainEncoderDistances
+template <>
+void StructMessageMap<DrivetrainEncoderDistances>::strToStruct(
+    DrivetrainEncoderDistances* s, const char* buffer) const
+{
+    const uint8_t* asBytes = (const uint8_t*)buffer;
+    // Interpret as three float32_t, little endian
+    s->encoder1Dist = (float32_t)(
+        asBytes[0] | 
+        ((uint32_t)(asBytes[1]) << 8) | 
+        ((uint32_t)(asBytes[2]) << 16) | 
+        ((uint32_t)(asBytes[3]) << 24)
+    );
+    s->encoder2Dist = (float32_t)(
+        asBytes[4] | 
+        ((uint32_t)(asBytes[5]) << 8) | 
+        ((uint32_t)(asBytes[6]) << 16) | 
+        ((uint32_t)(asBytes[7]) << 24)
+    );
+    s->encoder3Dist = (float32_t)(
+        asBytes[8] | 
+        ((uint32_t)(asBytes[9]) << 8) | 
+        ((uint32_t)(asBytes[10]) << 16) | 
+        ((uint32_t)(asBytes[11]) << 24)
+    );
+    // float32_t = encoderDistance_in
+}
+
+/// DrivetrainAutomatedCOmmand
+template <>
+void StructMessageMap<DrivetrainAutomatedCommand>::strToStruct(
+    DrivetrainAutomatedCommand* s, const char* buffer) const
+{
+    const uint8_t* asBytes = (const uint8_t*)buffer;
+    // Interpret as three int16_t, little endian
+    s->dX_in =      (int16_t)(asBytes[0] | ((uint16_t)(asBytes[1]) << 8));
+    s->dY_in =      (int16_t)(asBytes[2] | ((uint16_t)(asBytes[3]) << 8));
+    s->dTheta_deg = (int16_t)(asBytes[4] | ((uint16_t)(asBytes[5]) << 8));
+}
+
+/// DrivetrainDisplacements
+template <>
+void StructMessageMap<DrivetrainDisplacements>::strToStruct(
+    DrivetrainDisplacements* s, const char* buffer) const
+{
+    const uint8_t* asBytes = (const uint8_t*)buffer;
+    // Interpret as three float32_t, little endian
+    s->dX_in = (float32_t)(
+        asBytes[0] | 
+        ((uint32_t)(asBytes[1]) << 8) | 
+        ((uint32_t)(asBytes[2]) << 16) | 
+        ((uint32_t)(asBytes[3]) << 24)
+    );
+    s->dY_in = (float32_t)(
+        asBytes[4] | 
+        ((uint32_t)(asBytes[5]) << 8) | 
+        ((uint32_t)(asBytes[6]) << 16) | 
+        ((uint32_t)(asBytes[7]) << 24)
+    );
+    s->dTheta_rad = (float32_t)(
+        asBytes[8] | 
+        ((uint32_t)(asBytes[9]) << 8) | 
+        ((uint32_t)(asBytes[10]) << 16) | 
+        ((uint32_t)(asBytes[11]) << 24)
+    );
+}
+
+// LidarPointReading
+template <>
+void StructMessageMap<LidarPointReading>::strToStruct(
+    LidarPointReading* s, const char* buffer) const
+{
+    const uint8_t* asBytes = (const uint8_t*)buffer;
+    // Interpret as two int16_t, little endian
+    s->angle =    (int16_t)(asBytes[0] | ((uint16_t)(asBytes[1]) << 8));
+    s->distance = (int16_t)(asBytes[2] | ((uint16_t)(asBytes[3]) << 8));
+    // int16_t = lidarAngle_deg, lidarDistance_in
+}
+
+// UltrasonicPointReading
+template <>
+void StructMessageMap<UltrasonicPointReading>::strToStruct(
+    UltrasonicPointReading* s, const char* buffer) const
+{
+    const uint8_t* asBytes = (const uint8_t*)buffer;
+    // Interpret as int16_t and float32_t, little endian
+    s->angle = (int16_t)(asBytes[0] | ((uint16_t)(asBytes[1]) << 8));
+    s->distance = (float32_t)(
+        asBytes[2] | 
+        ((uint32_t)(asBytes[3]) << 8) | 
+        ((uint32_t)(asBytes[4]) << 16) | 
+        ((uint32_t)(asBytes[5]) << 24)
+    );
+    // int16_t = ultrasonicAngle_deg
+    // float32_t = ultrasonicDistance_in
+}

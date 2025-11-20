@@ -15,17 +15,28 @@ static constexpr EnumStringMap DrivetrainManualCommandMap[] = {
     ENUM_MAP_ENTRY(DrivetrainManualCommand::RotateLeft,        "a"),
     ENUM_MAP_ENTRY(DrivetrainManualCommand::RotateRight,       "d"),
     ENUM_MAP_ENTRY(DrivetrainManualCommand::Halt,              "h"),
+    ENUM_MAP_ENTRY(DrivetrainManualCommand::Automated,         "a"),
 };
 COMPILE_TIME_ENFORCE_ENUM_MAP_COUNT(DrivetrainManualCommandMap, DrivetrainManualCommand);
 
 static constexpr EnumStringMap DrivetrainManualResponseMap[] = {
-    ENUM_MAP_ENTRY(DrivetrainManualResponse::Invalid,                   "invalid"), // placeholder
-    ENUM_MAP_ENTRY(DrivetrainManualResponse::NoReceived,                ""),
-    ENUM_MAP_ENTRY(DrivetrainManualResponse::AcknowledgeValidCommand,   "ackval"),
-    ENUM_MAP_ENTRY(DrivetrainManualResponse::AcknowledgeInvalidCommand, "ackinv"),
-    ENUM_MAP_ENTRY(DrivetrainManualResponse::NotifyHalting,             "notifhalt"),
+    ENUM_MAP_ENTRY(DrivetrainManualResponse::Invalid,       "invalid"), // placeholder
+    ENUM_MAP_ENTRY(DrivetrainManualResponse::NoReceived,    ""),
+    ENUM_MAP_ENTRY(DrivetrainManualResponse::Acknowledge,   "ackval"),
+    ENUM_MAP_ENTRY(DrivetrainManualResponse::NotifyHalting, "notifhalt"),
 };
 COMPILE_TIME_ENFORCE_ENUM_MAP_COUNT(DrivetrainManualResponseMap, DrivetrainManualResponse);
+
+static constexpr EnumStringMap DrivetrainAutomatedResponseMap[] = {
+    ENUM_MAP_ENTRY(DrivetrainAutomatedResponse::Invalid,        "invalid"), // placeholder
+    ENUM_MAP_ENTRY(DrivetrainAutomatedResponse::NoReceived,     ""),
+    ENUM_MAP_ENTRY(DrivetrainAutomatedResponse::Acknowledge,    "ack"),
+    ENUM_MAP_ENTRY(DrivetrainAutomatedResponse::InProgress,    "inprog"),
+    ENUM_MAP_ENTRY(DrivetrainAutomatedResponse::Success,        "success"),
+    ENUM_MAP_ENTRY(DrivetrainAutomatedResponse::Failure,        "failure"),
+    ENUM_MAP_ENTRY(DrivetrainAutomatedResponse::Aborted,        "abort"),
+};
+COMPILE_TIME_ENFORCE_ENUM_MAP_COUNT(DrivetrainAutomatedResponseMap, DrivetrainAutomatedResponse);
 
 static constexpr EnumStringMap DrivetrainEncoderStateMap[] = {
     ENUM_MAP_ENTRY(DrivetrainEncoderState::Invalid,		"invalid"), // placeholder
@@ -38,3 +49,5 @@ COMPILE_TIME_ENFORCE_ENUM_MAP_COUNT(DrivetrainEncoderStateMap, DrivetrainEncoder
  *                  STRUCT MAPPING                   *
  *****************************************************/
 COMPILE_TIME_ENFORCE_STRUCT_SIZE(DrivetrainEncoderDistances);
+COMPILE_TIME_ENFORCE_STRUCT_SIZE(DrivetrainAutomatedCommand);
+COMPILE_TIME_ENFORCE_STRUCT_SIZE(DrivetrainDisplacements);

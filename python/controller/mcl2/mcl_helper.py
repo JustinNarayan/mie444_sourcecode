@@ -24,11 +24,11 @@ with open(
 ### TUNABLE PARAMETERS
 NUM_PARTICLES = 3000            # number of particles
 NUM_SCAN_ANGLES = 60           # number of beams used per particle (then downsampled)
-MOVEMENT_NOISE_LINEAR = 0.35      # inches (std dev of translational motion noise)
-MOVEMENT_NOISE_ANGULAR = 0.125     # radians (std dev of rotational motion noise)
-SENSOR_STD_PERCENT_ERROR = 0.4     # std dev of normalized measurement noise (in percent); used in Gaussian likelihood
-MIN_WEIGHT = 5e-4                # floor weight to avoid zeroing out particles (tunable)
-RESAMPLE_JITTER_POS = 0.5        # inches, positional jitter after resampling
+MOVEMENT_NOISE_LINEAR = 0.25      # inches (std dev of translational motion noise)
+MOVEMENT_NOISE_ANGULAR = 0.2     # radians (std dev of rotational motion noise)
+SENSOR_STD_PERCENT_ERROR = 0.3     # std dev of normalized measurement noise (in percent); used in Gaussian likelihood
+MIN_WEIGHT = 1e-5                # floor weight to avoid zeroing out particles (tunable)
+RESAMPLE_JITTER_POS = 0.3        # inches, positional jitter after resampling
 RESAMPLE_JITTER_THETA = 0.2     # radians, angular jitter after resampling
 
 # LIDAR reasonable bounds (inches)
@@ -398,8 +398,7 @@ class Particle:
             # Add point at the beam angle (we store beam's angle in degrees; distance in inches)
             point = LidarPointReading(
                 angle_deg, 
-                simulated_reading_inches, 
-                needs_mm_to_inch_conversion=False
+                simulated_reading_inches
             )
             reading.add_point(point, is_real_lidar_data=False)
 

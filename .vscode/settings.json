@@ -1,7 +1,5 @@
 {
-	"editor.detectIndentation": false,
-	"files.associations": {
-		"new": "cpp"
-	},
-	"terminal.integrated.allowChords": false
+    "stm32-for-vscode.openOCDPath": false,
+    "stm32-for-vscode.makePath": false,
+    "stm32-for-vscode.armToolchainPath": false
 }

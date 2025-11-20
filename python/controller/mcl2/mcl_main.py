@@ -59,6 +59,15 @@ def begin_localization():
     # Run initial update (e.g., with dummy or first lidar reading)
     step_localization()
 
+def reset_localization():
+    global grid, reduced_grid, valid_positions, pred_x, pred_y, pred_theta, window, step_count, clock, particles
+    
+    # Initialize random particles and initial position guess
+    particles = [Particle(reduced_grid, valid_positions) for _ in range(mh.NUM_PARTICLES)]
+    pred_x, pred_y, pred_theta = mh.estimate(particles)
+
+    # Run initial update (e.g., with dummy or first lidar reading)
+    step_localization()
 
 def step_localization(
     delta_x=None, delta_y=None, delta_theta=None, lidar_reading: LidarReading = None

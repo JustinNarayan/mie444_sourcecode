@@ -42,7 +42,7 @@ enum class LidarState
 struct LidarPointReading
 {
 	lidarAngle_deg angle;
-	lidarDistance_mm distance;
+	lidarDistance_in distance;
 };
 
 /**

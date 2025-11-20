@@ -13,11 +13,11 @@ LidarController::LidarController(Lidar* lidar, PeripheralEnvoy* envoy) :
 	envoy(envoy),
 	reading({0}),
 	hasUnaddressedRequest(false),
-	lastCompleteSentTimestampMillis(0),
+	lastCompleteSentTime(0),
 	hasNotSentComplete(false) {}
 
 /**
- * @brief Read input messages for LidarRequest type
+ * @brief Read input messages for LidarState type
  * 
  */
 void LidarController::checkLidarState(void)
@@ -79,18 +79,18 @@ void LidarController::refreshLidarReading(void)
  */
 bool LidarController::shouldAcceptNewRequests(void)
 {
-	unsigned long timeSinceLastCompleteSentMillis = millis() - this->lastCompleteSentTimestampMillis;
+	time_ms timeSinceLastCompleteSent = millis() - this->lastCompleteSentTime;
 	return (
 		(
 			// Not currently procesing a request
 			(false == this->hasUnaddressedRequest) &&
 
 			// Enough time has elapsed since last request
-			(timeSinceLastCompleteSentMillis > LIDAR_MIN_TIME_SINCE_HALT_RECEIVED_COMMAND)
+			(timeSinceLastCompleteSent > LIDAR_MIN_TIME_SINCE_HALT_RECEIVED_COMMAND)
 		) ||
 		(
 			// Last reading is lost
-			(timeSinceLastCompleteSentMillis > LIDAR_MAX_TIME_TO_SEND_READING)
+			(timeSinceLastCompleteSent > LIDAR_MAX_TIME_TO_SEND_READING)
 		)
 	);
 }
@@ -187,7 +187,7 @@ void LidarController::sendLidarData(void)
 	// If all data sent, mark as complete
 	if (isLidarReadingFullyProcessed(&(this->reading)))
 	{
-		this->lastCompleteSentTimestampMillis = millis();
+		this->lastCompleteSentTime = millis();
 		this->hasNotSentComplete = true;
 	}
 }

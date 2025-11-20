@@ -19,7 +19,7 @@
 #if defined(BOARD_CONTROLLER)
 #define STRING_LENGTH_MAX 64
 #elif defined(BOARD_PERIPHERAL)
-#define STRING_LENGTH_MAX 32
+#define STRING_LENGTH_MAX 24
 #else
 #error "Unsupported board! Please defined BOARD_xxx in platformio.ini"
 #endif
@@ -63,11 +63,11 @@
  * @brief Drivetrain encoder custom parameters
  * 
  */
-#define DEFAULT_ENCODER_TICKS_PER_ROTATION (1670) // approx
+#define DEFAULT_ENCODER_TICKS_PER_ROTATION (1000) // approx
 #define DEFAULT_ENCODER_GAIN_IN ((WHEEL_CIRCUMFERENCE_IN) / (DEFAULT_ENCODER_TICKS_PER_ROTATION))
-#define ENCODER_1_TUNING_GAIN ((float64_t)1.0200)
-#define ENCODER_2_TUNING_GAIN ((float64_t)0.9975)
-#define ENCODER_3_TUNING_GAIN ((float64_t)1.0735)
+#define ENCODER_1_TUNING_GAIN ((float64_t)0.485)
+#define ENCODER_2_TUNING_GAIN ((float64_t)0.485)
+#define ENCODER_3_TUNING_GAIN ((float64_t)1.045)
 
 #define ENCODER_1_TO_IN (DEFAULT_ENCODER_GAIN_IN * ENCODER_1_TUNING_GAIN)
 #define ENCODER_2_TO_IN (DEFAULT_ENCODER_GAIN_IN * ENCODER_2_TUNING_GAIN)
@@ -83,12 +83,48 @@
 #define DRIVETRAIN_MANUAL_COMMAND_FORWARDING_TIME_TO_DISCARD (100UL) // millis
 
 #define DRIVETRAIN_TIME_TO_HALT_AFTER_LAST_RECEIVED_COMMAND (100UL) // millis
-#define DRIVETRAIN_TRANSLATE_SPEED (110) // 0 to 255
-#define DRIVETRAIN_ROTATE_SPEED (70) // 0 to 255
+#define DRIVETRAIN_TRANSLATE_SPEED (150) // 0 to 255
+#define DRIVETRAIN_ROTATE_SPEED (110) // 0 to 255
 
-#define MOTOR_1_SPEED(s) ((uint8_t)(1.6f * s))
-#define MOTOR_2_SPEED(s) ((uint8_t)(1.1f * s))
-#define MOTOR_3_SPEED(s) ((uint8_t)(1.0f * s))
+#define MOTOR_1_EMPIRICAL_GAIN(s) ((1.40f * s))
+#define MOTOR_2_EMPIRICAL_GAIN(s) ((1.0f * s))
+#define MOTOR_3_EMPIRICAL_GAIN(s) ((1.65f * s))
+
+#define DRIVETRAIN_ENCODERS_EQUAL_TOLERANCE_THRESHOLD (0.25) // inches
+
+/**
+ * @brief Drivetrain automation custom parameters
+ * 
+ */
+#define DRIVETRAIN_AUTOMATED_COMMAND_FORWARDING_TIME_TO_DISCARD (500UL) // millis
+
+#define DRIVETRAIN_AUTOMATED_MAX_DELTA_X (12) // inches
+#define DRIVETRAIN_AUTOMATED_MAX_DELTA_Y (12) // inches
+#define DRIVETRAIN_AUTOMATED_MAX_DELTA_THETA (2 * PI) // radians
+#define DRIVETRAIN_AUTOMATED_COMMAND_MAX_TIME (3000UL) // millis
+
+#define DRIVETRAIN_AUTOMATED_MAX_SPEED (160) // 0 to 255
+#define DRIVETRAIN_AUTOMATED_MIN_SPEED (30) // 0 to 255
+#define DRIVETRAIN_AUTOMATED_MAX_SLEW_UP (15) // delta speed to motor
+#define DRIVETRAIN_AUTOMATED_MAX_SLEW_DOWN (-15) // delta speed to motor
+#define DRIVETRAIN_AUTOMATED_DEADBAND (5)
+
+#define DRIVETRAIN_AUTOMATED_GAIN_KP_DX (3)
+#define DRIVETRAIN_AUTOMATED_GAIN_KI_DX (3)
+#define DRIVETRAIN_AUTOMATED_GAIN_KD_DX (300)
+
+#define DRIVETRAIN_AUTOMATED_GAIN_KP_DY (0)
+#define DRIVETRAIN_AUTOMATED_GAIN_KI_DY (0)
+#define DRIVETRAIN_AUTOMATED_GAIN_KD_DY (0)
+
+#define DRIVETRAIN_AUTOMATED_GAIN_KP_DTHETA (2.8)
+#define DRIVETRAIN_AUTOMATED_GAIN_KI_DTHETA (2.4)
+#define DRIVETRAIN_AUTOMATED_GAIN_KD_DTHETA (500)
+
+#define DRIVETRAIN_MAXIMUM_INTEGRAL (30)
+#define DRIVETRAIN_MINIMUM_DT_PID (0.001) // in seconds, 1 millisecond
+
+#define DRIVETRAIN_WILL_VOLUNTEER_AUTOMATED_DISPLACEMENTS (true)
 
 /*****************************************************
  *                       LIDAR                       *
@@ -110,3 +146,12 @@
 #define LIDAR_SWEEP_STARTUP_MS (500UL) // millis
 #define LIDAR_SWEEP_TIMEOUT_MS (1000UL) // millis
 #define LIDAR_RESET_TIME_MS (2000UL) // millis
+
+/*****************************************************
+ *                     ULTRASONIC                    *
+ *****************************************************/
+
+#define ULTRASONIC_TIME_TRIGGER_RESET_MS (2) // millis
+#define ULTRASONIC_TIME_TRIGGER_HIGH_US (10) // micros
+#define SPEED_OF_SOUND_DIV2_MPS (170) // meters/second
+#define ULTRASONIC_SWEEP_INCREMENTS_DEG (15) // degrres

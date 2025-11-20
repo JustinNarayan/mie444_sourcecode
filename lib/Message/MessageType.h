@@ -12,17 +12,22 @@ enum class MessageType {
 
 	/* Generic Types */
 	Generic,
-	Error,
+    Error,
 
 	/* Drivetrain */
 	DrivetrainManualCommand,
 	DrivetrainManualResponse,
+	DrivetrainAutomatedCommand,
+	DrivetrainAutomatedResponse,
 	DrivetrainEncoderState,
 	DrivetrainEncoderDistances,
+    DrivetrainDisplacements,
 
 	/* Sensor Readings*/
 	LidarState,
 	LidarPointReading,
+    UltrasonicState,
+    UltrasonicPointReading,
 
 	Count
 };

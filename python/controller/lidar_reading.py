@@ -6,7 +6,6 @@ import math
 import numpy as np
 
 # --- Tunables / constants for LIDAR file ---
-MM_TO_INCH = 0.0393701     # millimeters -> inches (kept for backward compatibility if needed)
 DOWNSAMPLE_POINTS = 30     # default number of buckets for downsampling
 EPSILON = 1e-12                # tiny value to avoid division by zero in normalization
 # Force real Lidar data to conform to simulated measurements. 0 is forward.
@@ -21,13 +20,10 @@ class LidarPointReading:
     """
     __slots__ = ("angle", "distance")
 
-    def __init__(self, angle_deg: float, distance: float, needs_mm_to_inch_conversion: bool):
+    def __init__(self, angle_deg: float, distance: float):
         # keep angle normalized to [0,360)
         self.angle = float(angle_deg) % 360.0
-        if needs_mm_to_inch_conversion:
-            self.distance = float(distance * MM_TO_INCH) # now inches
-        else:
-            self.distance = float(distance) # already inches
+        self.distance = float(distance) # already inches
 
     def __lt__(self, other):
         # For bisect sorting by angle
@@ -101,8 +97,7 @@ class LidarReading:
         normalized = [
             LidarPointReading(
                 p.angle, 
-                p.distance / max_dist, # unitless 0..1 (distance stored as proportion)
-                needs_mm_to_inch_conversion=False # no conversion to keep in 0..1
+                p.distance / max_dist # unitless 0..1 (distance stored as proportion)
             )
             for p in self.points
         ]
@@ -156,8 +151,7 @@ class LidarReading:
             downsampled.append(
                 LidarPointReading(
                     center, 
-                    avg_distance, 
-                    needs_mm_to_inch_conversion=False # downsampling pre-existing points that must be in inches
+                    avg_distance
                 )
             )
 
