@@ -15,7 +15,7 @@ using MessageTypesInUltrasonic = MessageTypes<
     MessageType::DrivetrainAutomatedResponse // for determin
 >;
 using MessageTypesOutUltrasonic = MessageTypes<
-    MessageType::UltrasonicPointReading, // Single Ultrasonic point reading
+    MessageType::UltrasonicPointReading, // Single Ultrasonic point reading from Ultrasonic 1
 	MessageType::UltrasonicState // Indicates if read successful/failure and when sent
 >;
 
@@ -49,9 +49,12 @@ private:
      * Record the encoders and the current state of an ultrasonic sweep
      */
     UltrasonicSweepState sweepState;
+    time_ms sweepStartTime;
     DrivetrainEncoderDistances encodersStart;
     DrivetrainEncoderDistances encodersNow;
-    ultrasonicAngle_deg targetAngle;
+    bool hasPingedEncodersAtThisPosition;
+    time_ms encoderPingTime;
+    time_ms automatedCommandTime;
 
     /**
      * Communications utilities
@@ -62,11 +65,17 @@ private:
 	void sendUltrasonicState(UltrasonicState state);
     void sendUltrasonicPointReading(UltrasonicPointReading* reading);
     void requestDrivetrainStep(void);
+    void requestEncoders(void);
 
     /**
      * Process utilities
      */
     bool shouldAcceptNewRequests(void);
+    bool shouldFinishSweep(void);
+    bool shouldPingEncoders(void);
+    void ignoreDrivetrainAutomatedResponseIfTooLong(void);
+    void pingUltrasonicsAndSend(void);
+    void processSweep(void);
 public:
     UltrasonicController(
         Ultrasonic* ultrasonic1, 

@@ -1,6 +1,7 @@
 #pragma once
 #include "Settings.h"
 #include "Types.h"
+#include <DrivetrainDefs.h>
 
 /*****************************************************
  *                 COMPILER UTILITIES                *
@@ -36,10 +37,10 @@ enum class UltrasonicSweepState
 {
     Idle,
     FirstEncoderReading,
+    SendingPoint,
     IssuingStep,
     ConfirmingStep,
     SweepEncoderReading,
-    SendingPoint,
     Complete
 };
 
@@ -52,6 +53,7 @@ enum class UltrasonicSweepState
  */
 struct UltrasonicPointReading
 {
-	ultrasonicAngle_deg angle;
+    uint8_t whichUltrasonic;
+	DrivetrainEncoderDistances encoders;
 	ultrasonicDistance_in distance;
 };

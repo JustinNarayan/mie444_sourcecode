@@ -30,6 +30,9 @@ class MessageType(Enum):
     LidarState = auto()
     LidarPointReading = auto()
 
+    UltrasonicState = auto()
+    UltrasonicPointReading = auto()
+
     Count = auto()
 
 
@@ -60,6 +63,11 @@ _TYPE_FORMATS = {
         fmt="<hh",  # two int16_t
         units=("°", "in"),  # degree, in
         disp=["{}{u}", "{} {u}"],  # display format
+    ),
+    MessageType.UltrasonicPointReading: dict(
+        fmt="<Bffff", # a uint8_t, four float32_t
+        units=("", "in", "in", "in", "in"), # which ultrasonic, three encoder readings, ultrasonic
+        disp=["{}{u}", "{:.2f} {u}", "{:.2f} {u}", "{:.2f} {u}", "{:.2f} {u}"]
     ),
     MessageType.Generic: dict(text=True),
     MessageType.Error: dict(text=True),

@@ -92,13 +92,34 @@ void StructMessageMap<UltrasonicPointReading>::strToStruct(
 {
     const uint8_t* asBytes = (const uint8_t*)buffer;
     // Interpret as int16_t and float32_t, little endian
-    s->angle = (int16_t)(asBytes[0] | ((uint16_t)(asBytes[1]) << 8));
-    s->distance = (float32_t)(
-        asBytes[2] | 
-        ((uint32_t)(asBytes[3]) << 8) | 
-        ((uint32_t)(asBytes[4]) << 16) | 
-        ((uint32_t)(asBytes[5]) << 24)
+    s->whichUltrasonic = asBytes[0];
+
+    s->encoders.encoder1Dist = (float32_t)(
+        asBytes[1] | 
+        ((uint32_t)(asBytes[2]) << 8) | 
+        ((uint32_t)(asBytes[3]) << 16) | 
+        ((uint32_t)(asBytes[4]) << 24)
     );
-    // int16_t = ultrasonicAngle_deg
+    s->encoders.encoder2Dist = (float32_t)(
+        asBytes[5] | 
+        ((uint32_t)(asBytes[6]) << 8) | 
+        ((uint32_t)(asBytes[7]) << 16) | 
+        ((uint32_t)(asBytes[8]) << 24)
+    );
+    s->encoders.encoder3Dist = (float32_t)(
+        asBytes[9] | 
+        ((uint32_t)(asBytes[10]) << 8) | 
+        ((uint32_t)(asBytes[11]) << 16) | 
+        ((uint32_t)(asBytes[12]) << 24)
+    );
+    
+    s->distance = (float32_t)(
+        asBytes[13] | 
+        ((uint32_t)(asBytes[14]) << 8) | 
+        ((uint32_t)(asBytes[15]) << 16) | 
+        ((uint32_t)(asBytes[16]) << 24)
+    );
+    // uint8_t = which ultrasonic
+    // float32_t = encoderDistance_in
     // float32_t = ultrasonicDistance_in
 }
