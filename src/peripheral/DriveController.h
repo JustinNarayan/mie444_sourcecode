@@ -15,8 +15,9 @@ using MessageTypesInDrive = MessageTypes<
 >;
 using MessageTypesOutDrive = MessageTypes<
     MessageType::DrivetrainManualResponse, // Manual command responses
-    MessageType::DrivetrainAutomatedResponse, // Automated command responses
-    MessageType::DrivetrainDisplacements // Displacements after automated commands
+    MessageType::DrivetrainAutomatedResponse // Automated command responses
+    // MessageType::DrivetrainDisplacements, // Displacements after automated commands
+    // MessageType::DrivetrainMotorCommand // Motor commands
 >;
 
 /*****************************************************
@@ -61,6 +62,7 @@ private:
 	void checkDrivetrainAutomatedCommand(void);
 	void sendDrivetrainAutomatedResponse(DrivetrainAutomatedResponse response);
 	void sendDrivetrainDisplacements(DrivetrainDisplacements *displacements);
+	void sendDrivetrainMotorCommand(DrivetrainMotorCommand *command);
 
 	/**
 	 * @brief Process utilities

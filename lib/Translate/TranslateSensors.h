@@ -1,4 +1,5 @@
 #pragma once
+#if defined(BOARD_CONTROLLER)
 #include <MessageType.h>
 #include <LidarDefs.h>
 #include <UltrasonicDefs.h>
@@ -38,3 +39,4 @@ COMPILE_TIME_ENFORCE_ENUM_MAP_COUNT(UltrasonicStateMap, UltrasonicState);
  *****************************************************/
 COMPILE_TIME_ENFORCE_STRUCT_SIZE(LidarPointReading);
 COMPILE_TIME_ENFORCE_STRUCT_SIZE(UltrasonicPointReading);
+#endif

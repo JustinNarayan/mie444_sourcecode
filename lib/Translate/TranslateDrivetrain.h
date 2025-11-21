@@ -53,3 +53,4 @@ COMPILE_TIME_ENFORCE_ENUM_MAP_COUNT(DrivetrainEncoderStateMap, DrivetrainEncoder
 COMPILE_TIME_ENFORCE_STRUCT_SIZE(DrivetrainEncoderDistances);
 COMPILE_TIME_ENFORCE_STRUCT_SIZE(DrivetrainAutomatedCommand);
 COMPILE_TIME_ENFORCE_STRUCT_SIZE(DrivetrainDisplacements);
+COMPILE_TIME_ENFORCE_STRUCT_SIZE(DrivetrainMotorCommand);

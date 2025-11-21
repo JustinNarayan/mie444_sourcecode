@@ -73,6 +73,37 @@ void StructMessageMap<DrivetrainDisplacements>::strToStruct(
     );
 }
 
+/// DrivetrainMotorCommand
+template <>
+void StructMessageMap<DrivetrainMotorCommand>::strToStruct(
+    DrivetrainMotorCommand* s, const char* buffer) const
+{
+    const uint8_t* asBytes = (const uint8_t*)buffer;
+    // Interpret as three pairs of bool then float32_t, little endian
+    s->is1Forward = asBytes[0];
+    s->speed1 = (float32_t)(
+        asBytes[1] | 
+        ((uint32_t)(asBytes[2]) << 8) | 
+        ((uint32_t)(asBytes[3]) << 16) | 
+        ((uint32_t)(asBytes[4]) << 24)
+    );
+    s->is2Forward = asBytes[5];
+    s->speed2 = (float32_t)(
+        asBytes[6] | 
+        ((uint32_t)(asBytes[7]) << 8) | 
+        ((uint32_t)(asBytes[8]) << 16) | 
+        ((uint32_t)(asBytes[9]) << 24)
+    );
+    s->is3Forward = asBytes[10];
+    s->speed3 = (float32_t)(
+        asBytes[11] | 
+        ((uint32_t)(asBytes[12]) << 8) | 
+        ((uint32_t)(asBytes[13]) << 16) | 
+        ((uint32_t)(asBytes[14]) << 24)
+    );
+}
+
+#if defined(BOARD_CONTROLLER)
 // LidarPointReading
 template <>
 void StructMessageMap<LidarPointReading>::strToStruct(
@@ -123,3 +154,4 @@ void StructMessageMap<UltrasonicPointReading>::strToStruct(
     // float32_t = encoderDistance_in
     // float32_t = ultrasonicDistance_in
 }
+#endif

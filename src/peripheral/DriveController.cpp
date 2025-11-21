@@ -111,6 +111,17 @@ void DriveController::sendDrivetrainDisplacements(DrivetrainDisplacements *displ
 	this->post(&message);
 }
 
+/**
+ * @brief Write DrivetrainMotorCommand
+ * 
+ * @param response To write
+ */
+void DriveController::sendDrivetrainMotorCommand(DrivetrainMotorCommand *command)
+{
+	Message message;
+	DrivetrainMotorCommandTranslation.asMessage(command, &message);
+	this->post(&message);
+}
 
 /**
  * @brief Process manual command to drivetrain and record it.
@@ -245,6 +256,11 @@ void DriveController::applyAutomatedCommand(bool isFirstApplicationOfCommand)
         
         // Send command to drivetrain
         drivetrain->setMotors(&command);
+
+# if DRIVETRAIN_WILL_VOLUNTEER_AUTOMATED_COMMANDS
+        // Send motor commands
+        this->sendDrivetrainMotorCommand(&command);
+# endif
     }
 #endif
 

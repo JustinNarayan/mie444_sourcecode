@@ -22,14 +22,14 @@ with open(
 
 
 ### TUNABLE PARAMETERS
-NUM_PARTICLES = 3000            # number of particles
+NUM_PARTICLES = 1#3000            # number of particles
 NUM_SCAN_ANGLES = 60           # number of beams used per particle (then downsampled)
-MOVEMENT_NOISE_LINEAR = 0.25      # inches (std dev of translational motion noise)
-MOVEMENT_NOISE_ANGULAR = 0.2     # radians (std dev of rotational motion noise)
+MOVEMENT_NOISE_LINEAR = 0#0.25      # inches (std dev of translational motion noise)
+MOVEMENT_NOISE_ANGULAR = 0#0.2     # radians (std dev of rotational motion noise)
 SENSOR_STD_PERCENT_ERROR = 0.3     # std dev of normalized measurement noise (in percent); used in Gaussian likelihood
 MIN_WEIGHT = 1e-5                # floor weight to avoid zeroing out particles (tunable)
-RESAMPLE_JITTER_POS = 0.3        # inches, positional jitter after resampling
-RESAMPLE_JITTER_THETA = 0.2     # radians, angular jitter after resampling
+RESAMPLE_JITTER_POS = 0#0.3        # inches, positional jitter after resampling
+RESAMPLE_JITTER_THETA = 0#0.2     # radians, angular jitter after resampling
 
 # LIDAR reasonable bounds (inches)
 LIDAR_RANGE_MIN = 3.0

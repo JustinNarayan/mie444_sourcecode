@@ -11,7 +11,7 @@ last_sent_encoder_reading: EncoderReading | None = None
 post_lidar_encoder_reading: EncoderReading | None = None
 
 # Robot parameters
-L = 3.73771654 # inches, 94.938 mm - DISTANCE_FROM_OBJECT_CENTER_TO_WHEEL_MIDPOINT
+L = 3.569 # inches- DISTANCE_FROM_OBJECT_CENTER_TO_WHEEL_MIDPOINT
 # Thetas, defined as angle from robot x-axis to motor allignment
 # X-axis is defined as the forward direction of the robot (bisecting two of the drive wheels perpincular to third drive wheel)
 
@@ -79,5 +79,6 @@ def get_delta_position_orientation(post_lidar: EncoderReading, last_sent: Encode
     Robot_displacement = A_INV @ motor_displacements
     # Return delta_x, delta_y, delta_theta
     delta_x, delta_y, delta_theta = Robot_displacement[0], Robot_displacement[1], Robot_displacement[2]
+    print(Robot_displacement)
     
     return delta_x, delta_y, delta_theta

@@ -38,7 +38,7 @@ UltrasonicController g_ultrasonicController(
 static ControllerGeneric* primaryControllers[] = {
 	&g_peripheralForwardingController,
 	&g_lidarController,
-    &g_ultrasonicController
+    // &g_ultrasonicController
 };
 TASKMASTER_DECLARE(primaryTaskmaster, &g_externalComms, primaryControllers)
 
