@@ -18,6 +18,7 @@ enum class DrivetrainManualCommand
 	TranslateBackward,
 	RotateLeft,
 	RotateRight,
+    Brake,
 	Halt,
 	Automated,
 
@@ -33,6 +34,7 @@ enum class DrivetrainManualResponse
 	NoReceived,
 	Acknowledge,
 	NotifyHalting,
+    NotifyBraking,
 	
 	Count
 };
@@ -46,8 +48,8 @@ enum class DrivetrainAutomatedResponse
 	NoReceived,
 	Acknowledge,
 	InProgress,
-	Failure,
-	Success,
+	Overshot,
+	AtTarget,
 	Aborted,
 
 	Count
@@ -73,7 +75,7 @@ enum class DrivetrainEncoderState
 /**
  * Structure for encoder information
  */
-struct DrivetrainEncoderDistances
+struct __attribute__((packed)) DrivetrainEncoderDistances
 {
 	encoderDistance_in encoder1Dist;
 	encoderDistance_in encoder2Dist;
@@ -84,7 +86,7 @@ struct DrivetrainEncoderDistances
  * Structure for drivetrain displacements
  * 
  */
-struct DrivetrainDisplacements
+struct __attribute__((packed)) DrivetrainDisplacements
 {
 	float32_t dX_in; // directly forward
 	float32_t dY_in; // 90 deg CCW
@@ -95,7 +97,7 @@ struct DrivetrainDisplacements
  * Structure for drivetrain automated commands
  * 
  */
-struct DrivetrainAutomatedCommand
+struct __attribute__((packed)) DrivetrainAutomatedCommand
 {
 	int16_t dX_in;
     int16_t dY_in;
@@ -116,14 +118,14 @@ struct DrivetrainCommandDirection
 /**
  * Structure for motor commands on all three wheels to drivetrain
  */
-struct DrivetrainMotorCommand
+struct __attribute__((packed)) DrivetrainMotorCommand
 
 {
-	motorDirection direction1;
+	bool is1Forward;
 	motorSpeedRaw speed1;
-	motorDirection direction2;
+	bool is2Forward;
 	motorSpeedRaw speed2;
-	motorDirection direction3;
+	bool is3Forward;
 	motorSpeedRaw speed3;
 };
 
@@ -157,9 +159,9 @@ struct DrivetrainMotorCommand
  *          ---------------------------------     --------------------------
  */
 static const float32_t A[9] = {
-	( 0.000000), ( 1.000000), ( 3.569000),
-	(-0.866025), ( 0.500000), ( 3.569000),
-	( 0.866025), ( 0.500000), ( 3.569000),
+	( 0.000000), (-1.000000), ( 3.569000),
+	(-0.866025), ( 0.500000), ( 3.569000), // A[2,2] negated for y-sign convention
+	( 0.866025), ( 0.500000), ( 3.569000), // A[3,2] negated for y-sign convention
 };
 
 static const float32_t Ainv[9] = {
@@ -197,8 +199,8 @@ static inline void drivetrainCommandFromDisplacements(
 )
 {
     command->dX_in = (int16_t)displacements->dX_in;
-    command->dY_in = (int16_t)displacements->dY_in;
-    command->dTheta_deg = (int16_t)(RAD_TO_DEG * displacements->dTheta_rad);
+    command->dY_in = (int16_t)(displacements->dY_in);
+    command->dTheta_deg = (int16_t)(RAD_TO_DEG * displacements->dTheta_rad); // unit conversion
 }
 
 /**
@@ -218,9 +220,9 @@ static inline void displacementsFromEncoderReadings(
 		return;
 	
 	// Compute encoder displacements
-	const encoderDistance_in d1 = encodersAfter->encoder1Dist - encodersBefore->encoder1Dist;
-	const encoderDistance_in d2 = encodersAfter->encoder2Dist - encodersBefore->encoder2Dist;
-	const encoderDistance_in d3 = encodersAfter->encoder3Dist - encodersBefore->encoder3Dist;
+	encoderDistance_in d1 = encodersAfter->encoder1Dist - encodersBefore->encoder1Dist;
+	encoderDistance_in d2 = encodersAfter->encoder2Dist - encodersBefore->encoder2Dist;
+	encoderDistance_in d3 = encodersAfter->encoder3Dist - encodersBefore->encoder3Dist;
 
 	// Compute displacements
 	displacements->dX_in      = (Ainv[0] * d1) + (Ainv[1] * d2) + (Ainv[2] * d3);
@@ -323,62 +325,61 @@ static inline DrivetrainAutomatedResponse areEncodersAtTarget(
 	const bool t3Near = fabsf(d3) < DRIVETRAIN_ENCODERS_EQUAL_TOLERANCE_THRESHOLD;
 
 	// Succeed if all motors at target
-	if (t1Near && t2Near && t3Near) return DrivetrainAutomatedResponse::Success;
+	if (t1Near && t2Near && t3Near) return DrivetrainAutomatedResponse::AtTarget;
 
 	// Determine if any motors are yet to pass target
-	// bool undershoot1 = direction->increase1ToTarget ? (d1 > 0) : (d1 < 0);
-	// bool undershoot2 = direction->increase2ToTarget ? (d2 > 0) : (d2 < 0);
-	// bool undershoot3 = direction->increase3ToTarget ? (d3 > 0) : (d3 < 0);
+	bool overshoot1 = direction->increase1ToTarget ? \
+        (d1 < -DRIVETRAIN_ALLOWED_OVERSHOOT) : (d1 > DRIVETRAIN_ALLOWED_OVERSHOOT);
+	bool overshoot2 = direction->increase2ToTarget ? \
+        (d2 < -DRIVETRAIN_ALLOWED_OVERSHOOT) : (d2 > DRIVETRAIN_ALLOWED_OVERSHOOT);
+	bool overshoot3 = direction->increase3ToTarget ? \
+        (d3 < -DRIVETRAIN_ALLOWED_OVERSHOOT) : (d3 > DRIVETRAIN_ALLOWED_OVERSHOOT);
 
 	// Fail if any motor has overshot target and no longer near
-	// if (
-	// 	(!t1Near && !undershoot1) ||
-	// 	(!t2Near && !undershoot2) ||
-	// 	(!t3Near && !undershoot3)
-	// ) return DrivetrainAutomatedResponse::Failure;
+	if (
+		(!t1Near && overshoot1) ||
+		(!t2Near && overshoot2) ||
+		(!t3Near && overshoot3)
+	) return DrivetrainAutomatedResponse::Overshot;
 
 	// Otherwise, return in progress
 	return DrivetrainAutomatedResponse::InProgress;
 }
 
 /**
- * @brief Forward kinematics. Get motor command from displacement. Limit motor commands
+ * @brief Get motor command from drivetrain encoder distances (about 0). Limit motor commands
  * 	to a specific maximum value.
  * 
- * @param displacements
+ * @param distances
  * @param motorCommand // Updated after call
+ * @param limitLow
+ * @param limitHigh
  */
-static inline void motorCommandFromDisplacement(
-	DrivetrainDisplacements *displacements,
+static inline void motorCommandFromDistances(
+	DrivetrainEncoderDistances *distances,
 	DrivetrainMotorCommand *motorCommand,
 	motorSpeedRaw limitLow,
     motorSpeedRaw limitHigh
 )
 {
-	if (!displacements || !motorCommand)
-		return;
-
-	// Compute displacements
-	const float32_t d1 = \
-		(A[0] * displacements->dX_in) + 
-        (A[1] * displacements->dY_in) + 
-        (A[2] * displacements->dTheta_rad);
-	const float32_t d2 = \
-		(A[3] * displacements->dX_in) + 
-        (A[4] * displacements->dY_in) + 
-        (A[5] * displacements->dTheta_rad);
-	const float32_t d3 = \
-		(A[6] * displacements->dX_in) + 
-        (A[7] * displacements->dY_in) + 
-        (A[8] * displacements->dTheta_rad);
+    // Extract distances
+    const float32_t d1 = distances->encoder1Dist;
+    const float32_t d2 = distances->encoder2Dist;
+    const float32_t d3 = distances->encoder3Dist;
 
 	// Assign raw motor commands
-	motorCommand->direction1 = d1 > 0;
+	motorCommand->is1Forward = d1 > 0;
+	motorCommand->is2Forward = d2 > 0;
+	motorCommand->is3Forward = d3 > 0;
+#if DRIVETRAIN_AUTOMATED_APPLY_GAINS_TO_DISPLACEMENTS
+	motorCommand->speed1 = MOTOR_1_EMPIRICAL_GAIN(fabsf(d1));
+	motorCommand->speed2 = MOTOR_2_EMPIRICAL_GAIN(fabsf(d2));
+	motorCommand->speed3 = MOTOR_3_EMPIRICAL_GAIN(fabsf(d3));
+#else
 	motorCommand->speed1 = fabsf(d1);
-	motorCommand->direction2 = d2 > 0;
 	motorCommand->speed2 = fabsf(d2);
-	motorCommand->direction3 = d3 > 0;
 	motorCommand->speed3 = fabsf(d3);
+#endif
 
     // Check deadbands and find smallest nonzero motor speed
     motorSpeedRaw lowestSpeed = limitHigh;
@@ -412,6 +413,51 @@ static inline void motorCommandFromDisplacement(
 }
 
 /**
+ * @brief Forward kinematics. Get motor command from displacement. Limit motor commands
+ * 	to a specific maximum value.
+ * 
+ * @param displacements
+ * @param motorCommand // Updated after call
+ * @param limitLow
+ * @param limitHigh
+ */
+static inline void motorCommandFromDisplacement(
+	DrivetrainDisplacements *displacements,
+	DrivetrainMotorCommand *motorCommand,
+	motorSpeedRaw limitLow,
+    motorSpeedRaw limitHigh
+)
+{
+	if (!displacements || !motorCommand)
+		return;
+
+	// Compute encoder distances
+    DrivetrainEncoderDistances distances;
+	distances.encoder1Dist = \
+		(A[0] * displacements->dX_in) + 
+        (A[1] * displacements->dY_in) + 
+        (A[2] * displacements->dTheta_rad);
+	distances.encoder2Dist = \
+		(A[3] * displacements->dX_in) + 
+        (A[4] * displacements->dY_in) + 
+        (A[5] * displacements->dTheta_rad);
+	distances.encoder3Dist = \
+		(A[6] * displacements->dX_in) + 
+        (A[7] * displacements->dY_in) + 
+        (A[8] * displacements->dTheta_rad);
+
+    // Get motor command
+    motorCommandFromDistances(
+        &distances,
+        motorCommand,
+        limitLow,
+        limitHigh
+    );
+}
+
+#if (false == DRIVETRAIN_WILL_USE_SIMPLE_AUTOMATED_INTERFACE)
+
+/**
  * @brief Compute the drivetrain motor speed with a slew limit.
  * 
  * @param rawSpeed
@@ -438,7 +484,7 @@ static inline void getDrivetrainMotorCommand(
 	DrivetrainEncoderDistances *encodersNow,
 	DrivetrainEncoderDistances *encodersTarget,
 	DrivetrainMotorCommand *command,
-    bool isFirstCommand = true // Resets integral control
+    bool isFirstCommand // Resets integral control
 )
 {
 	// Compute inverse kinematics
@@ -449,6 +495,7 @@ static inline void getDrivetrainMotorCommand(
 		encodersTarget
 	);
 
+# if DRIVETRAIN_AUTOMATED_APPLY_GAINS_TO_DISPLACEMENTS
     // Update control variables
     static time_ms lastMillis = millis();
     static DrivetrainDisplacements integratedDisplacements = {0};
@@ -459,7 +506,7 @@ static inline void getDrivetrainMotorCommand(
     {
         lastMillis = millis();
         integratedDisplacements = {0};
-        lastDisplacements = {0};
+        lastDisplacements = displacements;
         prevCommand = {0};
     }
     else
@@ -469,39 +516,52 @@ static inline void getDrivetrainMotorCommand(
         time_s dt = MS_TO_S(now - lastMillis);
 
         // Update integral and derivative terms if enough time elapsed
-        if (dt < DRIVETRAIN_MINIMUM_DT_PID)
-        {
-            differentiatedDisplacements = {0};
-        }
-        else
+        if (dt > DRIVETRAIN_MINIMUM_DT_PID)
         {
             // Integral
             integratedDisplacements.dX_in = constrain(
-                integratedDisplacements.dX_in + displacements.dX_in * dt,
+                integratedDisplacements.dX_in + (displacements.dX_in * dt),
                 -DRIVETRAIN_MAXIMUM_INTEGRAL, 
                 DRIVETRAIN_MAXIMUM_INTEGRAL
             );
             integratedDisplacements.dY_in = constrain(
-                integratedDisplacements.dY_in + displacements.dY_in * dt,
+                integratedDisplacements.dY_in + (displacements.dY_in * dt),
                 -DRIVETRAIN_MAXIMUM_INTEGRAL, 
                 DRIVETRAIN_MAXIMUM_INTEGRAL
             );
-            integratedDisplacements.dTheta_rad = constrain(
-                integratedDisplacements.dTheta_rad + displacements.dTheta_rad * dt,
-                -DRIVETRAIN_MAXIMUM_INTEGRAL, 
-                DRIVETRAIN_MAXIMUM_INTEGRAL
-            );
+            if (fabsf(displacements.dTheta_rad) > DRIVETRAIN_MINIMUM_DTHETA_FOR_INTEGRAL)
+            {
+                integratedDisplacements.dTheta_rad = constrain(
+                    integratedDisplacements.dTheta_rad + (displacements.dTheta_rad * dt),
+                    -DRIVETRAIN_MAXIMUM_INTEGRAL_THETA, 
+                    DRIVETRAIN_MAXIMUM_INTEGRAL_THETA
+                );
+            }
+            else
+            {
+                integratedDisplacements.dTheta_rad = 0;
+            }
 
             // Derivative
-            differentiatedDisplacements.dX_in = \
-                (displacements.dX_in - lastDisplacements.dX_in) / dt;
-            differentiatedDisplacements.dY_in = \
-                (displacements.dY_in - lastDisplacements.dY_in) / dt;
-            differentiatedDisplacements.dTheta_rad = \
-                (displacements.dTheta_rad - lastDisplacements.dTheta_rad) / dt;
+            // Do not directly divide by time to avoid small number floating point errors
+            differentiatedDisplacements.dX_in = constrain(
+                (displacements.dX_in - lastDisplacements.dX_in),
+                -DRIVETRAIN_MAXIMUM_DERIVATIVE,
+                DRIVETRAIN_MAXIMUM_DERIVATIVE
+            );
+            differentiatedDisplacements.dY_in = constrain(
+                (displacements.dY_in - lastDisplacements.dY_in),
+                -DRIVETRAIN_MAXIMUM_DERIVATIVE,
+                DRIVETRAIN_MAXIMUM_DERIVATIVE
+            );
+            differentiatedDisplacements.dTheta_rad = constrain(
+                (displacements.dTheta_rad - lastDisplacements.dTheta_rad),
+                -DRIVETRAIN_MAXIMUM_DERIVATIVE,
+                DRIVETRAIN_MAXIMUM_DERIVATIVE
+            );
 
             // Update static
-            memoryCopy(&lastDisplacements, &displacements, sizeof(DrivetrainDisplacements));
+            lastDisplacements = displacements;
             lastMillis = now;
         }
     }
@@ -510,17 +570,17 @@ static inline void getDrivetrainMotorCommand(
     DrivetrainDisplacements controlDisplacements;
 	controlDisplacements.dX_in = \
         (displacements.dX_in * DRIVETRAIN_AUTOMATED_GAIN_KP_DX) +
-        (integratedDisplacements.dX_in * DRIVETRAIN_AUTOMATED_GAIN_KI_DX)
-         + (differentiatedDisplacements.dX_in * DRIVETRAIN_AUTOMATED_GAIN_KD_DX);
+        (integratedDisplacements.dX_in * DRIVETRAIN_AUTOMATED_GAIN_KI_DX) +
+        (differentiatedDisplacements.dX_in * DRIVETRAIN_AUTOMATED_GAIN_KD_DX);
 	controlDisplacements.dY_in = \
         (displacements.dY_in * DRIVETRAIN_AUTOMATED_GAIN_KP_DY) +
-        (integratedDisplacements.dY_in * DRIVETRAIN_AUTOMATED_GAIN_KI_DY)
-         + (differentiatedDisplacements.dY_in * DRIVETRAIN_AUTOMATED_GAIN_KD_DY);
+        (integratedDisplacements.dY_in * DRIVETRAIN_AUTOMATED_GAIN_KI_DY) +
+        (differentiatedDisplacements.dY_in * DRIVETRAIN_AUTOMATED_GAIN_KD_DY);
 	controlDisplacements.dTheta_rad = \
         (displacements.dTheta_rad * DRIVETRAIN_AUTOMATED_GAIN_KP_DTHETA) +
-        (integratedDisplacements.dTheta_rad * DRIVETRAIN_AUTOMATED_GAIN_KI_DTHETA)
-         + (differentiatedDisplacements.dTheta_rad * DRIVETRAIN_AUTOMATED_GAIN_KD_DTHETA);
-	
+        (integratedDisplacements.dTheta_rad * DRIVETRAIN_AUTOMATED_GAIN_KI_DTHETA) +
+        (differentiatedDisplacements.dTheta_rad * DRIVETRAIN_AUTOMATED_GAIN_KD_DTHETA);
+
 	// Compute forward kinematics after gain
 	motorCommandFromDisplacement(
 		&controlDisplacements,
@@ -528,12 +588,135 @@ static inline void getDrivetrainMotorCommand(
         (motorSpeedRaw)DRIVETRAIN_AUTOMATED_MIN_SPEED,
 		(motorSpeedRaw)DRIVETRAIN_AUTOMATED_MAX_SPEED
 	);
+#else
+	// Compute encoder delta
+	DrivetrainEncoderDistances dEncoders;
+    dEncoders.encoder1Dist = (encodersTarget->encoder1Dist - encodersNow->encoder1Dist);
+    dEncoders.encoder2Dist = (encodersTarget->encoder2Dist - encodersNow->encoder2Dist);
+    dEncoders.encoder3Dist = (encodersTarget->encoder3Dist - encodersNow->encoder3Dist);
+
+    // Update control variables
+    static time_ms lastMillis = millis();
+    static DrivetrainEncoderDistances dEncodersInt = {0};
+    static DrivetrainEncoderDistances dEncodersLast = {0};
+    static DrivetrainEncoderDistances dEncodersDiff = {0};
+	static DrivetrainMotorCommand prevCommand = { 
+        .is1Forward=false, .speed1=0,
+        .is2Forward=false, .speed2=0,
+        .is3Forward=false, .speed3=0
+    };
+    if (isFirstCommand)
+    {
+        lastMillis = millis();
+        dEncodersInt = {0};
+        dEncodersLast = dEncoders;
+        prevCommand = {0};
+    }
+    else
+    {
+        // Compute time step
+        time_ms now = millis();
+        time_s dt = MS_TO_S(now - lastMillis);
+
+        if (dt > DRIVETRAIN_MINIMUM_DT_PID)
+        {
+            /// Update integral and derivative terms if enough time elapsed
+            dEncodersInt.encoder1Dist = constrain(
+                dEncodersInt.encoder1Dist + (dEncoders.encoder1Dist * dt),
+                -DRIVETRAIN_MAXIMUM_INTEGRAL_MOTORS, 
+                DRIVETRAIN_MAXIMUM_INTEGRAL_MOTORS
+            );
+            dEncodersInt.encoder2Dist = constrain(
+                dEncodersInt.encoder2Dist + (dEncoders.encoder2Dist * dt),
+                -DRIVETRAIN_MAXIMUM_INTEGRAL_MOTORS, 
+                DRIVETRAIN_MAXIMUM_INTEGRAL_MOTORS
+            );
+            dEncodersInt.encoder3Dist = constrain(
+                dEncodersInt.encoder3Dist + (dEncoders.encoder3Dist * dt),
+                -DRIVETRAIN_MAXIMUM_INTEGRAL_MOTORS, 
+                DRIVETRAIN_MAXIMUM_INTEGRAL_MOTORS
+            );
+
+            /// Derivative
+            dEncodersDiff.encoder1Dist = constrain(
+                (dEncoders.encoder1Dist - dEncodersLast.encoder1Dist) / dt,
+                -DRIVETRAIN_MAXIMUM_DERIVATIVE_MOTORS,
+                DRIVETRAIN_MAXIMUM_DERIVATIVE_MOTORS
+            );
+            dEncodersDiff.encoder2Dist = constrain(
+                (dEncoders.encoder2Dist - dEncodersLast.encoder2Dist) / dt,
+                -DRIVETRAIN_MAXIMUM_DERIVATIVE_MOTORS,
+                DRIVETRAIN_MAXIMUM_DERIVATIVE_MOTORS
+            );
+            dEncodersDiff.encoder3Dist = constrain(
+                (dEncoders.encoder3Dist - dEncodersLast.encoder3Dist) / dt,
+                -DRIVETRAIN_MAXIMUM_DERIVATIVE_MOTORS,
+                DRIVETRAIN_MAXIMUM_DERIVATIVE_MOTORS
+            );
+
+            // Update static
+            dEncodersLast = dEncoders;
+            lastMillis = now;
+        }
+    }
+
+    /// Limit impact of proportional
+    dEncoders.encoder1Dist = constrain(
+        dEncoders.encoder1Dist,
+        -DRIVETRAIN_MAXIMUM_PROPORTIONAL_MOTORS,
+        DRIVETRAIN_MAXIMUM_PROPORTIONAL_MOTORS
+    );
+    dEncoders.encoder2Dist = constrain(
+        dEncoders.encoder2Dist,
+        -DRIVETRAIN_MAXIMUM_PROPORTIONAL_MOTORS,
+        DRIVETRAIN_MAXIMUM_PROPORTIONAL_MOTORS
+    );
+    dEncoders.encoder3Dist = constrain(
+        dEncoders.encoder3Dist,
+        -DRIVETRAIN_MAXIMUM_PROPORTIONAL_MOTORS,
+        DRIVETRAIN_MAXIMUM_PROPORTIONAL_MOTORS
+    );
+    
+	// Apply PID gains
+    DrivetrainEncoderDistances controlDistances;
+	controlDistances.encoder1Dist = \
+        (dEncoders.encoder1Dist * DRIVETRAIN_AUTOMATED_GAIN_KP_MOTOR_1) +
+        (dEncodersInt.encoder1Dist * DRIVETRAIN_AUTOMATED_GAIN_KI_MOTOR_1) +
+        (dEncodersDiff.encoder1Dist * DRIVETRAIN_AUTOMATED_GAIN_KD_MOTOR_1);
+
+	controlDistances.encoder2Dist = \
+        (dEncoders.encoder2Dist * DRIVETRAIN_AUTOMATED_GAIN_KP_MOTOR_2) +
+        (dEncodersInt.encoder2Dist * DRIVETRAIN_AUTOMATED_GAIN_KI_MOTOR_2) +
+        (dEncodersDiff.encoder2Dist * DRIVETRAIN_AUTOMATED_GAIN_KD_MOTOR_2);
+        
+	controlDistances.encoder3Dist = \
+        (dEncoders.encoder3Dist * DRIVETRAIN_AUTOMATED_GAIN_KP_MOTOR_3) +
+        (dEncodersInt.encoder3Dist * DRIVETRAIN_AUTOMATED_GAIN_KI_MOTOR_3) +
+        (dEncodersDiff.encoder3Dist * DRIVETRAIN_AUTOMATED_GAIN_KD_MOTOR_3);
+
+	// Compute special gains
+    if (displacements.dX_in < 0) // Backwards gain
+    {
+        controlDistances.encoder1Dist *= DRIVETRAIN_BACKWARDS_ADDED_GAIN_MOTOR_1;
+        controlDistances.encoder2Dist *= DRIVETRAIN_BACKWARDS_ADDED_GAIN_MOTOR_2;
+        controlDistances.encoder3Dist *= DRIVETRAIN_BACKWARDS_ADDED_GAIN_MOTOR_3;
+    }
+
+	// Compute forward kinematics after gain
+	motorCommandFromDistances(
+		&controlDistances,
+		command,
+        (motorSpeedRaw)DRIVETRAIN_AUTOMATED_MIN_SPEED,
+		(motorSpeedRaw)DRIVETRAIN_AUTOMATED_MAX_SPEED
+	);
+#endif
 	
 	// Apply slew
 	command->speed1 = applySlewLimit(command->speed1, prevCommand.speed1);
 	command->speed2 = applySlewLimit(command->speed2, prevCommand.speed2);
 	command->speed3 = applySlewLimit(command->speed3, prevCommand.speed3);
 	
-	// Store previous command	
-	memoryCopy(&prevCommand, command, sizeof(DrivetrainMotorCommand));
+	// Store previous command
+    prevCommand = *command;
 }
+#endif

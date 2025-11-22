@@ -5,6 +5,7 @@ import struct
 MESSAGE_END_CHAR = b"$"
 NULL_TERMINATOR = b"\x00"
 ENCODING_MINIMUM_LENGTH = 3  # type char, size char, end char
+RAD_TO_DEG = 180/3.14159
 
 
 # Type of Message.
@@ -25,9 +26,13 @@ class MessageType(Enum):
     DrivetrainEncoderState = auto()
     DrivetrainEncoderDistances = auto()
     DrivetrainDisplacements = auto()
+    DrivetrainMotorCommand = auto()
 
     LidarState = auto()
     LidarPointReading = auto()
+
+    UltrasonicState = auto()
+    UltrasonicPointReading = auto()
 
     Count = auto()
 
@@ -43,8 +48,20 @@ _TYPE_FORMATS = {
     ),
     MessageType.DrivetrainDisplacements: dict(
         fmt="<fff",  # three float32_t
-        units=("in", "in", "rad"),  # delta x, delta y, delta theta
-        disp=["{:.2f} {u}", "{:.2f} {u}", "{:.4f} {u}"],  # display format
+        units=("in", "in", "°"),  # delta x, delta y, delta theta
+        disp=[
+            "{:.2f} {u}", 
+            "{:.2f} {u}", 
+            lambda v, u: f"{v * RAD_TO_DEG:.2f} {u}",  # rad→deg for display
+            ],  # display format
+    ),
+    MessageType.DrivetrainMotorCommand: dict(
+        fmt="<BfBfBf",  # three bool then float32_t
+        units=("", "", "", "", "", ""),  # unitless
+        disp=[
+            lambda v, u: f"{'+' if v == 1 else '-'}{u}",
+            "{:.2f}{u}"
+            ]*3,  # display format
     ),
     MessageType.DrivetrainAutomatedCommand: dict(
         fmt="<hhh",  # three int16_t
@@ -55,6 +72,11 @@ _TYPE_FORMATS = {
         fmt="<hh",  # two int16_t
         units=("°", "in"),  # degree, in
         disp=["{}{u}", "{} {u}"],  # display format
+    ),
+    MessageType.UltrasonicPointReading: dict(
+        fmt="<Bffff", # a uint8_t, four float32_t
+        units=("", "in", "in", "in", "in"), # which ultrasonic, three encoder readings, ultrasonic
+        disp=["{}{u}", "{:.2f} {u}", "{:.2f} {u}", "{:.2f} {u}", "{:.2f} {u}"]
     ),
     MessageType.Generic: dict(text=True),
     MessageType.Error: dict(text=True),
@@ -178,7 +200,10 @@ class Message:
                     else disp
                 )
                 unit = units[i] if i < len(units) else ""
-                parts.append(fmt.format(v, u=unit))
+                if callable(fmt):
+                    parts.append(fmt(v, unit))   # <-- NEW
+                else:
+                    parts.append(fmt.format(v, u=unit))
 
             return f"<{self.type.name}({', '.join(parts)})>"
 

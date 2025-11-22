@@ -78,7 +78,6 @@ private:
 	void checkDrivetrainAutomatedCommand(void);
 	void envoyDrivetrainAutomatedCommand(void);
 	bool shouldEnvoyDrivetrainAutomatedCommand(void);
-	bool validateDrivetrainAutomatedCommandFresh(void);
 
     /**
      * @brief Internal drivetrain control interface

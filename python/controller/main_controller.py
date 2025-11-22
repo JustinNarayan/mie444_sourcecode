@@ -5,10 +5,12 @@ from bluetooth_manager import connect, disconnect
 from receiver import start_receiver, LOCALIZATION
 from control_manager import start_keyboard_listener
 from lidar_reading import LidarReading
+from ultrasonic_reading import UltrasonicReading
+from automated_command import AutomatedCommand
 from mcl2.mcl_main import begin_localization
 
 # ======= USER SETTINGS =======
-PORT = "COM5"
+PORT = "COM6"
 BAUD = 57600
 SEND_INTERVAL = 0.01  # seconds (10 ms)
 WAIT_INTERVAL = 0.01
@@ -24,11 +26,13 @@ def main():
 
     # Single LIDAR reading instance
     lidar_reading = LidarReading()
+    ultrasonic_reading = UltrasonicReading()
+    current_automated_command = AutomatedCommand(0,0,0)
 
-    start_receiver(ser, stop_event, lidar_reading)
+    start_receiver(ser, stop_event, lidar_reading, ultrasonic_reading, current_automated_command)
     start_keyboard_listener(
-        ser, stop_event, lidar_reading
-    )  # you may pass lidar_reading if needed
+        ser, stop_event, lidar_reading, ultrasonic_reading, current_automated_command
+    )
 
     # Localization begin
     if LOCALIZATION:

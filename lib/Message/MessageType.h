@@ -22,6 +22,7 @@ enum class MessageType {
 	DrivetrainEncoderState,
 	DrivetrainEncoderDistances,
     DrivetrainDisplacements,
+    DrivetrainMotorCommand,
 
 	/* Sensor Readings*/
 	LidarState,

@@ -39,7 +39,7 @@ enum class LidarState
 /**
  * Structure for individual Lidar point readings
  */
-struct LidarPointReading
+struct __attribute__((packed)) LidarPointReading
 {
 	lidarAngle_deg angle;
 	lidarDistance_in distance;

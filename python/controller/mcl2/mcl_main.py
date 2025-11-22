@@ -33,10 +33,11 @@ window = None
 step_count = None
 clock = None
 particles = None
+certainty = 0
 
 ### FUNCTIONS
 def begin_localization():
-    global grid, reduced_grid, valid_positions, pred_x, pred_y, pred_theta, window, step_count, clock, particles
+    global grid, reduced_grid, valid_positions, pred_x, pred_y, pred_theta, window, step_count, clock, particles, certainty
 
     # Construct grid and generate particle starting positions within
     grid = mh.init_grid()
@@ -79,7 +80,7 @@ def step_localization(
         3. Resampling (select likely particles)
         4. Estimation and visualization
     """
-    global grid, reduced_grid, valid_positions, pred_x, pred_y, pred_theta, window, step_count, clock, particles
+    global grid, reduced_grid, valid_positions, pred_x, pred_y, pred_theta, window, step_count, clock, particles, certainty
 
     # Motion update: apply given delta commands to each particle
     if delta_x is not None and delta_y is not None and delta_theta is not None:
@@ -93,7 +94,7 @@ def step_localization(
             particle.update_weight(simulated_lidar, lidar_reading)
 
     # Resampling & Estimation
-    particles, variance = mh.resample_particles(
+    particles, variance, certainty = mh.resample_particles(
         particles, reduced_grid, pred_x, pred_y
     )
     pred_x, pred_y, pred_theta = mh.estimate(particles)
@@ -119,3 +120,7 @@ def step_localization(
     clock.tick(FPS)
     step_count += 1
     print(f"[MCL] Step {step_count}: Predicted position = ({pred_x:.1f}, {pred_y:.1f}), θ = {math.degrees(pred_theta):.1f}°")
+
+def is_localized():
+    global certainty
+    return certainty == 1

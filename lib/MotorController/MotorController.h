@@ -13,7 +13,9 @@ private:
 	uint8_t _enablePin;
 	uint8_t _in1Pin;
 	uint8_t _in2Pin;
-	motorSpeedRaw _speed;
+	motorSpeedApplied _speed;
+    MotorDirection _in1State;
+    MotorDirection _in2State;
 
 public:
 	/**
@@ -24,12 +26,12 @@ public:
 	 * @param in2Pin Digital
 	 */
 	MotorController(uint8_t enablePin, uint8_t in1Pin, uint8_t in2Pin) 
-		: _enablePin(enablePin), _in1Pin(in1Pin), _in2Pin(in2Pin), _speed(0)
+		: _enablePin(enablePin), _in1Pin(in1Pin), _in2Pin(in2Pin), _speed(0), _in1State(MotorDirection::Reverse), _in2State(MotorDirection::Reverse)
 	{
 		pinMode(_enablePin, OUTPUT);
 		pinMode(_in1Pin, OUTPUT);
 		pinMode(_in2Pin, OUTPUT);
-		this->stop();
+		this->coast();
 	}
 
 	/**
@@ -39,8 +41,30 @@ public:
 	 */
 	void setSpeed(motorSpeedRaw rawSpeed)
 	{
-		_speed = (motorSpeedApplied)constrain(rawSpeed, MOTOR_SPEED_MIN, MOTOR_SPEED_MAX);
-		analogWrite(_enablePin, _speed);
+		this->_speed = (motorSpeedApplied)constrain(rawSpeed, MOTOR_SPEED_MIN, MOTOR_SPEED_MAX);
+		analogWrite(_enablePin, this->_speed);
+	}
+	
+	/**
+	 * @brief Update direction pins
+	 * 
+	 * @param in1 Requested direciton of in1 pin
+     * @param in2 Reqeusted direction of in2 pin
+	 */
+	void updateDirectionPins(MotorDirection in1, MotorDirection in2)
+	{
+        // Compare previous directions to current
+        if ((this->_in1State == in1) && (this->_in2State == in2)) return; // Nothing required
+
+        // Delay to prevent a brownout
+        this->setSpeed(0);
+        delayMicroseconds(MOTOR_BROWNOUT_DIRECTION_TIMEOUT_US);
+
+        // Set motor direction
+        this->_in1State = in1;
+        digitalWrite(_in1Pin, (this->_in1State == MotorDirection::Forward) ? HIGH : LOW);
+        this->_in2State = in2;
+        digitalWrite(_in2Pin, (this->_in2State == MotorDirection::Forward) ? HIGH : LOW);
 	}
 	
 	/**
@@ -48,18 +72,12 @@ public:
 	 * 
 	 * @param isForward If forward in arbitrary convention
 	 */
-	void setDirection(motorDirection isForward)
+	void setDirection(bool isForward)
 	{
-		if (isForward)
-		{
-			digitalWrite(_in1Pin, HIGH);
-			digitalWrite(_in2Pin, LOW);
-		}
-		else
-		{
-			digitalWrite(_in1Pin, LOW);
-			digitalWrite(_in2Pin, HIGH);
-		}
+        this->updateDirectionPins(
+            isForward ? MotorDirection::Forward : MotorDirection::Reverse, 
+            isForward ? MotorDirection::Reverse : MotorDirection::Forward
+        );
 	}
 
     /**
@@ -69,18 +87,15 @@ public:
 	 */
 	void setBrake(void)
 	{
-        digitalWrite(_in1Pin, HIGH);
-        digitalWrite(_in2Pin, HIGH);
+        this->updateDirectionPins(MotorDirection::Forward, MotorDirection::Forward);
     }
 
 	/**
 	 * @brief Emergency stop for motor
 	 * 
 	 */
-	void stop()
+	void coast()
 	{
-		digitalWrite(_in1Pin, LOW);
-		digitalWrite(_in2Pin, LOW);
-		analogWrite(_enablePin, 0);
+        this->updateDirectionPins(MotorDirection::Reverse, MotorDirection::Reverse);
 	}
 };

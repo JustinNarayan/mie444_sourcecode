@@ -24,12 +24,13 @@ with open(
 ### TUNABLE PARAMETERS
 NUM_PARTICLES = 3000            # number of particles
 NUM_SCAN_ANGLES = 60           # number of beams used per particle (then downsampled)
-MOVEMENT_NOISE_LINEAR = 0.25      # inches (std dev of translational motion noise)
-MOVEMENT_NOISE_ANGULAR = 0.2     # radians (std dev of rotational motion noise)
-SENSOR_STD_PERCENT_ERROR = 0.3     # std dev of normalized measurement noise (in percent); used in Gaussian likelihood
+MOVEMENT_NOISE_LINEAR = 0.3      # inches (std dev of translational motion noise)
+MOVEMENT_NOISE_ANGULAR = 0.25     # radians (std dev of rotational motion noise)
+MIN_SENSOR_STD_PERCENT = 0.1     # std dev of normalized measurement noise (in percent); used in Gaussian likelihood
+MAX_SENSOR_STD_PERCENT = 0.45
 MIN_WEIGHT = 1e-5                # floor weight to avoid zeroing out particles (tunable)
-RESAMPLE_JITTER_POS = 0.3        # inches, positional jitter after resampling
-RESAMPLE_JITTER_THETA = 0.2     # radians, angular jitter after resampling
+RESAMPLE_JITTER_POS = 0.25        # inches, positional jitter after resampling
+RESAMPLE_JITTER_THETA = 0.15     # radians, angular jitter after resampling
 
 # LIDAR reasonable bounds (inches)
 LIDAR_RANGE_MIN = 3.0
@@ -239,6 +240,8 @@ def is_valid_point_in_grid(x,y,grid):
 ### RESAMPLING
 
 def resample_particles(particles, reduced_grid, pred_x=None, pred_y=None):
+    global certainty
+    
     """
     Resample particles using stratified resampling, then add jitter to each resampled particle.
     - particles: list of Particle objects (positions in inches)
@@ -300,7 +303,7 @@ def resample_particles(particles, reduced_grid, pred_x=None, pred_y=None):
         
         # Note that particles have already been reweighted
 
-    return new_particles, variance
+    return new_particles, variance, certainty
 
 ### PARTICLE
 class Particle:
@@ -426,6 +429,7 @@ class Particle:
         Numerical stability:
           - We compute in log-space to avoid underflow when multiplying many tiny probabilities.
         """
+        global certainty
         
         # Downsample simulated and real LIDAR readings for speed
         simulated_lidar_downsampled = simulated_reading.get_downsampled()
@@ -461,7 +465,7 @@ class Particle:
         log_likelihood = 0.0
         
         # Precompute gaussian coefficient term for speed: log(1/(sigma*sqrt(2pi)))
-        sensor_std = SENSOR_STD_PERCENT_ERROR # normalized
+        sensor_std = MIN_SENSOR_STD_PERCENT + (MAX_SENSOR_STD_PERCENT - MIN_SENSOR_STD_PERCENT) * max(1 - certainty, 0)
         gaussian_log_prefactor = -0.5 * math.log(2.0 * math.pi * (sensor_std ** 2))
 
 		# Iterate through angles and get log-likelihoods

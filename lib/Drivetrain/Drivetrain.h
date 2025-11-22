@@ -32,7 +32,9 @@ public:
 		uint8_t motor3_enable, uint8_t motor3_in1, uint8_t motor3_in2
 	);
 	int setTranslate(float32_t rawSpeed, bool isForward);
+    int setStrafe(float32_t rawSpeed, bool isLeft);
 	int setRotate(float32_t rawSpeed, bool isLeft);
 	int setMotors(DrivetrainMotorCommand *motorCommand);
+    int setBrake(void);
 	int halt(void);
 };

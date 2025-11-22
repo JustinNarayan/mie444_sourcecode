@@ -15,8 +15,7 @@ using MessageTypesInDrive = MessageTypes<
 >;
 using MessageTypesOutDrive = MessageTypes<
     MessageType::DrivetrainManualResponse, // Manual command responses
-    MessageType::DrivetrainAutomatedResponse, // Automated command responses
-    MessageType::DrivetrainDisplacements // Displacements after automated commands
+    MessageType::DrivetrainAutomatedResponse // Automated command responses
 >;
 
 /*****************************************************
@@ -51,6 +50,9 @@ private:
     DrivetrainEncoderDistances encodersStart;
     DrivetrainEncoderDistances encodersTarget;
     DrivetrainCommandDirection automatedCommandDirection;
+    time_ms lastControlAdjustmentTime;
+    bool targetReached;
+    time_ms targetReachedTime;
 
 	/**
 	 * @brief Communication utilities
@@ -60,6 +62,7 @@ private:
 	void checkDrivetrainAutomatedCommand(void);
 	void sendDrivetrainAutomatedResponse(DrivetrainAutomatedResponse response);
 	void sendDrivetrainDisplacements(DrivetrainDisplacements *displacements);
+	void sendDrivetrainMotorCommand(DrivetrainMotorCommand *command);
 
 	/**
 	 * @brief Process utilities
@@ -68,11 +71,14 @@ private:
 	void applyManualCommand(DrivetrainManualCommand command);
     void initializeAutomatedCommand(void);
 	void applyAutomatedCommand(bool isFirstApplicationOfCommand);
+    bool isAutomatedCommandRunning(void);
+    bool isAutomatedCommandSuccessful(void);
     void monitorAutomatedCommand(void);
     void clearAutomatedCommand(void);
     void arbitrateCommands(DrivetrainManualCommand currentCommand);
 	bool shouldHalt(void);
-	void voluntaryHalt(void);
+	void voluntaryHalt(bool startWithBrake = false);
+	void voluntaryBrake(void);
 public:
 	DriveController(Drivetrain* drivetrain, DriveEncoderController* encoders);
 	void process(void);

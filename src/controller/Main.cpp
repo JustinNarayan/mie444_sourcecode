@@ -7,6 +7,7 @@
 #include "PeripheralEcho.h"
 #include "PeripheralForwardingController.h"
 #include "LidarController.h"
+#include "UltrasonicController.h"
 #include "Settings.h"
 #include "Errors.h"
 
@@ -23,13 +24,21 @@ PeripheralEnvoy g_envoyToPeripheral(&g_peripheralComms);
 PeripheralForwardingController g_peripheralForwardingController(&g_envoyToPeripheral);
 Lidar g_lidar;
 LidarController g_lidarController(&g_lidar, &g_envoyToPeripheral);
+Ultrasonic g_ultrasonic1, g_ultrasonic2;
+UltrasonicController g_ultrasonicController(
+    &g_ultrasonic1, 
+    &g_ultrasonic2,
+    &g_envoyToPeripheral,
+    &g_peripheralForwardingController
+);
 
 /*****************************************************
  *                    TASKMASTERS                    *
  *****************************************************/
 static ControllerGeneric* primaryControllers[] = {
 	&g_peripheralForwardingController,
-	&g_lidarController 
+	&g_lidarController,
+    // &g_ultrasonicController
 };
 TASKMASTER_DECLARE(primaryTaskmaster, &g_externalComms, primaryControllers)
 
@@ -53,6 +62,7 @@ void setup()
 	Wiring_InitPins();
 	Wiring_InitComms(&g_externalComms, &g_peripheralComms);
 	Wiring_InitLidar(&g_lidar);
+    Wiring_InitUltrasonics(&g_ultrasonic1, &g_ultrasonic2);
 }
 
 /**
