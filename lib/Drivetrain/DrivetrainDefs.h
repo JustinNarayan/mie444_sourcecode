@@ -75,7 +75,7 @@ enum class DrivetrainEncoderState
 /**
  * Structure for encoder information
  */
-struct DrivetrainEncoderDistances
+struct __attribute__((packed)) DrivetrainEncoderDistances
 {
 	encoderDistance_in encoder1Dist;
 	encoderDistance_in encoder2Dist;
@@ -86,7 +86,7 @@ struct DrivetrainEncoderDistances
  * Structure for drivetrain displacements
  * 
  */
-struct DrivetrainDisplacements
+struct __attribute__((packed)) DrivetrainDisplacements
 {
 	float32_t dX_in; // directly forward
 	float32_t dY_in; // 90 deg CCW
@@ -97,7 +97,7 @@ struct DrivetrainDisplacements
  * Structure for drivetrain automated commands
  * 
  */
-struct DrivetrainAutomatedCommand
+struct __attribute__((packed)) DrivetrainAutomatedCommand
 {
 	int16_t dX_in;
     int16_t dY_in;
@@ -118,7 +118,7 @@ struct DrivetrainCommandDirection
 /**
  * Structure for motor commands on all three wheels to drivetrain
  */
-struct DrivetrainMotorCommand
+struct __attribute__((packed)) DrivetrainMotorCommand
 
 {
 	bool is1Forward;
@@ -697,9 +697,9 @@ static inline void getDrivetrainMotorCommand(
 	// Compute special gains
     if (displacements.dX_in < 0) // Backwards gain
     {
-        controlDistances.encoder1Dist *= DRIVETRAIN_BACKWARDS_ADDED_GAIN;
-        controlDistances.encoder2Dist *= DRIVETRAIN_BACKWARDS_ADDED_GAIN;
-        controlDistances.encoder3Dist *= DRIVETRAIN_BACKWARDS_ADDED_GAIN;
+        controlDistances.encoder1Dist *= DRIVETRAIN_BACKWARDS_ADDED_GAIN_MOTOR_1;
+        controlDistances.encoder2Dist *= DRIVETRAIN_BACKWARDS_ADDED_GAIN_MOTOR_2;
+        controlDistances.encoder3Dist *= DRIVETRAIN_BACKWARDS_ADDED_GAIN_MOTOR_3;
     }
 
 	// Compute forward kinematics after gain

@@ -20,7 +20,9 @@ ENUM_MESSAGE_MAP_TRANSLATION(UltrasonicState)
 /**
  * @brief Instantiate all StructMessageMap objects for translation
  * 
- * Each call to STRUCT_MESSAGE_MAP_TRANSLATION(structType) creates structTypeTranslation
+ * Each call to STRUCT_MESSAGE_MAP_TRANSLATION(structType) creates structTypeTranslation.
+ * 
+ * All structs MUST be marked as __attribute__((packed))
  */
 STRUCT_MESSAGE_MAP_TRANSLATION(DrivetrainEncoderDistances)
 STRUCT_MESSAGE_MAP_TRANSLATION(DrivetrainAutomatedCommand)

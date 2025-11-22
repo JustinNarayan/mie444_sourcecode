@@ -28,6 +28,9 @@ private:
 	MessageType type;
 	size_t size;
 
+public:
+	StructMessageMap(MessageType type) : type(type), size(sizeof(S)) {};
+
 	/**
 	 * @brief Given a generic value, get the char reprsentation (i.e. as bytes).
 	 * 
@@ -47,9 +50,6 @@ private:
      * Must be instantiated by each individual class. See Translate.h
 	 */
 	void strToStruct(S *s, const char* buffer) const = delete;
-
-public:
-	StructMessageMap(MessageType type) : type(type), size(sizeof(S)) {};
 
 	/**
 	 * @brief Provided a pointer to a struct, initialize and output a corresponding message.

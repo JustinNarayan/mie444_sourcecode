@@ -51,7 +51,7 @@ enum class UltrasonicSweepState
 /**
  * Structure for individual ultrasonic  point readings
  */
-struct UltrasonicPointReading
+struct __attribute__((packed)) UltrasonicPointReading
 {
     uint8_t whichUltrasonic;
 	DrivetrainEncoderDistances encoders;
