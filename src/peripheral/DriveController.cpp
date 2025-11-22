@@ -18,7 +18,11 @@ DriveController::DriveController(Drivetrain* drivetrain, DriveEncoderController*
 	lastIssuedAutomatedCommandTime(0),
 	encodersStart({0}),
 	encodersTarget({0}),
-	automatedCommandDirection({0}) {}
+	automatedCommandDirection({0}),
+    lastControlAdjustmentTime(0),
+    targetReached(false),
+    targetReachedTime(0) 
+    {}
 
 /**
  * @brief Read input messages for DrivetrainManualCommand type
@@ -272,6 +276,35 @@ void DriveController::applyAutomatedCommand(bool isFirstApplicationOfCommand)
 }
 
 /**
+ * @brief Whether the current automated command is running
+ * 
+ * @return Whether in progress, at target (but not done), or overshot
+ */
+bool DriveController::isAutomatedCommandRunning(void)
+{
+	return (
+        (this->automatedCommandState == DrivetrainAutomatedResponse::InProgress) || 
+        (this->automatedCommandState == DrivetrainAutomatedResponse::AtTarget) ||
+        (this->automatedCommandState == DrivetrainAutomatedResponse::Overshot)
+    );
+}
+
+/**
+ * @brief Whether the current automated command is successful
+ * 
+ * @return Whether at target and held
+ */
+bool DriveController::isAutomatedCommandSuccessful(void)
+{
+    return (
+        (this->automatedCommandState == DrivetrainAutomatedResponse::AtTarget)
+         && 
+        this->targetReached && 
+        (millis() - this->targetReachedTime) > DRIVETRAIN_HOLD_AT_TARGET_TIME
+    );
+}
+
+/**
  * @brief Monitor a drivetrain automated command to determine when it's complete.
  * 
  */
@@ -297,9 +330,16 @@ void DriveController::monitorAutomatedCommand(void)
 		&encodersNow,
 		&(this->encodersTarget)
 	);
+
+    // Hold at target for a short period before continuing
+    if (this->automatedCommandState == DrivetrainAutomatedResponse::AtTarget)
+    {
+        if (!this->targetReached) this->targetReachedTime = millis();
+        this->targetReached = true;
+    }
 	
-	// Exit command if successful or failure
-	if (this->automatedCommandState != DrivetrainAutomatedResponse::InProgress)
+	// Exit command if successful
+	if (this->isAutomatedCommandSuccessful())
 	{
 		this->voluntaryHalt();
 		this->sendDrivetrainAutomatedResponse(this->automatedCommandState);
@@ -328,12 +368,12 @@ void DriveController::clearAutomatedCommand(void)
     this->sendDrivetrainDisplacements(&displacements);
 #endif
 
-    // Abort the command and notify
+    // Abort the command if not done
 	if (this->automatedCommandState == DrivetrainAutomatedResponse::InProgress)
-	{
 		this->automatedCommandState = DrivetrainAutomatedResponse::Aborted;
-        this->sendDrivetrainAutomatedResponse(this->automatedCommandState);
-    }
+
+    // Notify state
+    this->sendDrivetrainAutomatedResponse(this->automatedCommandState);
 
     // Clear the state and set the state back to none received
     this->currentAutomatedCommand = {0};
@@ -341,6 +381,9 @@ void DriveController::clearAutomatedCommand(void)
     this->encodersStart = {0};
     this->encodersTarget = {0};
     this->automatedCommandDirection = {0};
+    this->lastControlAdjustmentTime = 0;
+    this->targetReached = false;
+    this->targetReachedTime = 0;
     this->automatedCommandState = DrivetrainAutomatedResponse::NoReceived;
 }
 
@@ -374,7 +417,7 @@ void DriveController::arbitrateCommands(DrivetrainManualCommand currentManualCom
 	}
 
 	// Monitor progress of automated command
-	if (this->automatedCommandState == DrivetrainAutomatedResponse::InProgress)
+    if (this->isAutomatedCommandRunning())
 	{
         // Update command with control algorithm
         if (
@@ -402,7 +445,7 @@ bool DriveController::shouldHalt(void)
 		(this->lastIssuedCommand != DrivetrainManualCommand::Halt) &&
 
 		// Do not halt if executing an automated command
-		(this->automatedCommandState != DrivetrainAutomatedResponse::InProgress) &&
+        (!this->isAutomatedCommandRunning()) &&
 
 		// Halt if too much time elapsed since received command
 		((millis() - this->lastReceivedValidManualCommandTime) > DRIVETRAIN_TIME_TO_HALT_AFTER_LAST_RECEIVED_COMMAND)

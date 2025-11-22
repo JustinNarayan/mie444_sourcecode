@@ -48,8 +48,8 @@ enum class DrivetrainAutomatedResponse
 	NoReceived,
 	Acknowledge,
 	InProgress,
-	Failure,
-	Success,
+	Overshot,
+	AtTarget,
 	Aborted,
 
 	Count
@@ -325,7 +325,7 @@ static inline DrivetrainAutomatedResponse areEncodersAtTarget(
 	const bool t3Near = fabsf(d3) < DRIVETRAIN_ENCODERS_EQUAL_TOLERANCE_THRESHOLD;
 
 	// Succeed if all motors at target
-	if (t1Near && t2Near && t3Near) return DrivetrainAutomatedResponse::Success;
+	if (t1Near && t2Near && t3Near) return DrivetrainAutomatedResponse::AtTarget;
 
 	// Determine if any motors are yet to pass target
 	bool overshoot1 = direction->increase1ToTarget ? \
@@ -340,7 +340,7 @@ static inline DrivetrainAutomatedResponse areEncodersAtTarget(
 		(!t1Near && overshoot1) ||
 		(!t2Near && overshoot2) ||
 		(!t3Near && overshoot3)
-	) return DrivetrainAutomatedResponse::Failure;
+	) return DrivetrainAutomatedResponse::Overshot;
 
 	// Otherwise, return in progress
 	return DrivetrainAutomatedResponse::InProgress;
@@ -591,19 +591,20 @@ static inline void getDrivetrainMotorCommand(
 #else
 	// Compute encoder delta
 	DrivetrainEncoderDistances dEncoders;
-    dEncoders.encoder1Dist = DRIVETRAIN_INITIAL_GAIN_MOTOR_1 *
-        (encodersTarget->encoder1Dist - encodersNow->encoder1Dist);
-    dEncoders.encoder2Dist = DRIVETRAIN_INITIAL_GAIN_MOTOR_2 *
-        (encodersTarget->encoder2Dist - encodersNow->encoder2Dist);
-    dEncoders.encoder3Dist = DRIVETRAIN_INITIAL_GAIN_MOTOR_3 *
-        (encodersTarget->encoder3Dist - encodersNow->encoder3Dist);
+    dEncoders.encoder1Dist = (encodersTarget->encoder1Dist - encodersNow->encoder1Dist);
+    dEncoders.encoder2Dist = (encodersTarget->encoder2Dist - encodersNow->encoder2Dist);
+    dEncoders.encoder3Dist = (encodersTarget->encoder3Dist - encodersNow->encoder3Dist);
 
     // Update control variables
     static time_ms lastMillis = millis();
     static DrivetrainEncoderDistances dEncodersInt = {0};
     static DrivetrainEncoderDistances dEncodersLast = {0};
     static DrivetrainEncoderDistances dEncodersDiff = {0};
-	static DrivetrainMotorCommand prevCommand = {0};
+	static DrivetrainMotorCommand prevCommand = { 
+        .is1Forward=false, .speed1=0,
+        .is2Forward=false, .speed2=0,
+        .is3Forward=false, .speed3=0
+    };
     if (isFirstCommand)
     {
         lastMillis = millis();
@@ -619,7 +620,7 @@ static inline void getDrivetrainMotorCommand(
 
         if (dt > DRIVETRAIN_MINIMUM_DT_PID)
         {
-            // Update integral and derivative terms if enough time elapsed
+            /// Update integral and derivative terms if enough time elapsed
             dEncodersInt.encoder1Dist = constrain(
                 dEncodersInt.encoder1Dist + (dEncoders.encoder1Dist * dt),
                 -DRIVETRAIN_MAXIMUM_INTEGRAL_MOTORS, 
@@ -636,7 +637,7 @@ static inline void getDrivetrainMotorCommand(
                 DRIVETRAIN_MAXIMUM_INTEGRAL_MOTORS
             );
 
-            // Derivative
+            /// Derivative
             dEncodersDiff.encoder1Dist = constrain(
                 (dEncoders.encoder1Dist - dEncodersLast.encoder1Dist) / dt,
                 -DRIVETRAIN_MAXIMUM_DERIVATIVE_MOTORS,
@@ -658,23 +659,40 @@ static inline void getDrivetrainMotorCommand(
             lastMillis = now;
         }
     }
+
+    /// Limit impact of proportional
+    dEncoders.encoder1Dist = constrain(
+        dEncoders.encoder1Dist,
+        -DRIVETRAIN_MAXIMUM_PROPORTIONAL_MOTORS,
+        DRIVETRAIN_MAXIMUM_PROPORTIONAL_MOTORS
+    );
+    dEncoders.encoder2Dist = constrain(
+        dEncoders.encoder2Dist,
+        -DRIVETRAIN_MAXIMUM_PROPORTIONAL_MOTORS,
+        DRIVETRAIN_MAXIMUM_PROPORTIONAL_MOTORS
+    );
+    dEncoders.encoder3Dist = constrain(
+        dEncoders.encoder3Dist,
+        -DRIVETRAIN_MAXIMUM_PROPORTIONAL_MOTORS,
+        DRIVETRAIN_MAXIMUM_PROPORTIONAL_MOTORS
+    );
     
 	// Apply PID gains
     DrivetrainEncoderDistances controlDistances;
 	controlDistances.encoder1Dist = \
-        (dEncoders.encoder1Dist * DRIVETRAIN_AUTOMATED_GAIN_KP_MOTORS) +
-        (dEncodersInt.encoder1Dist * DRIVETRAIN_AUTOMATED_GAIN_KI_MOTORS) +
-        (dEncodersDiff.encoder1Dist * DRIVETRAIN_AUTOMATED_GAIN_KD_MOTORS);
+        (dEncoders.encoder1Dist * DRIVETRAIN_AUTOMATED_GAIN_KP_MOTOR_1) +
+        (dEncodersInt.encoder1Dist * DRIVETRAIN_AUTOMATED_GAIN_KI_MOTOR_1) +
+        (dEncodersDiff.encoder1Dist * DRIVETRAIN_AUTOMATED_GAIN_KD_MOTOR_1);
 
 	controlDistances.encoder2Dist = \
-        (dEncoders.encoder2Dist * DRIVETRAIN_AUTOMATED_GAIN_KP_MOTORS) +
-        (dEncodersInt.encoder2Dist * DRIVETRAIN_AUTOMATED_GAIN_KI_MOTORS) +
-        (dEncodersDiff.encoder2Dist * DRIVETRAIN_AUTOMATED_GAIN_KD_MOTORS);
+        (dEncoders.encoder2Dist * DRIVETRAIN_AUTOMATED_GAIN_KP_MOTOR_2) +
+        (dEncodersInt.encoder2Dist * DRIVETRAIN_AUTOMATED_GAIN_KI_MOTOR_2) +
+        (dEncodersDiff.encoder2Dist * DRIVETRAIN_AUTOMATED_GAIN_KD_MOTOR_2);
         
 	controlDistances.encoder3Dist = \
-        (dEncoders.encoder3Dist * DRIVETRAIN_AUTOMATED_GAIN_KP_MOTORS) +
-        (dEncodersInt.encoder3Dist * DRIVETRAIN_AUTOMATED_GAIN_KI_MOTORS) +
-        (dEncodersDiff.encoder3Dist * DRIVETRAIN_AUTOMATED_GAIN_KD_MOTORS);
+        (dEncoders.encoder3Dist * DRIVETRAIN_AUTOMATED_GAIN_KP_MOTOR_3) +
+        (dEncodersInt.encoder3Dist * DRIVETRAIN_AUTOMATED_GAIN_KI_MOTOR_3) +
+        (dEncodersDiff.encoder3Dist * DRIVETRAIN_AUTOMATED_GAIN_KD_MOTOR_3);
 
 	// Compute special gains
     if (displacements.dX_in < 0) // Backwards gain

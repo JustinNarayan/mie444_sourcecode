@@ -127,8 +127,8 @@ void UltrasonicController::checkDrivetrainAutomatedResponse(void)
 
         // Only consider messages regarding end of command
         if ( 
-            (response != DrivetrainAutomatedResponse::Success) && 
-            (response != DrivetrainAutomatedResponse::Failure)
+            (response != DrivetrainAutomatedResponse::AtTarget) && 
+            (response != DrivetrainAutomatedResponse::Overshot)
         )
             return;
 

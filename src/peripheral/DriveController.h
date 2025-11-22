@@ -16,8 +16,6 @@ using MessageTypesInDrive = MessageTypes<
 using MessageTypesOutDrive = MessageTypes<
     MessageType::DrivetrainManualResponse, // Manual command responses
     MessageType::DrivetrainAutomatedResponse // Automated command responses
-    // MessageType::DrivetrainDisplacements, // Displacements after automated commands
-    // MessageType::DrivetrainMotorCommand // Motor commands
 >;
 
 /*****************************************************
@@ -53,6 +51,8 @@ private:
     DrivetrainEncoderDistances encodersTarget;
     DrivetrainCommandDirection automatedCommandDirection;
     time_ms lastControlAdjustmentTime;
+    bool targetReached;
+    time_ms targetReachedTime;
 
 	/**
 	 * @brief Communication utilities
@@ -71,6 +71,8 @@ private:
 	void applyManualCommand(DrivetrainManualCommand command);
     void initializeAutomatedCommand(void);
 	void applyAutomatedCommand(bool isFirstApplicationOfCommand);
+    bool isAutomatedCommandRunning(void);
+    bool isAutomatedCommandSuccessful(void);
     void monitorAutomatedCommand(void);
     void clearAutomatedCommand(void);
     void arbitrateCommands(DrivetrainManualCommand currentCommand);

@@ -33,9 +33,9 @@ static constexpr EnumStringMap DrivetrainAutomatedResponseMap[] = {
     ENUM_MAP_ENTRY(DrivetrainAutomatedResponse::Invalid,        "invalid"), // placeholder
     ENUM_MAP_ENTRY(DrivetrainAutomatedResponse::NoReceived,     ""),
     ENUM_MAP_ENTRY(DrivetrainAutomatedResponse::Acknowledge,    "ack"),
-    ENUM_MAP_ENTRY(DrivetrainAutomatedResponse::InProgress,    "inprog"),
-    ENUM_MAP_ENTRY(DrivetrainAutomatedResponse::Success,        "success"),
-    ENUM_MAP_ENTRY(DrivetrainAutomatedResponse::Failure,        "failure"),
+    ENUM_MAP_ENTRY(DrivetrainAutomatedResponse::InProgress,     "inprog"),
+    ENUM_MAP_ENTRY(DrivetrainAutomatedResponse::AtTarget,       "attarget"),
+    ENUM_MAP_ENTRY(DrivetrainAutomatedResponse::Overshot,       "overshot"),
     ENUM_MAP_ENTRY(DrivetrainAutomatedResponse::Aborted,        "abort"),
 };
 COMPILE_TIME_ENFORCE_ENUM_MAP_COUNT(DrivetrainAutomatedResponseMap, DrivetrainAutomatedResponse);
