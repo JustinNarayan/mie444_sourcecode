@@ -8,7 +8,7 @@ from lidar_reading import LidarReading
 from mcl2.mcl_main import begin_localization
 
 # ======= USER SETTINGS =======
-PORT = "COM5"
+PORT = "COM6"
 BAUD = 57600
 SEND_INTERVAL = 0.01  # seconds (10 ms)
 WAIT_INTERVAL = 0.01
