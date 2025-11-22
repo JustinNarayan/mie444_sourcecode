@@ -9,19 +9,22 @@ from message import (
     MessageType,
     SHOULD_NOT_PRINT_TO_SCREEN,
 )
-from lidar_reading import LidarPointReading, LidarReading
+from lidar_reading import LidarPointReading, LidarReading, init_lidar_plot, update_lidar_plot
+from ultrasonic_reading import UltrasonicPointReading, UltrasonicReading, init_ultrasonic_plot, update_ultrasonic_plot
+from automated_command import AutomatedCommand
 from encoder_reading import EncoderReading
 from localization import (
     current_encoder_reading,
     last_sent_encoder_reading,
     post_lidar_encoder_reading,
     prepare_info_for_localization_step,
+    get_drivetrain_command
 )
 from encoder_control_manager import send_encoder_request
-from lidar_reading import init_lidar_plot, update_lidar_plot
 
-# Lidar visualization
+# Visualization
 VISUALIZE_LIDAR = True
+VISUALIZE_ULTRASONIC = False
 LOCALIZATION = True
 
 
@@ -31,7 +34,7 @@ def print_rcvd_message(msg: Message):
     sys.stdout.flush()
 
 
-def start_receiver(ser, stop_event, lidar_reading: LidarReading):
+def start_receiver(ser, stop_event, lidar_reading: LidarReading, ultrasonic_reading: UltrasonicReading, current_automated_command: AutomatedCommand):
     """Background thread to continuously read from serial and update readings."""
 
     def reader():
@@ -43,6 +46,11 @@ def start_receiver(ser, stop_event, lidar_reading: LidarReading):
         _lidar_fig = None
         _lidar_ax = None
         _lidar_scatter = None
+        
+        # Ultrasonic vis
+        _us_fig = None,
+        _us_ax = None
+        _us_scatter = None
 
         while not stop_event.is_set():
             try:
@@ -69,6 +77,12 @@ def start_receiver(ser, stop_event, lidar_reading: LidarReading):
                             _lidar_fig, _lidar_ax, _lidar_scatter = init_lidar_plot(
                                 _lidar_fig, _lidar_ax, _lidar_scatter
                             )
+                        # Initialize ultrasonic vis
+                        if VISUALIZE_ULTRASONIC:
+                            _us_fig, _us_ax, _us_scatter = init_ultrasonic_plot(
+                                _us_fig, _us_ax, _us_scatter
+                            )
+                        
                     else:
                         continue
 
@@ -101,6 +115,31 @@ def start_receiver(ser, stop_event, lidar_reading: LidarReading):
                                                 lidar_reading,
                                             )
                                         )
+                            
+                            # --- ULTRASONIC integration ---
+                            if msg.type == MessageType.UltrasonicPointReading:
+                                which, enc_1, enc_2, enc_3, distance_inch = msg.decode()
+                                point = UltrasonicPointReading(
+                                    which,
+                                    EncoderReading(enc_1, enc_2, enc_3),
+                                    distance_inch
+                                )
+                                ultrasonic_reading.add_point(point)
+
+                            elif msg.type == MessageType.UltrasonicState:
+                                if msg.get_content() == b"complete":  # complete
+                                    # Ping encoder after receiving a complete ultrasonic scan
+                                    send_encoder_request(ser)
+                                    # Visualize
+                                    if VISUALIZE_ULTRASONIC:
+                                        _us_fig, _us_ax, _us_scatter = (
+                                            update_ultrasonic_plot(
+                                                _us_fig,
+                                                _us_ax,
+                                                _us_scatter,
+                                                ultrasonic_reading,
+                                            )
+                                        )
 
                             # --- ENCODER integration ---
                             elif msg.type == MessageType.DrivetrainEncoderDistances:
@@ -121,6 +160,11 @@ def start_receiver(ser, stop_event, lidar_reading: LidarReading):
                                 ):
                                     prepare_info_for_localization_step(lidar_reading)
                                     lidar_reading_ready_for_localization = False
+                                    
+                                    # Check free direction
+                                    dX, dY, dTheta = get_drivetrain_command(lidar_reading)
+                                    current_automated_command.set(dX, dY, dTheta)
+                                    print(f"command = (dX={current_automated_command.dX} ,dY={current_automated_command.dY}, dTheta={current_automated_command.dTheta})") 
 
                             if msg.get_type() not in SHOULD_NOT_PRINT_TO_SCREEN:
                                 print_rcvd_message(msg)

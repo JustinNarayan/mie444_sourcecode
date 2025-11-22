@@ -5,6 +5,11 @@ import matplotlib.pyplot as plt
 import math
 import numpy as np
 from encoder_reading import EncoderReading
+from localization import inverse_kinematics, DEG_TO_RAD, L
+
+ULTRASONIC_1_OFFSET_TO_FORWARD = -60 * DEG_TO_RAD
+ULTRASONIC_2_OFFSET_TO_FORWARD = -120 * DEG_TO_RAD
+ULTRASONIC_RADIUS = 3.0 # inches
 
 class UltrasonicPointReading:
     """
@@ -19,6 +24,48 @@ class UltrasonicPointReading:
         self.which_ultrasonic = 2 if which_ultrasonic is 2 else 1
         self.encoder_reading = encoder_reading
         self.distance = float(distance)
+        
+    def get_relative_coords_of_reading(self, final_encoder_reading: EncoderReading):
+        """
+        Returns (dX, dY, dTheta) of the ultrasonic hit *in the current robot frame*.
+        """
+        # 1. Sensor direction
+        if self.which_ultrasonic == 1:
+            offset = ULTRASONIC_1_OFFSET_TO_FORWARD
+        else:
+            offset = ULTRASONIC_2_OFFSET_TO_FORWARD
+
+        cos_o = math.cos(offset)
+        sin_o = math.sin(offset)
+
+        # 2. Sensor position relative to robot center
+        sensor_x = ULTRASONIC_RADIUS * cos_o
+        sensor_y = ULTRASONIC_RADIUS * sin_o
+
+        # 3. Hit point in robot frame at time of reading
+        hit_x_read = sensor_x + self.distance * cos_o
+        hit_y_read = sensor_y + self.distance * sin_o
+        
+        # 4. Compute robot motion since the reading
+        dX_rel, dY_rel, dTheta_rel = inverse_kinematics(
+            self.encoder_reading,
+            final_encoder_reading
+        )
+
+        # 5. Transform point into current robot frame
+        # First shift by robot motion
+        x_shift = hit_x_read - dX_rel
+        y_shift = hit_y_read - dY_rel
+
+        # Rotate by -dTheta_rel
+        theta = math.radians(-dTheta_rel)
+        cos_t = math.cos(theta)
+        sin_t = math.sin(theta)
+
+        hit_x_now = x_shift * cos_t - y_shift * sin_t
+        hit_y_now = x_shift * sin_t + y_shift * cos_t
+
+        return hit_x_now, hit_y_now
 
     def __repr__(self):
         return f"UltrasonicPointReading(which={self.which_ultrasonic}, d1={self.encoder_reading.encoder1}, d2={self.encoder_reading.encoder2}, d3={self.encoder_reading.encoder3}, distance={self.distance:.2f} in)"
@@ -26,226 +73,121 @@ class UltrasonicPointReading:
 
 class UltrasonicReading:
     """
-    Collection of UltrasonicReading sorted by angle.
+    Collection of UltrasonicReading from several ultrasonics
     Units:
       - encoder_reading
       - distances in inches
     """
-    def __init__(self, max_points: int = 30):
-        self.max_points = max_points
+    def __init__(self, which_ultrasonic: int = 1):
         self.points: List[UltrasonicReading] = []
 
-#     # ---- Construction helpers ----
-#     @classmethod
-#     def from_points(cls, points: List[LidarPointReading]):
-#         """Create a LidarReading from an existing list (makes a sorted copy)."""
-#         obj = cls(len(points))
-#         obj.points = sorted(points, key=lambda p: p.angle)
-#         return obj
+    # ---- Construction helpers ----
+    @classmethod
+    def from_points(cls, points: List[UltrasonicPointReading]):
+        """Create an UltrasonicReading from an existing list (makes a sorted copy)."""
+        obj = cls(len(points))
+        obj.points = points
+        return obj
 
-#     def clear(self):
-#         self.points.clear()
+    def clear(self):
+        self.points.clear()
 
-#     # ---- add / get points ----
-#     def add_point(self, point: LidarPointReading, is_real_lidar_data: bool):
-#         """
-#         Insert `point` into sorted `self.points` by angle.
-#         If real_lidar_data == True, the calibraton offset LIDAR_ZERO_ANGLE_OFFSET_REAL (deg)
-#         is applied so that "front" of robot maps to 0°.
-#         NOTE: This mutates the `point.angle` value if real_lidar_data == True.
-#         """
-#         if len(self.points) >= self.max_points:
-#             return
+    # ---- add / get points ----
+    def add_point(self, point: UltrasonicPointReading):
+        """
+        Insert `point` into sorted `self.points` by angle.
+        If real_lidar_data == True, the calibraton offset LIDAR_ZERO_ANGLE_OFFSET_REAL (deg)
+        is applied so that "front" of robot maps to 0°.
+        NOTE: This mutates the `point.angle` value if real_lidar_data == True.
+        """
+        self.points.append(point)
 
-#         if is_real_lidar_data:
-#             point.angle = (point.angle + LIDAR_ZERO_ANGLE_OFFSET_REAL) % 360.0
-#         else:
-#             point.angle = (point.angle + LIDAR_ZERO_ANGLE_OFFSET_SIMULATED) % 360.0
+    def get_points(self) -> List[UltrasonicPointReading]:
+        """Return underlying sorted list (do not mutate)."""
+        return self.points
 
-#         idx = bisect_left(self.points, point)
-#         self.points.insert(idx, point)
-
-#     def get_points(self) -> List[LidarPointReading]:
-#         """Return underlying sorted list (do not mutate)."""
-#         return self.points
-
-#     # ---- normalization ----
-#     def get_normalized(self):
-#         """
-#         Return a NEW LidarReading with distances scaled to (0, 1].
-#         Scaling: distance_inches / max_distance_inches
-#         If there are no points or max_distance == 0, returns an empty LidarReading.
-#         """
-#         if not self.points:
-#             return LidarReading(self.max_points)
-
-#         max_dist = max((p.distance for p in self.points), default=0.0)
-
-#         if max_dist <= 0.0 + EPSILON:
-#             # No valid distances
-#             return LidarReading(self.max_points)
-
-#         normalized = [
-#             LidarPointReading(
-#                 p.angle, 
-#                 p.distance / max_dist # unitless 0..1 (distance stored as proportion)
-#             )
-#             for p in self.points
-#         ]
-#         return LidarReading.from_points(normalized)
-
-#     # ---- downsampling ----
-#     def get_downsampled(self, num_points: int = DOWNSAMPLE_POINTS, align_to: float = None):
-#         """
-#         Downsample current reading into `num_points` evenly spaced angular buckets.
-
-#         Bucket centers: c_i = i * (360 / num_points), i = 0..num_points-1
-#         Each bucket covers: (c_i - bin_half, c_i + bin_half] where bin_half = 180/num_points degrees.
-#         Wrap-around is handled (angles near 0 and 360).
-
-#         For each bucket:
-#           - Gather all points p whose p.angle falls into the bucket range (with wrap handling)
-#           - If bucket contains >=1 points, compute avg distance and produce one LidarPointReading
-#             located at the bucket center angle with that averaged distance.
-#           - If bucket empty: skip it (do NOT produce a 0-distance placeholder).
-#         Returns:
-#           - a NEW LidarReading containing the downsampled points (angles in degrees, distances in inches)
-#         """
-#         if not self.points:
-#             return LidarReading(num_points)
-
-#         # If num_points >= number of measured angles, prefer to return the reading binned by unique angles?
-#         # But per your request: if num_points >= len(points) -> do nothing (return copy)
-#         if num_points >= len(self.points):
-#             return LidarReading.from_points(self.points)
-
-#         bin_half = 180.0 / float(num_points)  # half-width of each bucket in degrees
-#         downsampled = []
-
-#         # iterate bucket centers starting at 0 degrees as requested
-#         for i in range(num_points):
-#             center = (i * 360.0 / num_points) % 360.0
-#             start = (center - bin_half) % 360.0
-#             end = (center + bin_half) % 360.0
-
-#             # collect points in bucket (handle wrap)
-#             if start < end:
-#                 bucket = [p for p in self.points if (start <= p.angle < end)]
-#             else:
-#                 # wrap-around example: start=316, end=45
-#                 bucket = [p for p in self.points if (p.angle >= start or p.angle < end)]
-
-#             if not bucket:
-#                 continue  # skip empty buckets per your requirement
-
-#             avg_distance = sum(p.distance for p in bucket) / len(bucket)
-#             downsampled.append(
-#                 LidarPointReading(
-#                     center, 
-#                     avg_distance
-#                 )
-#             )
-
-#         return LidarReading.from_points(downsampled)
-
-#     def __repr__(self):
-#         return f"LidarReading({len(self.points)} points: {self.points})"
+    def __repr__(self):
+        return f"UltrasonicReading({len(self.points)} points: {self.points})"
 
 
-# def init_lidar_plot(_lidar_fig, _lidar_ax, _lidar_scatter):
-#     """Initialize or recreate the LIDAR scatter plot window. Returns updated handles."""
-#     # If old fig exists but user closed the window → reset
-#     if _lidar_fig is not None and not plt.fignum_exists(_lidar_fig.number):
-#         _lidar_fig = None
-#         _lidar_ax = None
-#         _lidar_scatter = None
+def init_ultrasonic_plot(_fig, _ax, _scatter):
+    """Initialize or recreate the ultrasonic scatter plot window. Returns updated handles."""
+    # If old fig exists but user closed it → reset
+    if _fig is not None and not plt.fignum_exists(_fig.number):
+        _fig = None
+        _ax = None
+        _scatter = None
 
-#     # Create new figure if needed
-#     if _lidar_fig is None:
-#         plt.ion()
-#         _lidar_fig, _lidar_ax = plt.subplots()
-#         _lidar_fig.canvas.manager.set_window_title("Live LIDAR (x,y) Plot")
+    # Create new figure if needed
+    if _fig is None:
+        plt.ion()
+        _fig, _ax = plt.subplots()
+        _fig.canvas.manager.set_window_title("Live Ultrasonic (x,y) Plot")
 
-#         _lidar_ax.set_title("LIDAR Scan")
-#         _lidar_ax.set_xlabel("x")
-#         _lidar_ax.set_ylabel("y")
-#         _lidar_ax.set_aspect("equal", "box")
-#         _lidar_ax.grid(True)
+        _ax.set_title("Ultrasonic Scan")
+        _ax.set_xlabel("x (inches)")
+        _ax.set_ylabel("y (inches)")
+        _ax.set_aspect("equal", "box")
+        _ax.grid(True)
 
-#         # initial placeholder scatter (will be replaced on update)
-#         _lidar_scatter = _lidar_ax.scatter([], [])
+        # placeholder scatter
+        _scatter = _ax.scatter([], [], c='green')
 
-#         _lidar_fig.show()
+        _fig.show()
 
-#     return _lidar_fig, _lidar_ax, _lidar_scatter
+    return _fig, _ax, _scatter
 
 
-# def update_lidar_plot(_lidar_fig, _lidar_ax, _lidar_scatter, lidar_reading):
-#     """
-#     Clear the plot completely and draw:
-#       - a blue dot at (0,0)
-#       - a short blue line pointing straight up from (0,0)
-#     Returns updated (fig, ax, scatter) handles. If the plot window was closed,
-#     this will recreate it.
-#     """
-#     # ensure figure/axes exist (and reassign returned handles)
-#     _lidar_fig, _lidar_ax, _lidar_scatter = init_lidar_plot(_lidar_fig, _lidar_ax, _lidar_scatter)
+def update_ultrasonic_plot(_fig, _ax, _scatter, ultrasonic_reading, final_encoder_reading):
+    """
+    Plot ultrasonic ping positions.
+    Each UltrasonicPointReading computes (x,y) from get_relative_coords_of_reading().
+    All plotted as green dots.
+    """
+    # Ensure figure/axes exist
+    _fig, _ax, _scatter = init_ultrasonic_plot(_fig, _ax, _scatter)
 
-#     # Clear entire axes
-#     _lidar_ax.cla()
+    # Clear axes
+    _ax.cla()
 
-#     # Redraw axes decorations after clearing
-#     _lidar_ax.set_title("LIDAR Scan")
-#     _lidar_ax.set_xlabel("x")
-#     _lidar_ax.set_ylabel("y")
-#     _lidar_ax.set_aspect("equal", "box")
-#     _lidar_ax.grid(True)
+    # Restore decorations
+    _ax.set_title("Ultrasonic Scan")
+    _ax.set_xlabel("x (inches)")
+    _ax.set_ylabel("y (inches)")
+    _ax.set_aspect("equal", "box")
+    _ax.grid(True)
 
-#     # Convert lidar points → x,y
-#     xs = []
-#     ys = []
-#     normalized = False
+    xs = []
+    ys = []
 
-#     for p in lidar_reading.get_points():
-#         theta_rad = math.radians(-p.angle + 90)
-#         r = p.distance  # normalized 0..1
-#         x = r * math.cos(theta_rad)
-#         y = r * math.sin(theta_rad)
-#         xs.append(x)
-#         ys.append(y)
-    
-#     if max(xs) < 1:
-#         normalized = True
+    for p in ultrasonic_reading.get_points():
+        x, y = p.get_relative_coords_of_reading(final_encoder_reading)
+        xs.append(x)
+        ys.append(y)
 
-#     # Plot lidar points as red dots
-#     if xs:
-#         _lidar_ax.scatter(xs, ys, c='red', s=20, zorder=4)
+    # Plot ultrasonic points in green
+    if xs:
+        _ax.scatter(xs, ys, c='green', s=20, zorder=4)
 
-#     # Compute auto-limits centered at 0,0
-#     if xs:
-#         max_x = max(abs(min(xs)), abs(max(xs)))
-#         max_y = max(abs(min(ys)), abs(max(ys)))
-#     else:
-#         max_x = max_y = 1.0  # fall back if no data
+    # Auto-limits centered at 0,0
+    if xs:
+        max_x = max(abs(min(xs)), abs(max(xs)))
+        max_y = max(abs(min(ys)), abs(max(ys)))
+        max_range = 1.1 * max(max_x, max_y)
+    else:
+        max_range = 10  # fallback
 
-#     max_range = 1.1 * max(max_x, max_y)
+    _ax.set_xlim(-max_range, max_range)
+    _ax.set_ylim(-max_range, max_range)
 
-#     _lidar_ax.set_xlim(-max_range, max_range)
-#     _lidar_ax.set_ylim(-max_range, max_range)
-    
-    
-#     # Draw robot
-#     _lidar_ax.scatter([0.0], [0.0], c='blue', s=40, zorder=3)
-#     # Draw a short line facing straight up from (0,0)
-#     dir_len = 0.05 * max_range  # length of the direction indicator (adjust as desired)
-#     _lidar_ax.plot([0.0, 0.0], [0.0, dir_len], color='blue', linewidth=2, zorder=2)
-#     if not normalized:
-#         # Plot circle of radius L
-#         circle = plt.Circle((0, 0), L, fill=False, edgecolor='green', linewidth=1.5, zorder=1)
-#         _lidar_ax.add_patch(circle)
+    # Draw robot at origin
+    _ax.scatter([0.0], [0.0], c='blue', s=40, zorder=3)
+    # Draw direction indicator (straight up)
+    dir_len = 0.05 * max_range
+    _ax.plot([0.0, 0.0], [0.0, dir_len], color='blue', linewidth=2, zorder=2)
 
-#     # Redraw and flush events
-#     _lidar_fig.canvas.draw()
-#     _lidar_fig.canvas.flush_events()
+    # Redraw
+    _fig.canvas.draw()
+    _fig.canvas.flush_events()
 
-#     return _lidar_fig, _lidar_ax, _lidar_scatter
+    return _fig, _ax, _scatter
