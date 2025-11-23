@@ -27,7 +27,7 @@ PLOT_PARTICLES = 800
 NUM_SCAN_ANGLES = 60           # number of beams used per particle (then downsampled)
 MOVEMENT_NOISE_LINEAR = 0.3      # inches (std dev of translational motion noise)
 MOVEMENT_NOISE_ANGULAR = 0.25     # radians (std dev of rotational motion noise)
-MIN_SENSOR_STD_PERCENT = 0.2     # std dev of normalized measurement noise (in percent); used in Gaussian likelihood
+MIN_SENSOR_STD_PERCENT = 0.25     # std dev of normalized measurement noise (in percent); used in Gaussian likelihood
 MAX_SENSOR_STD_PERCENT = 0.45
 MIN_WEIGHT = 1e-5                # floor weight to avoid zeroing out particles (tunable)
 RESAMPLE_JITTER_POS = 0.25        # inches, positional jitter after resampling
@@ -261,8 +261,8 @@ def resample_particles(particles, reduced_grid, pred_x=None, pred_y=None):
         variance = 0.5 * (np.var(xs) + np.var(ys))
         
     # Compute certainty
-    certainty = PPI**2 * 2 / (variance)
-    print(f"Certainty: {min(certainty, 1)}")
+    certainty = PPI**3 * 2 / (8 * variance)
+    print(f"Certainty: {min(certainty, 1)} [{certainty}]")
     # adjusted_num_particles = max(int(NUM_PARTICLES * max(1 - certainty, 0)), 1000)
 
     # Get inidices of a stratified resample using weights

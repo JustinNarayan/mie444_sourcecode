@@ -124,3 +124,7 @@ def step_localization(
 def is_localized():
     global certainty
     return certainty == 1
+
+def get_pathfind_vars():
+    global grid, pred_x, pred_y, pred_theta
+    return grid, pred_x, pred_y, pred_theta

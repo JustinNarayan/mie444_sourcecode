@@ -1,6 +1,7 @@
 from encoder_reading import EncoderReading
 from lidar_reading import LidarReading
 from mcl2.mcl_main import step_localization, is_localized
+from pathfind import LOADING_ZONE, pathfind_step_region
 import math
 import numpy as np
 
@@ -36,15 +37,17 @@ TARGET_DTHETA_TO_ZERO = 5  # degrees: if misaligned by more than this -> rotate-
 PREFERRED_DIRECTION = 0     # forward = 0 degrees
 
 # Rotation limits requested
-ROTATE_ONLY_MAX_DTHETA = 30       # degrees (rotate-only mode, max)
+ROTATE_ONLY_MAX_DTHETA = 90       # degrees (rotate-only mode, max)
 ROTATE_AND_MOVE_MAX_DTHETA = 5    # degrees (max rotation when also moving)
 
 # Lidar / scoring constants
 MIN_LIDAR_DENSITY_FORWARD = 0.2   # minimum density inside front +/- FRONT_HALF_ANGLE
-FRONT_HALF_ANGLE = 10.0           # degrees
-TOTAL_HALF_ANGLE = 30.0           # degrees (total checked = +/-30 => 60 deg window)
-# peripheral region is the ±30 band excluding the central ±15 band
 MIN_LIDAR_DENSITY_PERIPHERAL = 0.3
+MIN_LIDAR_DENSITY_SEMI = 0.4
+FRONT_HALF_ANGLE = 10.0           # degrees
+TOTAL_HALF_ANGLE = 30.0           # degrees 
+TOTAL_SEMI_ANGLE = 75.0           # degrees
+# peripheral region is the ±30 band excluding the central ±15 band
 
 MIN_CLEARANCE_FROM_WALL = 0.65     # inches minimum desired clearance (very conservative default)
 MIN_EDGE_CLEARANCE = 1.5          # inches - minimum forward clearance for robot edges to consider moving
@@ -331,5 +334,7 @@ def get_free_direction_drivetrain_command(lidar_reading: LidarReading):
 
 
 def get_drivetrain_command(lidar_reading: LidarReading):
-    # if not is_localized():
-    return get_free_direction_drivetrain_command(lidar_reading)
+    if not is_localized():
+        return get_free_direction_drivetrain_command(lidar_reading)
+    else:
+        return pathfind_step_region(LOADING_ZONE)
