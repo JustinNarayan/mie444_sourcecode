@@ -23,9 +23,9 @@ from localization import (
 from encoder_control_manager import send_encoder_request
 
 # Visualization
-VISUALIZE_LIDAR = False
+VISUALIZE_LIDAR = True
 VISUALIZE_ULTRASONIC = False
-LOCALIZATION = False
+LOCALIZATION = True
 
 
 def print_rcvd_message(msg: Message):
@@ -163,8 +163,8 @@ def start_receiver(ser, stop_event, lidar_reading: LidarReading, ultrasonic_read
                                     
                                     # Check free direction
                                     dX, dY, dTheta = get_drivetrain_command(lidar_reading)
+                                    print(f"command: {dX}, {dY}, {dTheta}")
                                     current_automated_command.set(dX, dY, dTheta)
-                                    print(f"command = (dX={current_automated_command.dX} ,dY={current_automated_command.dY}, dTheta={current_automated_command.dTheta})") 
 
                             if msg.get_type() not in SHOULD_NOT_PRINT_TO_SCREEN:
                                 print_rcvd_message(msg)

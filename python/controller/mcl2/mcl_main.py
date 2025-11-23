@@ -3,7 +3,7 @@ import math
 import copy
 import random
 import mcl2.mcl_helper as mh
-from mcl2.mcl_helper import Particle, GRID_WIDTH, GRID_HEIGHT, PPI
+from mcl2.mcl_helper import Particle, GRID_WIDTH, GRID_HEIGHT, PPI, PLOT_PARTICLES
 from lidar_reading import LidarReading
 
 ### Initialize pygame for visualization
@@ -104,7 +104,7 @@ def step_localization(
     mh.draw_grid(window, reduced_grid)
 
     # Draw particles to screen (RED)
-    for particle in particles:
+    for particle in particles[:PLOT_PARTICLES]:
         mh.draw_state_estimate_to_screen(
             window, particle.x, particle.y, particle.theta, 
             is_final_predicted_state=False

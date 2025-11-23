@@ -12,6 +12,9 @@ EPSILON = 1e-12                # tiny value to avoid division by zero in normali
 LIDAR_ZERO_ANGLE_OFFSET_REAL = -48.0  # degrees
 LIDAR_ZERO_ANGLE_OFFSET_SIMULATED = 0.0  # degrees
 L = 3.73771654 # inches, 94.938 mm - DISTANCE_FROM_OBJECT_CENTER_TO_WHEEL_MIDPOINT
+GRIPPER_WIDTH = 2.5
+GRIPPER_LENGTH = 2.5
+
 class LidarPointReading:
     """
     Represents one LIDAR beam measurement.
