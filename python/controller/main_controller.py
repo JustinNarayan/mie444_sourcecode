@@ -11,7 +11,7 @@ from mcl2.mcl_main import begin_localization
 
 # ======= USER SETTINGS =======
 PORT = "COM6"
-BAUD = 57600
+BAUD = 9600
 SEND_INTERVAL = 0.01  # seconds (10 ms)
 WAIT_INTERVAL = 0.01
 # =============================

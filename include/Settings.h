@@ -5,8 +5,8 @@
  *                  COMMUNICATIONS                   *
  *****************************************************/
 
-#define EXTERNAL_COMMS_BAUD_RATE 57600
-#define INTERNAL_COMMS_BAUD_RATE 57600
+#define EXTERNAL_COMMS_BAUD_RATE 9600
+#define INTERNAL_COMMS_BAUD_RATE 9600
 #define BLUETOOTH_AT_BAUD_RATE 38400
 #define LIDAR_BAUD_RATE 115200
 
