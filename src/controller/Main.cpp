@@ -8,6 +8,7 @@
 #include "PeripheralForwardingController.h"
 #include "LidarController.h"
 #include "UltrasonicController.h"
+#include "GripperController.h"
 #include "Settings.h"
 #include "Errors.h"
 
@@ -31,6 +32,8 @@ UltrasonicController g_ultrasonicController(
     &g_envoyToPeripheral,
     &g_peripheralForwardingController
 );
+Gripper g_gripper;
+GripperController g_gripperController(&g_gripper);
 
 /*****************************************************
  *                    TASKMASTERS                    *
@@ -39,6 +42,7 @@ static ControllerGeneric* primaryControllers[] = {
 	&g_peripheralForwardingController,
 	&g_lidarController,
     // &g_ultrasonicController
+    &g_gripperController
 };
 TASKMASTER_DECLARE(primaryTaskmaster, &g_externalComms, primaryControllers)
 
@@ -63,6 +67,7 @@ void setup()
 	Wiring_InitComms(&g_externalComms, &g_peripheralComms);
 	Wiring_InitLidar(&g_lidar);
     Wiring_InitUltrasonics(&g_ultrasonic1, &g_ultrasonic2);
+    Wiring_InitGripper(&g_gripper);
 }
 
 /**

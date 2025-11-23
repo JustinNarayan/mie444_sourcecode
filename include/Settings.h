@@ -5,8 +5,8 @@
  *                  COMMUNICATIONS                   *
  *****************************************************/
 
-#define EXTERNAL_COMMS_BAUD_RATE 57600
-#define INTERNAL_COMMS_BAUD_RATE 57600
+#define EXTERNAL_COMMS_BAUD_RATE 9600
+#define INTERNAL_COMMS_BAUD_RATE 9600
 #define BLUETOOTH_AT_BAUD_RATE 38400
 #define LIDAR_BAUD_RATE 115200
 
@@ -197,3 +197,16 @@
 #define ULTRASONIC_SWEEP_MINIMUM_ENCODER_DISTANCE (23) // inches
 #define ULTRASONIC_TIME_TO_PING_ENCODERS_REPEATEDLY (50) // millis
 #define ULTRASONIC_TIME_TO_IGNORE_AUTOMATED_COMMAND_RESPONSE (3000) // millis
+
+/*****************************************************
+ *                      GRIPPER                      *
+ *****************************************************/
+
+#define GRIPPER_ARM_RETRACTED_POS (0)
+#define GRIPPER_ARM_READY_POS (90)
+#define GRIPPER_ARM_EXTENDED_POS (180)
+#define GRIPPER_WRIST_OPENED_POS (0)
+#define GRIPPER_WRIST_REST_POS (90)
+#define GRIPPER_WRIST_CLOSED_POS (180)
+#define SERVO_STEP_INCREMENT (1) // 0 to 255
+#define SERVO_STEP_DELAY (10) // millis

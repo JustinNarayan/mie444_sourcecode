@@ -23,9 +23,9 @@ from localization import (
 from encoder_control_manager import send_encoder_request
 
 # Visualization
-VISUALIZE_LIDAR = True
+VISUALIZE_LIDAR = False
 VISUALIZE_ULTRASONIC = False
-LOCALIZATION = True
+LOCALIZATION = False
 
 
 def print_rcvd_message(msg: Message):

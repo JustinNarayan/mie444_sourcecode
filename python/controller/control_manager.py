@@ -5,6 +5,7 @@ from lidar_control_manager import send_lidar_request
 from automated_command import AutomatedCommand
 from ultrasonic_control_manager import send_ultrasonic_request
 from encoder_control_manager import send_encoder_request
+from gripper_control_manager import send_gripper_request
 from mcl2.mcl_main import reset_localization
 
 DRIVETRAIN_KEYS = ["q", "z", "a", "d", "w", "s"]
@@ -14,6 +15,16 @@ LIDAR_KEYS = ["l"]
 ULTRASONIC_KEYS = ["p"]
 LOCALIZATION_RESET_KEYS = ['`']
 ENCODER_KEYS = ["e"]
+GRIPPER_KEYS = ['1', '2', '3', '4', '5', '0']
+
+GRIPPER_KEYS_MAPPING = {
+    '1': "home",
+    '2': "extend",
+    '3': "ready",
+    '4': "open",
+    '5': "close",
+    '0': 'ping'
+}
 
 DELTA_POS, DELTA_ANG = 6, 10
 DRIVETRAIN_AUTOMATED_KEYS_MAPPING = {
@@ -41,6 +52,9 @@ def start_keyboard_listener(ser, stop_event, lidar_reading, ultrasonic_reading, 
         localization_reset_pressed = {k: False for k in LOCALIZATION_RESET_KEYS}  # track edge for localization reset keys
         encoder_pressed = {
             k: False for k in ENCODER_KEYS
+        }  # track edge for ENCODER keys
+        gripper_pressed = {
+            k: False for k in GRIPPER_KEYS
         }  # track edge for ENCODER keys
 
         while not stop_event.is_set():
@@ -103,6 +117,16 @@ def start_keyboard_listener(ser, stop_event, lidar_reading, ultrasonic_reading, 
                 elif not is_pressed and encoder_pressed[k]:
                     # reset state when key released
                     encoder_pressed[k] = False
+
+            # ----- Gripper keys (edge-triggered) -----
+            for k in GRIPPER_KEYS:
+                is_pressed = keyboard.is_pressed(k)
+                if is_pressed and not gripper_pressed[k]:
+                    send_gripper_request(ser, GRIPPER_KEYS_MAPPING[k])
+                    gripper_pressed[k] = True  # mark as pressed
+                elif not is_pressed and gripper_pressed[k]:
+                    # reset state when key released
+                    gripper_pressed[k] = False
 
             # Small sleep to reduce CPU usage
             threading.Event().wait(0.01)
