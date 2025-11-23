@@ -2,6 +2,7 @@
 #include "Message.h"
 #include "TranslateDrivetrain.h"
 #include "TranslateSensors.h"
+#include "TranslateGripper.h"
 
 /**
  * @brief Instantiate all EnumMessageMap objects for translation
@@ -15,6 +16,8 @@ ENUM_MESSAGE_MAP_TRANSLATION(DrivetrainEncoderState)
 #if defined(BOARD_CONTROLLER)
 ENUM_MESSAGE_MAP_TRANSLATION(LidarState)
 ENUM_MESSAGE_MAP_TRANSLATION(UltrasonicState)
+ENUM_MESSAGE_MAP_TRANSLATION(GripperCommand)
+ENUM_MESSAGE_MAP_TRANSLATION(GripperState)
 #endif
 
 /**

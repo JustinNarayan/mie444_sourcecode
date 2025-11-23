@@ -33,6 +33,9 @@ class MessageType(Enum):
 
     UltrasonicState = auto()
     UltrasonicPointReading = auto()
+    
+    GripperCommand = auto()
+    GripperState = auto()
 
     Count = auto()
 

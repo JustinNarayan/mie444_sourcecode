@@ -30,6 +30,10 @@ enum class MessageType {
     UltrasonicState,
     UltrasonicPointReading,
 
+    /* Gripper */
+    GripperCommand,
+    GripperState,
+
 	Count
 };
 

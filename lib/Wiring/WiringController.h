@@ -4,6 +4,7 @@
 #include <CommsInterface.h>
 #include <Lidar.h>
 #include <Ultrasonic.h>
+#include <Gripper.h>
 #include "Wiring.h"
 
 /**
@@ -34,6 +35,9 @@
 /* Lidar */
 #define PIN_LIDAR_MOTOCTRL 9
 
+/* Gripper */
+#define PIN_GRIPPER_ARM 2
+#define PIN_GRIPPER_WRIST 3
 
 /*****************************************************
  *                   INITIALIZERS                    *
@@ -84,4 +88,13 @@ void Wiring_InitUltrasonics(Ultrasonic* ultrasonic1, Ultrasonic* ultrasonic2)
 {
     ultrasonic1->init(PIN_ULTRASONIC_1_ECHO, PIN_ULTRASONIC_1_TRIGGER);
     ultrasonic2->init(PIN_ULTRASONIC_2_ECHO, PIN_ULTRASONIC_2_TRIGGER);
+}
+
+/**
+ * @brief Initialize servos
+ * 
+ */
+void Wiring_InitGripper(Gripper* gripper)
+{
+    gripper->init(PIN_GRIPPER_ARM, PIN_GRIPPER_WRIST);
 }

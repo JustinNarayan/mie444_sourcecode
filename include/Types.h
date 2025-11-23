@@ -32,3 +32,5 @@ enum class MotorDirection { Reverse, Forward };
 
 typedef int16_t ultrasonicAngle_deg;
 typedef float32_t ultrasonicDistance_in;
+
+typedef uint8_t servoPos;
