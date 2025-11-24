@@ -160,7 +160,7 @@ void DriveController::applyManualCommand(DrivetrainManualCommand command)
 			drivetrain->setTranslate(DRIVETRAIN_TRANSLATE_SPEED, true);
 			break;
 		case DrivetrainManualCommand::TranslateBackward:
-			drivetrain->setTranslate(DRIVETRAIN_TRANSLATE_SPEED, false);
+			drivetrain->setTranslate(DRIVETRAIN_TRANSLATE_SPEED_BACKWARD, false);
 			break;
 		case DrivetrainManualCommand::RotateLeft:
 			drivetrain->setRotate(DRIVETRAIN_ROTATE_SPEED, true);
