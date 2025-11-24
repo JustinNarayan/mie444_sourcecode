@@ -8,10 +8,10 @@ from encoder_reading import EncoderReading
 from inverse_kinematics import inverse_kinematics, DEG_TO_RAD, L
 
 ULTRASONIC_1_OFFSET_TO_FORWARD = 0 * DEG_TO_RAD
-ULTRASONIC_2_OFFSET_TO_FORWARD = 120 * DEG_TO_RAD
+ULTRASONIC_2_OFFSET_TO_FORWARD = -120 * DEG_TO_RAD
 ULTRASONIC_RADIUS = 3.0 # inches
-ULTRASONIC_MAX_X = 100
-ULTRASONIC_MAX_Y = 100
+ULTRASONIC_MAX_X = 40
+ULTRASONIC_MAX_Y = 40
 
 class UltrasonicPointReading:
     """

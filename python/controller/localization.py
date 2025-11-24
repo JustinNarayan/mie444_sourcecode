@@ -305,7 +305,7 @@ def get_free_direction_drivetrain_command(lidar_reading: LidarReading):
 
 
 def get_drivetrain_command(lidar_reading: LidarReading):
-    if not is_localized():
-        return get_free_direction_drivetrain_command(lidar_reading)
+    # if not is_localized():
+    #     return get_free_direction_drivetrain_command(lidar_reading)
     # else:
-    #     return pathfind_step_region(LOADING_ZONE)
+    return pathfind_step_region(LOADING_ZONE)
