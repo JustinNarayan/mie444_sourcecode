@@ -16,6 +16,8 @@ ULTRASONIC_KEYS = ["p"]
 LOCALIZATION_RESET_KEYS = ['`']
 ENCODER_KEYS = ["e"]
 GRIPPER_KEYS = ['1', '2', '3', '4', '5', '0']
+AUTOMATE_KEY = "\\"  # toggle key
+
 
 GRIPPER_KEYS_MAPPING = {
     '1': "home",
@@ -56,27 +58,37 @@ def start_keyboard_listener(ser, stop_event, lidar_reading, ultrasonic_reading, 
         gripper_pressed = {
             k: False for k in GRIPPER_KEYS
         }  # track edge for ENCODER keys
+        automate_mode = False  # toggled by AUTOMATE_KEY
 
         while not stop_event.is_set():
-            # ----- Drivetrain keys (continuous) -----
-            for k in DRIVETRAIN_KEYS:
-                if keyboard.is_pressed(k):
-                    send_drive_command(ser, k)
-                    break  # Only send one drivetrain command per cycle
+            # ----- AUTOMATE KEY TOGGLE -----
+            if keyboard.is_pressed(AUTOMATE_KEY):
+                if not getattr(keyboard_thread, "_automate_pressed", False):
+                    automate_mode = not automate_mode
+                    print(f"Automated mode {'enabled' if automate_mode else 'disabled'}")
+                    keyboard_thread._automate_pressed = True
+            else:
+                keyboard_thread._automate_pressed = False
+            
+            # ----- Manual drivetrain keys (continuous) -----
+            if not automate_mode:  # only manual control if automation off
+                for k in DRIVETRAIN_KEYS:
+                    if keyboard.is_pressed(k):
+                        send_drive_command(ser, k)
+                        break
 
-            # ----- Drivetrain automated keys (edge-triggered) -----
-            for k in DRIVETRAIN_AUTOMATED_KEYS:
-                is_pressed = keyboard.is_pressed(k)
-                if is_pressed and not drivetrain_automated_pressed[k]:
-                    # Get mapping of keys
-                    [delta_x, delta_y, delta_theta] = DRIVETRAIN_AUTOMATED_KEYS_MAPPING[k].get()
-                    if k is CURRENT_AUTOMATED_COMMAND_KEY:
-                        [delta_x, delta_y, delta_theta] = current_automated_command.get()
-                    send_drive_automated_command(ser, delta_x, delta_y, delta_theta)
-                    drivetrain_automated_pressed[k] = True  # mark as pressed
-                elif not is_pressed and drivetrain_automated_pressed[k]:
-                    # reset state when key released
-                    drivetrain_automated_pressed[k] = False
+            # ----- Manual drivetrain automated keys (edge-triggered) -----
+            if not automate_mode:
+                for k in DRIVETRAIN_AUTOMATED_KEYS:
+                    is_pressed = keyboard.is_pressed(k)
+                    if is_pressed and not drivetrain_automated_pressed[k]:
+                        [delta_x, delta_y, delta_theta] = DRIVETRAIN_AUTOMATED_KEYS_MAPPING[k].get()
+                        if k is CURRENT_AUTOMATED_COMMAND_KEY:
+                            [delta_x, delta_y, delta_theta] = current_automated_command.get()
+                        send_drive_automated_command(ser, delta_x, delta_y, delta_theta)
+                        drivetrain_automated_pressed[k] = True
+                    elif not is_pressed and drivetrain_automated_pressed[k]:
+                        drivetrain_automated_pressed[k] = False
 
             # ----- Lidar keys (edge-triggered) -----
             for k in LIDAR_KEYS:
@@ -127,6 +139,23 @@ def start_keyboard_listener(ser, stop_event, lidar_reading, ultrasonic_reading, 
                 elif not is_pressed and gripper_pressed[k]:
                     # reset state when key released
                     gripper_pressed[k] = False
+                    
+            # ----- AUTOMATED LOOP -----
+            if automate_mode:
+                # 1. Ping lidar & wait for valid localization
+                send_lidar_request(ser, lidar_reading, "l")  # request lidar
+                # assume `prepare_info_for_localization_step` is called elsewhere on lidar response
+
+                # 2. Get drivetrain command (e.g., from free-direction logic)
+                # This would be your existing get_drivetrain_command() call
+                # For example:
+                # dx, dy, dtheta = get_drivetrain_command(lidar_reading)
+                # send_drive_automated_command(ser, dx, dy, dtheta)
+
+                # 3. Wait non-blocking until current_automated_command.check_complete() is True
+                if hasattr(current_automated_command, "check_complete"):
+                    if not current_automated_command.check_complete():
+                        pass  # skip sending next command until current finishes
 
             # Small sleep to reduce CPU usage
             threading.Event().wait(0.01)
