@@ -3,6 +3,7 @@ from bisect import bisect_left
 from typing import List
 import matplotlib.pyplot as plt
 import math
+from ultrasonic_reading import UltrasonicReading, ULTRASONIC_MAX_X, ULTRASONIC_MAX_Y
 import numpy as np
 
 # --- Tunables / constants for LIDAR file ---
@@ -192,7 +193,7 @@ def init_lidar_plot(_lidar_fig, _lidar_ax, _lidar_scatter):
     return _lidar_fig, _lidar_ax, _lidar_scatter
 
 
-def update_lidar_plot(_lidar_fig, _lidar_ax, _lidar_scatter, lidar_reading):
+def update_lidar_plot(_lidar_fig, _lidar_ax, _lidar_scatter, lidar_reading, ultrasonic_reading: UltrasonicReading = None):
     """
     Clear the plot completely and draw:
       - a blue dot at (0,0)
@@ -232,6 +233,19 @@ def update_lidar_plot(_lidar_fig, _lidar_ax, _lidar_scatter, lidar_reading):
     # Plot lidar points as red dots
     if xs:
         _lidar_ax.scatter(xs, ys, c='red', s=20, zorder=4)
+        
+    # Plot ultrasonic
+    uxs, uys = [], []
+    if ultrasonic_reading is not None:
+        for p in ultrasonic_reading.get_points():
+            x, y = p.get_relative_coords_of_reading(ultrasonic_reading.get_final_encoder())
+            if (abs(x) > ULTRASONIC_MAX_X or abs(y) > ULTRASONIC_MAX_Y):
+                continue
+            uxs.append(x)
+            uys.append(y)
+        
+        if uys:
+            _lidar_ax.scatter(uxs, uys, c='green', s=20, zorder=4)
 
     # Compute auto-limits centered at 0,0
     if xs:
