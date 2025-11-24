@@ -3,12 +3,19 @@ class AutomatedCommand:
         self.dX = dX
         self.dY = dY
         self.dTheta = dTheta
+        self.complete = False
         
-    @classmethod
-    def set(self, dX: float, dY: float, dTheta: float):
+    def get(self):
+        return self.dX, self.dY, self.dTheta
+        
+    def set(self, dX: int, dY: int, dTheta: int):
         self.dX = dX
         self.dY = dY
         self.dTheta = dTheta
+        self.complete = False
     
-    def get(self):
-        return [self.dX, self.dY, self.dTheta]
+    def make_complete(self):
+        self.complete = True
+        
+    def check_complete(self):
+        return self.complete

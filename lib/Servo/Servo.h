@@ -31,11 +31,14 @@ public:
      * @brief Go to a new position, blocking.
      * 
      */
-    void reposition(servoPos newPos)
+    void reposition(servoPos newPos, bool force = false)
     {
         // Ensure new position is in bounds
         servoPos targetPos = constrain(newPos, this->minPos, this->maxPos);
-        while (this->pos != targetPos)
+        while (
+            (this->pos != targetPos) ||
+            force // A single step is forced in case servo thinks it's at position
+        )
         {
             // Compute deta with signed value
             int16_t deltaPos = constrain(
@@ -50,6 +53,9 @@ public:
             // Write to servo
             analogWrite(this->pwmPin, this->pos);
             delay(SERVO_STEP_DELAY);
+
+            // Take off force
+            force = false;
         }
     }
 };

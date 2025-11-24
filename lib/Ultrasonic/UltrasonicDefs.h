@@ -6,8 +6,7 @@
 /*****************************************************
  *                 COMPILER UTILITIES                *
  *****************************************************/
-#define ULTRASONIC_TIME_US_TO_INCH(us) M_TO_INCH(us * SPEED_OF_SOUND_DIV2_MPS)
-
+#define ULTRASONIC_TIME_US_TO_INCH(us) M_TO_INCH( (us/1e6f) * SPEED_OF_SOUND_DIV2_MPS)
 
 /*****************************************************
  *                       ENUMS                       *

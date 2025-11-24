@@ -5,11 +5,13 @@ import matplotlib.pyplot as plt
 import math
 import numpy as np
 from encoder_reading import EncoderReading
-from localization import inverse_kinematics, DEG_TO_RAD, L
+from inverse_kinematics import inverse_kinematics, DEG_TO_RAD, L
 
-ULTRASONIC_1_OFFSET_TO_FORWARD = -60 * DEG_TO_RAD
-ULTRASONIC_2_OFFSET_TO_FORWARD = -120 * DEG_TO_RAD
+ULTRASONIC_1_OFFSET_TO_FORWARD = 0 * DEG_TO_RAD
+ULTRASONIC_2_OFFSET_TO_FORWARD = 120 * DEG_TO_RAD
 ULTRASONIC_RADIUS = 3.0 # inches
+ULTRASONIC_MAX_X = 100
+ULTRASONIC_MAX_Y = 100
 
 class UltrasonicPointReading:
     """
@@ -32,6 +34,7 @@ class UltrasonicPointReading:
         # 1. Sensor direction
         if self.which_ultrasonic == 1:
             offset = ULTRASONIC_1_OFFSET_TO_FORWARD
+            return 0,0
         else:
             offset = ULTRASONIC_2_OFFSET_TO_FORWARD
 
@@ -57,8 +60,8 @@ class UltrasonicPointReading:
         x_shift = hit_x_read - dX_rel
         y_shift = hit_y_read - dY_rel
 
-        # Rotate by -dTheta_rel
-        theta = math.radians(-dTheta_rel)
+        # Then rotate by -dTheta_rel to account for robot rotation
+        theta = dTheta_rel
         cos_t = math.cos(theta)
         sin_t = math.sin(theta)
 
@@ -80,6 +83,13 @@ class UltrasonicReading:
     """
     def __init__(self, which_ultrasonic: int = 1):
         self.points: List[UltrasonicReading] = []
+        self.final_encoder_reading = None
+        
+    def set_final_encoder(self, final_encoder_reading: EncoderReading):
+        self.final_encoder_reading = final_encoder_reading
+    
+    def get_final_encoder(self):
+        return self.final_encoder_reading
 
     # ---- Construction helpers ----
     @classmethod
@@ -110,84 +120,86 @@ class UltrasonicReading:
         return f"UltrasonicReading({len(self.points)} points: {self.points})"
 
 
-def init_ultrasonic_plot(_fig, _ax, _scatter):
-    """Initialize or recreate the ultrasonic scatter plot window. Returns updated handles."""
-    # If old fig exists but user closed it → reset
-    if _fig is not None and not plt.fignum_exists(_fig.number):
-        _fig = None
-        _ax = None
-        _scatter = None
+# def init_ultrasonic_plot(_fig, _ax, _scatter):
+#     """Initialize or recreate the ultrasonic scatter plot window. Returns updated handles."""
+#     # If old fig exists but user closed it → reset
+#     if _fig is not None and not plt.fignum_exists(_fig.number):
+#         _fig = None
+#         _ax = None
+#         _scatter = None
 
-    # Create new figure if needed
-    if _fig is None:
-        plt.ion()
-        _fig, _ax = plt.subplots()
-        _fig.canvas.manager.set_window_title("Live Ultrasonic (x,y) Plot")
+#     # Create new figure if needed
+#     if _fig is None:
+#         plt.ion()
+#         _fig, _ax = plt.subplots()
+#         _fig.canvas.manager.set_window_title("Live Ultrasonic (x,y) Plot")
 
-        _ax.set_title("Ultrasonic Scan")
-        _ax.set_xlabel("x (inches)")
-        _ax.set_ylabel("y (inches)")
-        _ax.set_aspect("equal", "box")
-        _ax.grid(True)
+#         _ax.set_title("Ultrasonic Scan")
+#         _ax.set_xlabel("x (inches)")
+#         _ax.set_ylabel("y (inches)")
+#         _ax.set_aspect("equal", "box")
+#         _ax.grid(True)
 
-        # placeholder scatter
-        _scatter = _ax.scatter([], [], c='green')
+#         # placeholder scatter
+#         _scatter = _ax.scatter([], [], c='green')
 
-        _fig.show()
+#         _fig.show()
 
-    return _fig, _ax, _scatter
+#     return _fig, _ax, _scatter
 
 
-def update_ultrasonic_plot(_fig, _ax, _scatter, ultrasonic_reading, final_encoder_reading):
-    """
-    Plot ultrasonic ping positions.
-    Each UltrasonicPointReading computes (x,y) from get_relative_coords_of_reading().
-    All plotted as green dots.
-    """
-    # Ensure figure/axes exist
-    _fig, _ax, _scatter = init_ultrasonic_plot(_fig, _ax, _scatter)
+# def update_ultrasonic_plot(_fig, _ax, _scatter, ultrasonic_reading, final_encoder_reading):
+#     """
+#     Plot ultrasonic ping positions.
+#     Each UltrasonicPointReading computes (x,y) from get_relative_coords_of_reading().
+#     All plotted as green dots.
+#     """
+#     # Ensure figure/axes exist
+#     _fig, _ax, _scatter = init_ultrasonic_plot(_fig, _ax, _scatter)
 
-    # Clear axes
-    _ax.cla()
+#     # Clear axes
+#     _ax.cla()
 
-    # Restore decorations
-    _ax.set_title("Ultrasonic Scan")
-    _ax.set_xlabel("x (inches)")
-    _ax.set_ylabel("y (inches)")
-    _ax.set_aspect("equal", "box")
-    _ax.grid(True)
+#     # Restore decorations
+#     _ax.set_title("Ultrasonic Scan")
+#     _ax.set_xlabel("x (inches)")
+#     _ax.set_ylabel("y (inches)")
+#     _ax.set_aspect("equal", "box")
+#     _ax.grid(True)
 
-    xs = []
-    ys = []
+#     xs = []
+#     ys = []
 
-    for p in ultrasonic_reading.get_points():
-        x, y = p.get_relative_coords_of_reading(final_encoder_reading)
-        xs.append(x)
-        ys.append(y)
+#     for p in ultrasonic_reading.get_points():
+#         x, y = p.get_relative_coords_of_reading(final_encoder_reading)
+#         if (abs(x) > ULTRASONIC_MAX_X or abs(y) > ULTRASONIC_MAX_Y):
+#             continue
+#         xs.append(x)
+#         ys.append(y)
+        
+#     # Plot ultrasonic points in green
+#     if xs:
+#         _ax.scatter(xs, ys, c='green', s=20, zorder=4)
 
-    # Plot ultrasonic points in green
-    if xs:
-        _ax.scatter(xs, ys, c='green', s=20, zorder=4)
+#     # Auto-limits centered at 0,0
+#     if xs:
+#         max_x = max(abs(min(xs)), abs(max(xs)))
+#         max_y = max(abs(min(ys)), abs(max(ys)))
+#         max_range = 1.1 * max(max_x, max_y)
+#     else:
+#         max_range = 10  # fallback
 
-    # Auto-limits centered at 0,0
-    if xs:
-        max_x = max(abs(min(xs)), abs(max(xs)))
-        max_y = max(abs(min(ys)), abs(max(ys)))
-        max_range = 1.1 * max(max_x, max_y)
-    else:
-        max_range = 10  # fallback
+#     _ax.set_xlim(-max_range, max_range)
+#     _ax.set_ylim(-max_range, max_range)
 
-    _ax.set_xlim(-max_range, max_range)
-    _ax.set_ylim(-max_range, max_range)
+#     # Draw robot at origin
+#     _ax.scatter([0.0], [0.0], c='blue', s=40, zorder=3)
+#     # Draw direction indicator (straight up)
+#     dir_len = 0.05 * max_range
+#     _ax.plot([0.0, 0.0], [0.0, dir_len], color='blue', linewidth=2, zorder=2)
 
-    # Draw robot at origin
-    _ax.scatter([0.0], [0.0], c='blue', s=40, zorder=3)
-    # Draw direction indicator (straight up)
-    dir_len = 0.05 * max_range
-    _ax.plot([0.0, 0.0], [0.0, dir_len], color='blue', linewidth=2, zorder=2)
+#     # Redraw
+#     _fig.canvas.draw()
+#     _fig.canvas.flush_events()
 
-    # Redraw
-    _fig.canvas.draw()
-    _fig.canvas.flush_events()
-
-    return _fig, _ax, _scatter
+#     return _fig, _ax, _scatter

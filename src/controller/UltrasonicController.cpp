@@ -1,4 +1,5 @@
 #include "UltrasonicController.h"
+#include <DrivetrainDefs.h>
 #include <Translate.h>
 
 /**
@@ -150,8 +151,18 @@ void UltrasonicController::sendUltrasonicState(UltrasonicState state)
 	
     // Continue to try sending complete until successfully enqueued
 	if (this->sweepState == UltrasonicSweepState::Complete)
+    {
 		if (result == ControllerMessageQueueOutput::EnqueueSuccess)
+        {
 			this->sweepState = UltrasonicSweepState::Idle;
+            this->sweepStartTime = 0;
+            this->encodersStart = {0};
+            this->encodersNow = {0};
+            this->hasPingedEncodersAtThisPosition = false;
+            this->encoderPingTime = 0;
+            this->automatedCommandTime = 0;
+        }
+    }
 }
 
 /**
@@ -220,15 +231,14 @@ bool UltrasonicController::shouldFinishSweep(void)
     if ((millis() - this->sweepStartTime) > ULTRASONIC_SWEEP_MAX_TIME_MS) return true;
 
     // Compute encoder distances
-    bool encoder1Swept = \
-        fabsf(this->encodersNow.encoder1Dist - this->encodersStart.encoder1Dist) > ULTRASONIC_SWEEP_MINIMUM_ENCODER_DISTANCE;
-    bool encoder2Swept = \
-        fabsf(this->encodersNow.encoder2Dist - this->encodersStart.encoder2Dist) > ULTRASONIC_SWEEP_MINIMUM_ENCODER_DISTANCE;
-    bool encoder3Swept = \
-        fabsf(this->encodersNow.encoder3Dist - this->encodersStart.encoder3Dist) > ULTRASONIC_SWEEP_MINIMUM_ENCODER_DISTANCE;
-    
-    // Any encoder has carved a circle (presumably all have)
-    return encoder1Swept || encoder2Swept || encoder3Swept;
+    DrivetrainDisplacements displacements;
+    displacementsFromEncoderReadings(
+        &displacements,
+        &(this->encodersStart),
+        &(this->encodersNow)
+    );
+
+    return fabsf(displacements.dTheta_rad) > ULTRASONIC_SWEEP_MINIMUM_ENCODER_ANGLE;
 }
 
 /**

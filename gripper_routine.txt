@@ -1,0 +1,18 @@
+START:
+- 5: close gripper
+- 4: open gripper
+- 2: extend
+- 3: ready
+
+APPROACH_BLOCK:
+- 3: ready
+- 4: open gripper
+
+GRAB_BLOCK:
+- 5: close gripper
+
+LIFT_BLOCK
+-2: extend
+
+DROP:
+- 4: open gripper

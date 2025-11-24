@@ -3,7 +3,7 @@ import math
 import copy
 import random
 import mcl2.mcl_helper as mh
-from mcl2.mcl_helper import Particle, GRID_WIDTH, GRID_HEIGHT, PPI
+from mcl2.mcl_helper import Particle, GRID_WIDTH, GRID_HEIGHT, PPI, PLOT_PARTICLES
 from lidar_reading import LidarReading
 
 ### Initialize pygame for visualization
@@ -33,11 +33,11 @@ window = None
 step_count = None
 clock = None
 particles = None
-certainty = 0
+raw_certainty = 0
 
 ### FUNCTIONS
 def begin_localization():
-    global grid, reduced_grid, valid_positions, pred_x, pred_y, pred_theta, window, step_count, clock, particles, certainty
+    global grid, reduced_grid, valid_positions, pred_x, pred_y, pred_theta, window, step_count, clock, particles, raw_certainty
 
     # Construct grid and generate particle starting positions within
     grid = mh.init_grid()
@@ -80,7 +80,7 @@ def step_localization(
         3. Resampling (select likely particles)
         4. Estimation and visualization
     """
-    global grid, reduced_grid, valid_positions, pred_x, pred_y, pred_theta, window, step_count, clock, particles, certainty
+    global grid, reduced_grid, valid_positions, pred_x, pred_y, pred_theta, window, step_count, clock, particles, raw_certainty
 
     # Motion update: apply given delta commands to each particle
     if delta_x is not None and delta_y is not None and delta_theta is not None:
@@ -94,7 +94,7 @@ def step_localization(
             particle.update_weight(simulated_lidar, lidar_reading)
 
     # Resampling & Estimation
-    particles, variance, certainty = mh.resample_particles(
+    particles, variance, raw_certainty = mh.resample_particles(
         particles, reduced_grid, pred_x, pred_y
     )
     pred_x, pred_y, pred_theta = mh.estimate(particles)
@@ -104,7 +104,7 @@ def step_localization(
     mh.draw_grid(window, reduced_grid)
 
     # Draw particles to screen (RED)
-    for particle in particles:
+    for particle in particles[:PLOT_PARTICLES]:
         mh.draw_state_estimate_to_screen(
             window, particle.x, particle.y, particle.theta, 
             is_final_predicted_state=False
@@ -122,5 +122,9 @@ def step_localization(
     print(f"[MCL] Step {step_count}: Predicted position = ({pred_x:.1f}, {pred_y:.1f}), θ = {math.degrees(pred_theta):.1f}°")
 
 def is_localized():
-    global certainty
-    return certainty == 1
+    global raw_certainty
+    return raw_certainty > 6.0
+
+def get_pathfind_vars():
+    global grid, pred_x, pred_y, pred_theta
+    return grid, pred_x, pred_y, pred_theta

@@ -23,11 +23,12 @@ with open(
 
 ### TUNABLE PARAMETERS
 NUM_PARTICLES = 3000            # number of particles
+PLOT_PARTICLES = 1500
 NUM_SCAN_ANGLES = 60           # number of beams used per particle (then downsampled)
 MOVEMENT_NOISE_LINEAR = 0.3      # inches (std dev of translational motion noise)
 MOVEMENT_NOISE_ANGULAR = 0.25     # radians (std dev of rotational motion noise)
-MIN_SENSOR_STD_PERCENT = 0.1     # std dev of normalized measurement noise (in percent); used in Gaussian likelihood
-MAX_SENSOR_STD_PERCENT = 0.45
+MIN_SENSOR_STD_PERCENT = 0.2     # std dev of normalized measurement noise (in percent); used in Gaussian likelihood
+MAX_SENSOR_STD_PERCENT = 0.5
 MIN_WEIGHT = 1e-5                # floor weight to avoid zeroing out particles (tunable)
 RESAMPLE_JITTER_POS = 0.25        # inches, positional jitter after resampling
 RESAMPLE_JITTER_THETA = 0.15     # radians, angular jitter after resampling
@@ -36,8 +37,9 @@ RESAMPLE_JITTER_THETA = 0.15     # radians, angular jitter after resampling
 LIDAR_RANGE_MIN = 3.0
 LIDAR_RANGE_MAX = 80.0
 
-# Debug / certainty variables (kept for compatibility)
+# Debug / certainty variables
 certainty = 0.0
+raw_certainty = 0.0
 
 # Drawing
 WHITE = (255, 255, 255)
@@ -240,7 +242,7 @@ def is_valid_point_in_grid(x,y,grid):
 ### RESAMPLING
 
 def resample_particles(particles, reduced_grid, pred_x=None, pred_y=None):
-    global certainty
+    global certainty, raw_certainty
     
     """
     Resample particles using stratified resampling, then add jitter to each resampled particle.
@@ -260,8 +262,9 @@ def resample_particles(particles, reduced_grid, pred_x=None, pred_y=None):
         variance = 0.5 * (np.var(xs) + np.var(ys))
         
     # Compute certainty
-    certainty = PPI**2 * 2 / (variance)
-    print(f"Certainty: {min(certainty, 1)}")
+    raw_certainty = certainty = PPI**2 * 2 / (variance)
+    certainty = min(raw_certainty, 1)
+    print(f"Certainty: {certainty} [{raw_certainty}]")
     # adjusted_num_particles = max(int(NUM_PARTICLES * max(1 - certainty, 0)), 1000)
 
     # Get inidices of a stratified resample using weights
@@ -303,7 +306,7 @@ def resample_particles(particles, reduced_grid, pred_x=None, pred_y=None):
         
         # Note that particles have already been reweighted
 
-    return new_particles, variance, certainty
+    return new_particles, variance, raw_certainty
 
 ### PARTICLE
 class Particle:

@@ -41,7 +41,7 @@ GripperController g_gripperController(&g_gripper);
 static ControllerGeneric* primaryControllers[] = {
 	&g_peripheralForwardingController,
 	&g_lidarController,
-    // &g_ultrasonicController
+    &g_ultrasonicController,
     &g_gripperController
 };
 TASKMASTER_DECLARE(primaryTaskmaster, &g_externalComms, primaryControllers)
