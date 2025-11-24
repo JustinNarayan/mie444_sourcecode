@@ -14,7 +14,7 @@ LIDAR_ZERO_ANGLE_OFFSET_REAL = -48.0  # degrees
 LIDAR_ZERO_ANGLE_OFFSET_SIMULATED = 0.0  # degrees
 L = 3.73771654 # inches, 94.938 mm - DISTANCE_FROM_OBJECT_CENTER_TO_WHEEL_MIDPOINT
 GRIPPER_WIDTH = 2.5
-GRIPPER_LENGTH = 2.5
+GRIPPER_LENGTH = 6
 
 class LidarPointReading:
     """
@@ -265,6 +265,19 @@ def update_lidar_plot(_lidar_fig, _lidar_ax, _lidar_scatter, lidar_reading, ultr
     # Draw a short line facing straight up from (0,0)
     dir_len = 0.05 * max_range  # length of the direction indicator (adjust as desired)
     _lidar_ax.plot([0.0, 0.0], [0.0, dir_len], color='blue', linewidth=2, zorder=2)
+    
+    # --- Draw gripper rectangle ---
+    rect = plt.Rectangle(
+        (-GRIPPER_WIDTH/2, 0),         # (x_min, y_min)
+        GRIPPER_WIDTH,                 # width  (spans in x)
+        GRIPPER_LENGTH,                 # height (spans in y)
+        fill=False,
+        edgecolor='green',
+        linewidth=2,
+        zorder=2
+    )
+    _lidar_ax.add_patch(rect)
+    
     if not normalized:
         # Plot circle of radius L
         circle = plt.Circle((0, 0), L, fill=False, edgecolor='green', linewidth=1.5, zorder=1)

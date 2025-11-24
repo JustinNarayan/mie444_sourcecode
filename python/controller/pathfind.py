@@ -1,147 +1,150 @@
 import math
 import numpy as np
 from mcl2.mcl_main import get_pathfind_vars
+from collections import deque
 
 # Coords
-LOADING_ZONE = (4, 21, 4, 21) # xmax, ymax, xmax, ymax
+LOADING_ZONE = (4, 21, 4, 21) # xmax, ymax, xmax, ymaximport math
 
-# Tunable parameters
-PATHFIND_MAX_DX = 6       # inches
-PATHFIND_MAX_DY = 6       # inches
-PATHFIND_MAX_DTHETA = 15  # degrees
+PATHFIND_MAX_DX = 6
+PATHFIND_MAX_DY = 6
+PATHFIND_MAX_DTHETA = 75  # degrees
 
-WEIGHT_DX = 1.0
-WEIGHT_DY = 0.5
-WEIGHT_DTHETA = 0.3
-
-MIN_CLEARANCE = 1.5  # inches from obstacles/walls
-
-# Directions for candidate moves (dx, dy)
-CANDIDATE_MOVES = [
-    (PATHFIND_MAX_DX, 0),    # +X
-    (0, PATHFIND_MAX_DY),    # +Y
-    (0, -PATHFIND_MAX_DY),   # -Y
-]
-
-def compute_wall_squareness(grid, x, y, check_range=5):
-    
-    max_x, max_y = grid.shape
-    ix, iy = int(round(x)), int(round(y))
-
-    # horizontal squareness
-    left_dist = 0
-    for dx in range(1, check_range + 1):
-        nx = max(ix - dx, 0)
-        if grid[nx, iy] == 1:
-            break
-        left_dist += 1
-
-    right_dist = 0
-    for dx in range(1, check_range + 1):
-        nx = min(ix + dx, max_x - 1)
-        if grid[nx, iy] == 1:
-            break
-        right_dist += 1
-
-    squareness_x = abs(left_dist - right_dist)
-
-    # vertical squareness
-    top_dist = 0
-    for dy in range(1, check_range + 1):
-        ny = min(iy + dy, max_y - 1)
-        if grid[ix, ny] == 1:
-            break
-        top_dist += 1
-
-    bottom_dist = 0
-    for dy in range(1, check_range + 1):
-        ny = max(iy - dy, 0)
-        if grid[ix, ny] == 1:
-            break
-        bottom_dist += 1
-
-    squareness_y = abs(top_dist - bottom_dist)
-    return squareness_x + squareness_y  # smaller = better
-
-def pathfind_step_region(target_region):
-    """
-    Decide a single movement toward a target region.
-    target_region: (xmin, xmax, ymin, ymax)
-    Returns (dX, dY, dTheta) in inches/degrees
-    """
+# -------------------------------------------------------------
+# 1️⃣ Alignment function
+# -------------------------------------------------------------
+def align_in_maze():
     grid, x, y, theta = get_pathfind_vars()
-    print(f"pathfinding from (x={x}, y={y}, theta={theta})")
-    
-    xmin, xmax, ymin, ymax = target_region
-
-    # Check if current position is already inside target
-    if xmin <= x <= xmax and ymin <= y <= ymax:
-        return 0, 0, 0
-
-    # Use the center of the region as temporary target
-    target_x = (xmin + xmax) / 2
-    target_y = (ymin + ymax) / 2
-
-    max_x, max_y = grid.shape
+    max_y, max_x = grid.shape
     ix, iy = int(round(x)), int(round(y))
 
-    # Candidate moves: dx, dy, dtheta
-    candidate_moves = []
+    def wall_position(dx, dy, max_dist=60):
+        for d in range(1, max_dist+1):
+            nx = ix + dx*d
+            ny = iy + dy*d
+            if nx < 0 or nx >= max_x or ny < 0 or ny >= max_y:
+                return d-1
+            if grid[ny, nx] == 1:
+                return d-1
+        return max_dist
 
-    # 1. Translational moves
-    for dx, dy in CANDIDATE_MOVES:
-        nx, ny = x + dx, y + dy
+    dirs = [("+X",1,0), ("-X",-1,0), ("+Y",0,1), ("-Y",0,-1)]
+    openness = [(wall_position(dx,dy), name, dx, dy) for (name,dx,dy) in dirs]
+    openness.sort(reverse=True)
+    best_dist, best_name, bdx, bdy = openness[0]
 
-        # Check bounds
-        if nx < 0 or nx >= max_x or ny < 0 or ny >= max_y:
+    # Rotate toward most open direction
+    desired_theta = math.atan2(bdy, bdx)
+    dtheta = desired_theta - theta
+    dtheta = (dtheta + math.pi) % (2*math.pi) - math.pi
+    dtheta = np.clip(dtheta, -math.radians(PATHFIND_MAX_DTHETA), math.radians(PATHFIND_MAX_DTHETA))
+
+    dx_cmd, dy_cmd = 0.0, 0.0
+    if best_name in ("+X","-X"):
+        up  = wall_position(0,+1)
+        down = wall_position(0,-1)
+        wall_up_y = y + up
+        wall_down_y = y - down
+        corridor_center_y = (wall_up_y + wall_down_y) * 0.5
+        dy_cmd = np.clip(corridor_center_y - y, -PATHFIND_MAX_DY, PATHFIND_MAX_DY)
+    else:
+        right = wall_position(+1,0)
+        left  = wall_position(-1,0)
+        wall_right_x = x + right
+        wall_left_x  = x - left
+        corridor_center_x = (wall_right_x + wall_left_x) * 0.5
+        dx_cmd = np.clip(corridor_center_x - x, -PATHFIND_MAX_DX, PATHFIND_MAX_DX)
+
+    # Damp translation if huge rotation
+    if abs(dtheta) > math.radians(135):
+        dx_cmd *= 0.5
+        dy_cmd *= 0.5
+
+    return dx_cmd, dy_cmd, math.degrees(dtheta)
+
+# -------------------------------------------------------------
+# 2️⃣ Check alignment
+# -------------------------------------------------------------
+def is_aligned_in_maze():
+    dx, dy, dtheta = align_in_maze()
+    # aligned if both translation and rotation are small
+    return abs(dx) < 0.5 and abs(dy) < 0.5 and abs(dtheta) < 10.0
+
+# -------------------------------------------------------------
+# 3️⃣ BFS shortest path to target
+# -------------------------------------------------------------
+def bfs_shortest_path(grid, start, targets):
+    """Return a list of (x,y) from start to nearest target."""
+    max_y, max_x = grid.shape
+    visited = set()
+    q = deque()
+    q.append((start, [start]))
+
+    while q:
+        (cx, cy), path = q.popleft()
+        if (cx, cy) in visited:
             continue
+        visited.add((cx, cy))
 
-        # Check obstacle at target grid cell (1-inch resolution)
-        ix_n, iy_n = int(round(nx)), int(round(ny))
-        if grid[ix_n, iy_n] == 1:
-            continue
+        if any(tx0 <= cx <= tx1 and ty0 <= cy <= ty1 for (tx0,tx1,ty0,ty1) in targets):
+            return path  # found a point inside a target region
 
-        # Clearance: 3x3 neighborhood
-        clearance_ok = True
-        for cx in range(max(ix_n - 1, 0), min(ix_n + 2, max_x)):
-            for cy in range(max(iy_n - 1, 0), min(iy_n + 2, max_y)):
-                if grid[cx, cy] == 1:
-                    clearance_ok = False
-                    break
-            if not clearance_ok:
-                break
-        if not clearance_ok:
-            continue
+        # Explore neighbors (4 cardinal)
+        for nx, ny in [(cx+1,cy),(cx-1,cy),(cx,cy+1),(cx,cy-1)]:
+            if 0 <= nx < max_x and 0 <= ny < max_y and grid[ny][nx] == 0:
+                q.append(((nx,ny), path + [(nx,ny)]))
+    return None  # no path found
 
-        candidate_moves.append((dx, dy, 0))
+# -------------------------------------------------------------
+# 4️⃣ Move along path
+# -------------------------------------------------------------
+def move_along_path(path):
+    grid, x, y, theta = get_pathfind_vars()
+    if len(path) < 2:
+        return 0.0, 0.0, 0.0  # already at target
 
-    # 2. Rotational move toward target
-    target_angle = math.atan2(target_y - y, target_x - x)
-    delta_theta = math.degrees(target_angle - theta)
-    delta_theta = ((delta_theta + 180) % 360) - 180  # wrap -180..180
-    if abs(delta_theta) > 1e-3:
-        dtheta = max(-PATHFIND_MAX_DTHETA, min(PATHFIND_MAX_DTHETA, delta_theta))
-        candidate_moves.append((0, 0, dtheta))
+    next_x, next_y = path[1]
+    dx_cmd = np.clip(next_x - x, -PATHFIND_MAX_DX, PATHFIND_MAX_DX)
+    dy_cmd = np.clip(next_y - y, -PATHFIND_MAX_DY, PATHFIND_MAX_DY)
 
-    # 3. Score candidates
-    best_score = -float("inf")
-    best_move = (0, 0, 0)
+    # Rotate toward movement direction
+    if dx_cmd != 0 or dy_cmd != 0:
+        desired_theta = math.atan2(dy_cmd, dx_cmd)
+        dtheta = desired_theta - theta
+        dtheta = (dtheta + math.pi) % (2*math.pi) - math.pi
+        dtheta_cmd = np.clip(dtheta, -math.radians(PATHFIND_MAX_DTHETA), math.radians(PATHFIND_MAX_DTHETA))
+    else:
+        dtheta_cmd = 0.0
 
-    for dx, dy, dtheta in candidate_moves:
-        move_score = WEIGHT_DX * dx + WEIGHT_DY * abs(dy) + WEIGHT_DTHETA * abs(dtheta)
+    return dx_cmd, dy_cmd, math.degrees(dtheta_cmd)
 
-        # Distance to target region (center)
-        new_x = x + dx
-        new_y = y + dy
-        dist_to_target = math.hypot(target_x - new_x, target_y - new_y)
-        move_score += 10.0 / (dist_to_target + 0.1)
+# -------------------------------------------------------------
+# 5️⃣ Main pathfinding function
+# -------------------------------------------------------------
+def pathfind_step_region(target_region):
+    grid, x, y, theta = get_pathfind_vars()
 
-        # Squareness penalty
-        squareness = compute_wall_squareness(grid, new_x, new_y)
-        move_score -= squareness
+    # 1. Already in target?
+    if target_region[0] <= x <= target_region[1] and target_region[2] <= y <= target_region[3]:
+        return 0.0, 0.0, 0.0
 
-        if move_score > best_score:
-            best_score = move_score
-            best_move = (dx, dy, dtheta)
+    # 2. Align in maze first
+    if not is_aligned_in_maze():
+        print ("not aligned!")
+        return align_in_maze()
 
-    return best_move
+    # 3. Compute BFS path
+    start = (int(round(x)), int(round(y)))
+    targets = [(target_region[0], target_region[1], target_region[2], target_region[3])]
+    path = bfs_shortest_path(grid, start, targets)
+    if not path or len(path) < 2:
+        # Fallback: just move toward center
+        target_x = (target_region[0]+target_region[1])/2
+        target_y = (target_region[2]+target_region[3])/2
+        dx_cmd = np.clip(target_x - x, -PATHFIND_MAX_DX, PATHFIND_MAX_DX)
+        dy_cmd = np.clip(target_y - y, -PATHFIND_MAX_DY, PATHFIND_MAX_DY)
+        return dx_cmd, dy_cmd, 0.0
+
+    # 4. Move along path
+    print ("pathfinding!")
+    return move_along_path(path)

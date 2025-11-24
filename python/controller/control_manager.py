@@ -9,10 +9,10 @@ from gripper_control_manager import send_gripper_request
 from mcl2.mcl_main import reset_localization
 
 DRIVETRAIN_KEYS = ["q", "z", "a", "d", "w", "s"]
-DRIVETRAIN_AUTOMATED_KEYS = ["y", "h", "g", "j", "t", "u", "b"]
+DRIVETRAIN_AUTOMATED_KEYS = ["y", "h", "g", "j", "t", "u"] # "b"
 CURRENT_AUTOMATED_COMMAND_KEY = "b"
 LIDAR_KEYS = ["l"]
-ULTRASONIC_KEYS = ["p"]
+ULTRASONIC_KEYS = [] #["p"]
 LOCALIZATION_RESET_KEYS = ['`']
 ENCODER_KEYS = ["e"]
 GRIPPER_KEYS = ['1', '2', '3', '4', '5', '0']
@@ -33,10 +33,10 @@ DRIVETRAIN_AUTOMATED_KEYS_MAPPING = {
     # key: [delta_x (inches), delta_y (inches), delta_theta (radians)]
     "y": AutomatedCommand(DELTA_POS, 0.0, 0.0),  # forward
     "h": AutomatedCommand(-DELTA_POS, 0.0, 0.0),  # backward
-    "g": AutomatedCommand(0.0, 0.0, DELTA_ANG),  # rotate left
-    "j": AutomatedCommand(0.0, 0.0, -DELTA_ANG),  # rotate right
-    "t": AutomatedCommand(0.0, DELTA_POS, 0.0),  # strate left
-    "u": AutomatedCommand(0.0, -DELTA_POS, 0.0),  # strage right
+    "g": AutomatedCommand(0.0, 0.0, -DELTA_ANG),  # rotate left
+    "j": AutomatedCommand(0.0, 0.0, DELTA_ANG),  # rotate right
+    "t": AutomatedCommand(0.0, -DELTA_POS, 0.0),  # strate left
+    "u": AutomatedCommand(0.0, DELTA_POS, 0.0),  # strage right
     "b": AutomatedCommand(0,0,0)
 }
 
