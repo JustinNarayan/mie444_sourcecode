@@ -13,8 +13,8 @@ EPSILON = 1e-12                # tiny value to avoid division by zero in normali
 LIDAR_ZERO_ANGLE_OFFSET_REAL = -48.0  # degrees
 LIDAR_ZERO_ANGLE_OFFSET_SIMULATED = 0.0  # degrees
 L = 3.73771654 # inches, 94.938 mm - DISTANCE_FROM_OBJECT_CENTER_TO_WHEEL_MIDPOINT
-GRIPPER_HEIGHT = 2.5
-GRIPPER_LENGTH = 2.5
+GRIPPER_WIDTH = 2.5
+GRIPPER_LENGTH = 6
 
 class LidarPointReading:
     """
@@ -268,11 +268,11 @@ def update_lidar_plot(_lidar_fig, _lidar_ax, _lidar_scatter, lidar_reading, ultr
     
     # --- Draw gripper rectangle ---
     rect = plt.Rectangle(
-        (-GRIPPER_HEIGHT/2, 0),         # (x_min, y_min)
-        GRIPPER_HEIGHT,                 # width  (spans in x)
+        (-GRIPPER_WIDTH/2, 0),         # (x_min, y_min)
+        GRIPPER_WIDTH,                 # width  (spans in x)
         GRIPPER_LENGTH,                 # height (spans in y)
         fill=False,
-        edgecolor='blue',
+        edgecolor='green',
         linewidth=2,
         zorder=2
     )
