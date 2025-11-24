@@ -2,6 +2,7 @@ from encoder_reading import EncoderReading
 from lidar_reading import LidarReading
 from mcl2.mcl_main import step_localization, is_localized
 from pathfind import LOADING_ZONE, pathfind_step_region
+from inverse_kinematics import inverse_kinematics
 import math
 import numpy as np
 
@@ -10,23 +11,6 @@ current_encoder_reading: EncoderReading = EncoderReading()
 last_sent_encoder_reading: EncoderReading | None = None
 post_lidar_encoder_reading: EncoderReading | None = None
 last_best_direction = None
-
-# Robot parameters
-L = 3.569  # inches - DISTANCE_FROM_OBJECT_CENTER_TO_WHEEL_MIDPOINT
-
-DEG_TO_RAD = math.pi / 180.0
-THETA_1 = 180 * DEG_TO_RAD  # radians
-THETA_2 = 60 * DEG_TO_RAD  # radians
-THETA_3 = 300 * DEG_TO_RAD  # radians
-
-A = np.array([
-    [-math.sin(THETA_1), math.cos(THETA_1), L],
-    [-math.sin(THETA_2), math.cos(THETA_2), L],
-    [-math.sin(THETA_3), math.cos(THETA_3), L]
-])
-
-# Inverse of A
-A_INV = np.linalg.inv(A)
 
 # Drivetrain command constraints (tweakable)
 DRIVETRAIN_COMMAND_MAX_DX = 6  # inches (max forward when allowed)
@@ -46,7 +30,7 @@ MIN_LIDAR_DENSITY_PERIPHERAL = 0.3
 MIN_LIDAR_DENSITY_SEMI = 0.4
 FRONT_HALF_ANGLE = 10.0           # degrees
 TOTAL_HALF_ANGLE = 30.0           # degrees 
-TOTAL_SEMI_ANGLE = 75.0           # degrees
+SEMI_HALF_ANGLE = 75.0           # degrees
 # peripheral region is the ±30 band excluding the central ±15 band
 
 MIN_CLEARANCE_FROM_WALL = 0.65     # inches minimum desired clearance (very conservative default)
@@ -92,22 +76,6 @@ def prepare_info_for_localization_step(lidar_reading: LidarReading):
 
     # Clear post-lidar reading
     post_lidar_encoder_reading = None
-
-
-def inverse_kinematics(initial: EncoderReading, current: EncoderReading):
-    """
-    Compute delta_x, delta_y, delta_theta between two encoder readings.
-    """
-    inital_readings = initial.get_readings()
-    final_readings = current.get_readings()
-    motor_displacements = np.array([
-        inital_readings[0] - final_readings[0],
-        inital_readings[1] - final_readings[1],
-        inital_readings[2] - final_readings[2],
-    ])
-    Robot_displacement = A_INV @ motor_displacements
-    delta_x, delta_y, delta_theta = Robot_displacement[0], Robot_displacement[1], Robot_displacement[2]
-    return delta_x, delta_y, delta_theta
 
 
 def _compute_cartesian(points):
@@ -181,16 +149,19 @@ def get_free_direction_drivetrain_command(lidar_reading: LidarReading):
         # Masks for forward and peripheral
         mask_total = _sector_mask(angles_deg, candidate, TOTAL_HALF_ANGLE)
         mask_front = _sector_mask(angles_deg, candidate, FRONT_HALF_ANGLE)
+        mask_big_semi = _sector_mask(angles_deg, candidate, SEMI_HALF_ANGLE)
 
         # Peripheral is total minus front
         mask_peripheral = mask_total & (~mask_front)
+        mask_just_semi = mask_big_semi & (~mask_total)
 
         # Densities normalized by angular width (degrees)
         front_density = np.sum(mask_front) / (2 * FRONT_HALF_ANGLE + EPS)
         peripheral_density = np.sum(mask_peripheral) / (2 * (TOTAL_HALF_ANGLE - FRONT_HALF_ANGLE) + EPS)
-
+        semi_density = np.sum(mask_just_semi) / (2 * (SEMI_HALF_ANGLE - FRONT_HALF_ANGLE) + EPS)
+    
         # Require minimum densities
-        if front_density < MIN_LIDAR_DENSITY_FORWARD or peripheral_density < MIN_LIDAR_DENSITY_PERIPHERAL:
+        if front_density < MIN_LIDAR_DENSITY_FORWARD or peripheral_density < MIN_LIDAR_DENSITY_PERIPHERAL or semi_density < MIN_LIDAR_DENSITY_SEMI:
             continue
 
         # Forward distances (projected) for points in the total sector:
@@ -328,7 +299,7 @@ def get_free_direction_drivetrain_command(lidar_reading: LidarReading):
         return 0, 0, min(ROTATE_AND_MOVE_MAX_DTHETA, TARGET_DTHETA_TO_ZERO)
 
     dX = int(round(move_distance * ufx))
-    dY = int(round(move_distance * ufy))
+    dY = -int(round(move_distance * ufy))
 
     return dX, dY, dTheta
 
@@ -336,5 +307,5 @@ def get_free_direction_drivetrain_command(lidar_reading: LidarReading):
 def get_drivetrain_command(lidar_reading: LidarReading):
     if not is_localized():
         return get_free_direction_drivetrain_command(lidar_reading)
-    else:
-        return pathfind_step_region(LOADING_ZONE)
+    # else:
+    #     return pathfind_step_region(LOADING_ZONE)

@@ -10,7 +10,7 @@ from message import (
     SHOULD_NOT_PRINT_TO_SCREEN,
 )
 from lidar_reading import LidarPointReading, LidarReading, init_lidar_plot, update_lidar_plot
-from ultrasonic_reading import UltrasonicPointReading, UltrasonicReading, init_ultrasonic_plot, update_ultrasonic_plot
+from ultrasonic_reading import UltrasonicPointReading, UltrasonicReading
 from automated_command import AutomatedCommand
 from encoder_reading import EncoderReading
 from localization import (
@@ -24,7 +24,7 @@ from encoder_control_manager import send_encoder_request
 
 # Visualization
 VISUALIZE_LIDAR = True
-VISUALIZE_ULTRASONIC = False
+VISUALIZE_ULTRASONIC = VISUALIZE_LIDAR and True
 LOCALIZATION = True
 
 
@@ -41,6 +41,8 @@ def start_receiver(ser, stop_event, lidar_reading: LidarReading, ultrasonic_read
         buffer = bytearray()
         synced = False
         lidar_reading_ready_for_localization = False
+        waiting_on_ultrasonic_encoder = False
+        waiting_on_ultrasonic_vis = False
 
         # Lidar vis
         _lidar_fig = None
@@ -48,7 +50,7 @@ def start_receiver(ser, stop_event, lidar_reading: LidarReading, ultrasonic_read
         _lidar_scatter = None
         
         # Ultrasonic vis
-        _us_fig = None,
+        _us_fig = None
         _us_ax = None
         _us_scatter = None
 
@@ -78,10 +80,10 @@ def start_receiver(ser, stop_event, lidar_reading: LidarReading, ultrasonic_read
                                 _lidar_fig, _lidar_ax, _lidar_scatter
                             )
                         # Initialize ultrasonic vis
-                        if VISUALIZE_ULTRASONIC:
-                            _us_fig, _us_ax, _us_scatter = init_ultrasonic_plot(
-                                _us_fig, _us_ax, _us_scatter
-                            )
+                        # if VISUALIZE_ULTRASONIC:
+                        #     _us_fig, _us_ax, _us_scatter = init_ultrasonic_plot(
+                        #         _us_fig, _us_ax, _us_scatter
+                        #     )
                         
                     else:
                         continue
@@ -113,8 +115,10 @@ def start_receiver(ser, stop_event, lidar_reading: LidarReading, ultrasonic_read
                                                 _lidar_ax,
                                                 _lidar_scatter,
                                                 lidar_reading,
+                                                ultrasonic_reading if waiting_on_ultrasonic_vis else None,
                                             )
                                         )
+                                        waiting_on_ultrasonic_vis = False
                             
                             # --- ULTRASONIC integration ---
                             if msg.type == MessageType.UltrasonicPointReading:
@@ -130,16 +134,13 @@ def start_receiver(ser, stop_event, lidar_reading: LidarReading, ultrasonic_read
                                 if msg.get_content() == b"complete":  # complete
                                     # Ping encoder after receiving a complete ultrasonic scan
                                     send_encoder_request(ser)
-                                    # Visualize
-                                    if VISUALIZE_ULTRASONIC:
-                                        _us_fig, _us_ax, _us_scatter = (
-                                            update_ultrasonic_plot(
-                                                _us_fig,
-                                                _us_ax,
-                                                _us_scatter,
-                                                ultrasonic_reading,
-                                            )
-                                        )
+                                    waiting_on_ultrasonic_encoder = True
+
+                            # --- AUTOMATION ---
+                            if msg.type == MessageType.DrivetrainAutomatedResponse:
+                                resp = msg.decode()
+                                if resp in ["attarget", "overshot", "abort"]:
+                                    current_automated_command.make_complete()
 
                             # --- ENCODER integration ---
                             elif msg.type == MessageType.DrivetrainEncoderDistances:
@@ -165,6 +166,12 @@ def start_receiver(ser, stop_event, lidar_reading: LidarReading, ultrasonic_read
                                     dX, dY, dTheta = get_drivetrain_command(lidar_reading)
                                     print(f"command: {dX}, {dY}, {dTheta}")
                                     current_automated_command.set(dX, dY, dTheta)
+                                    
+                                # Ultrasonic vis
+                                if (VISUALIZE_ULTRASONIC and waiting_on_ultrasonic_encoder):
+                                    ultrasonic_reading.set_final_encoder(current_encoder_reading)
+                                    waiting_on_ultrasonic_encoder = False
+                                    waiting_on_ultrasonic_vis = True
 
                             if msg.get_type() not in SHOULD_NOT_PRINT_TO_SCREEN:
                                 print_rcvd_message(msg)
