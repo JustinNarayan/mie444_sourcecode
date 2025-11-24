@@ -66,7 +66,7 @@ def start_keyboard_listener(ser, stop_event, lidar_reading, ultrasonic_reading, 
                 if not getattr(keyboard_thread, "_automate_pressed", False):
                     automate_mode = not automate_mode
                     print(f"Automated mode {'enabled' if automate_mode else 'disabled'}")
-                    keyboard_thread._automate_pressed = True
+                    keyboard_thread._automate_pressed = False #True
             else:
                 keyboard_thread._automate_pressed = False
             
