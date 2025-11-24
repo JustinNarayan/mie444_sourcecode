@@ -58,8 +58,8 @@ public:
      */
     void goHome(void)
     {
-        this->servoArm->reposition(GRIPPER_ARM_RETRACTED_POS);
-        this->servoWrist->reposition(GRIPPER_WRIST_REST_POS);
+        this->servoArm->reposition(GRIPPER_ARM_RETRACTED_POS, true);
+        this->servoWrist->reposition(GRIPPER_WRIST_REST_POS, true);
         this->atHome = true;
         this->armExtended = false;
         this->wristClosed = false;
