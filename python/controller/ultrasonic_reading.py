@@ -7,8 +7,8 @@ import numpy as np
 from encoder_reading import EncoderReading
 from inverse_kinematics import inverse_kinematics, DEG_TO_RAD, L
 
-ULTRASONIC_1_OFFSET_TO_FORWARD = 0 * DEG_TO_RAD
-ULTRASONIC_2_OFFSET_TO_FORWARD = -120 * DEG_TO_RAD
+ULTRASONIC_1_OFFSET_TO_FORWARD = 120 * DEG_TO_RAD
+ULTRASONIC_2_OFFSET_TO_FORWARD = 0 * DEG_TO_RAD
 ULTRASONIC_RADIUS = 3.0 # inches
 ULTRASONIC_MAX_X = 40
 ULTRASONIC_MAX_Y = 40
@@ -34,9 +34,9 @@ class UltrasonicPointReading:
         # 1. Sensor direction
         if self.which_ultrasonic == 1:
             offset = ULTRASONIC_1_OFFSET_TO_FORWARD
-            return 0,0
         else:
             offset = ULTRASONIC_2_OFFSET_TO_FORWARD
+            return 0,0
 
         cos_o = math.cos(offset)
         sin_o = math.sin(offset)
@@ -51,8 +51,8 @@ class UltrasonicPointReading:
         
         # 4. Compute robot motion since the reading
         dX_rel, dY_rel, dTheta_rel = inverse_kinematics(
-            self.encoder_reading,
-            final_encoder_reading
+            final_encoder_reading,
+            self.encoder_reading
         )
 
         # 5. Transform point into current robot frame
